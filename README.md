@@ -1,2 +1,1 @@
-# react-typescript-component-starter
-react component project starter kit.
+# react-awesome-table
