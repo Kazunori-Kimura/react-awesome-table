@@ -71,5 +71,8 @@
                 "error"
             ]
         }
+    },
+    "dependencies": {
+        "@material-ui/styles": "^4.11.3"
     }
 }
