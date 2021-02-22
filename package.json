@@ -17,8 +17,8 @@
         "build-storybook": "build-storybook"
     },
     "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "author": "kazunori-kimura",
+    "license": "MIT",
     "devDependencies": {
         "@babel/core": "^7.12.17",
         "@rollup/plugin-commonjs": "^17.1.0",
