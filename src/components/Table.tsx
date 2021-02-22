@@ -62,6 +62,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
     const {
         page,
         pageItems,
+        total,
         emptyRows,
         lastPage,
         hasPrev,
@@ -70,8 +71,11 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         rowsPerPageOptions,
         onChangePage,
         onChangeRowsPerPage,
+        getFilterProps,
     } = usePagination({
         items: data,
+        columns,
+        getRowKey,
         rowsPerPage: 10,
         rowsPerPageOptions: [10, 30, 100],
     });
@@ -104,24 +108,30 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                 return (
                                     <th className={classes.headerCell} key={key}>
                                         {column.name}
+                                        <br />
+                                        <input type="text" {...getFilterProps(column.name)} />
                                     </th>
                                 );
                             })}
                         </tr>
                     </thead>
                     <tbody>
-                        {pageItems.map((item, rowIndex) => (
-                            <tr className={classes.row} key={getRowKey(item, rowIndex)}>
-                                {columns.map((column, colIndex) => {
-                                    const key = `awesome-table-body-${column.name}-${rowIndex}-${colIndex}`;
-                                    return (
-                                        <td className={classes.cell} key={key}>
-                                            {column.getValue(item)}
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
+                        {pageItems.map((item, rowIndex) => {
+                            const rowKey =
+                                item.length > 0 ? item[0].rowKey : `empty-row-${rowIndex}`;
+                            return (
+                                <tr className={classes.row} key={rowKey}>
+                                    {item.map((cell, colIndex) => {
+                                        const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                        return (
+                                            <td className={classes.cell} key={key}>
+                                                {cell.value}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            );
+                        })}
                         {/* empty rows */}
                         {emptyRows > 0 &&
                             [...Array(emptyRows)].map((_, index) => (
@@ -158,8 +168,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                     ))}
                 </select>
                 <span>
-                    {1 + page * rowsPerPage} -{' '}
-                    {Math.min(page * rowsPerPage + rowsPerPage, data.length)} / {data.length}
+                    {1 + page * rowsPerPage} - {Math.min(page * rowsPerPage + rowsPerPage, total)} /{' '}
+                    {total}
                 </span>
                 <span>page: {page + 1}</span>
             </div>
