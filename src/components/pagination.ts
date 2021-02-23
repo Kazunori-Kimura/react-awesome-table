@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { Cell, ColumnDefinition } from './types';
+import { Cell, ColumnDefinition, FilterProps, SortProps, SortState } from './types';
 
 interface usePaginationParams<T> {
     items: T[];
@@ -8,12 +8,6 @@ interface usePaginationParams<T> {
     page?: number;
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
-}
-
-interface FilterProps {
-    name: string;
-    value: string;
-    onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 interface usePaginationValues<T> {
@@ -29,6 +23,7 @@ interface usePaginationValues<T> {
     onChangePage: (event: unknown, page: number) => void;
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
     getFilterProps: (name: keyof T) => FilterProps;
+    getSortProps: (name: keyof T) => SortProps;
 }
 
 const defaultRowsPerPageOptions = [5, 10, 30] as const;
@@ -48,6 +43,7 @@ export const usePagination = <T>({
     const [currentPage, setPage] = useState(page);
     const [perPage, setRowsPerPage] = useState(rowsPerPage);
     const [filter, setFilter] = useState<Record<string, string>>();
+    const [sort, setSort] = useState<SortState[]>([]);
 
     // 初期化処理
     useEffect(() => {
@@ -98,6 +94,9 @@ export const usePagination = <T>({
         setFilter((state) => {
             return state ? { ...state, [name]: value } : { [name]: value };
         });
+        // ページングをリセットする
+        setPage(0);
+        // TODO: 選択状態をクリアする
     };
 
     /**
@@ -108,6 +107,52 @@ export const usePagination = <T>({
         name: `${name}`,
         value: filter ? filter[`${name}`] ?? '' : '',
         onChange: onChangeFilter,
+    });
+
+    /**
+     * ソートボタンに設定する props を生成
+     * @param name
+     */
+    const getSortProps = (name: keyof T): SortProps => ({
+        order: sort.find((e) => e.name === `${name}`)?.order,
+        onClick: () => {
+            // 1. ソートボタンをクリックした順にソート順を保持する
+            //    同じボタンが複数クリックされた場合はまず該当ソート順を削除してから
+            //    先頭にソート順を登録する
+            const order = sort.find((e) => e.name === `${name}`)?.order;
+            const newSort: SortState[] = sort.filter((e) => e.name !== `${name}`);
+            newSort.unshift({
+                name: `${name}`,
+                order: order === 'desc' ? 'asc' : 'desc',
+            });
+
+            // 2. ソート順を新しいヤツから順に適用する
+            const newData = JSON.parse(JSON.stringify(data)) as Cell<T>[][];
+            newData.sort((a, b) => {
+                for (const { name, order } of newSort) {
+                    const index = columns.findIndex((c) => c.name === name);
+                    if (a[index].value > b[index].value) {
+                        if (order === 'asc') {
+                            return 1;
+                        } else if (order === 'desc') {
+                            return -1;
+                        }
+                    } else if (a[index].value < b[index].value) {
+                        if (order === 'asc') {
+                            return -1;
+                        } else if (order === 'desc') {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+            });
+            // 3. stateの更新
+            setSort(newSort);
+            setData(newData);
+
+            // TODO: 選択状態をクリアする
+        },
     });
 
     /**
@@ -159,5 +204,6 @@ export const usePagination = <T>({
         onChangePage,
         onChangeRowsPerPage,
         getFilterProps,
+        getSortProps,
     };
 };

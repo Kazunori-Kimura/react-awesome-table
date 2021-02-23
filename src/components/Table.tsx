@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import React, { MouseEvent } from 'react';
 import { usePagination } from './pagination';
+import SortButton from './SortButton';
 import { TableDefinition } from './types';
 
 export interface TableProps<T> extends TableDefinition<T> {
@@ -72,6 +73,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         onChangePage,
         onChangeRowsPerPage,
         getFilterProps,
+        getSortProps,
     } = usePagination({
         items: data,
         columns,
@@ -108,6 +110,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                 return (
                                     <th className={classes.headerCell} key={key}>
                                         {column.name}
+                                        <SortButton {...getSortProps(column.name)} />
                                         <br />
                                         <input type="text" {...getFilterProps(column.name)} />
                                     </th>
