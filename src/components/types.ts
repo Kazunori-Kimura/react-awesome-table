@@ -74,11 +74,10 @@ export interface FilterProps {
  * セルの props
  */
 export interface CellProps {
-    onDragStart?: (event: MouseEvent) => void;
-    onDragEnter?: (event: MouseEvent) => void;
-    onDragEnd?: (event: MouseEvent) => void;
-    onDragExit?: (event: MouseEvent) => void;
     onClick?: (event: MouseEvent) => void;
     onDoubleClick?: (event: MouseEvent) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
+    onMouseDown?: (event: MouseEvent) => void;
+    onMouseOver?: (event: MouseEvent) => void;
+    onMouseUp?: (event: MouseEvent) => void;
 }

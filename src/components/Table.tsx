@@ -80,6 +80,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         hasNext,
         rowsPerPage,
         rowsPerPageOptions,
+        tbodyRef,
         onChangePage,
         onChangeRowsPerPage,
         getFilterProps,
@@ -129,7 +130,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                             })}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody ref={tbodyRef}>
                         {pageItems.map((item, rowIndex) => {
                             const rowKey =
                                 item.length > 0 ? item[0].rowKey : `empty-row-${rowIndex}`;
