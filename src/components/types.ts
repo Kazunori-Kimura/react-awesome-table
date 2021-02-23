@@ -74,9 +74,17 @@ export interface FilterProps {
  * セルの props
  */
 export interface CellProps {
-    onClick?: (event: MouseEvent) => void;
     onDoubleClick?: (event: MouseEvent) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
+    onMouseDown?: (event: MouseEvent) => void;
+    onMouseOver?: (event: MouseEvent) => void;
+    onMouseUp?: (event: MouseEvent) => void;
+}
+
+/**
+ * 行頭のセルの props
+ */
+export interface RowHeaderCellProps {
     onMouseDown?: (event: MouseEvent) => void;
     onMouseOver?: (event: MouseEvent) => void;
     onMouseUp?: (event: MouseEvent) => void;

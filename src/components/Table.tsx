@@ -40,10 +40,14 @@ const useStyles = makeStyles({
         borderRightWidth: 1,
         borderRightStyle: 'solid',
         borderRightColor: '#ccc',
+        backgroundColor: 'rgb(247,248,249)',
         padding: '0.3rem',
     },
     row: {
         minHeight: '1.5rem',
+    },
+    rowHeaderCell: {
+        width: '1.4rem',
     },
     cell: {
         borderBottomWidth: 1,
@@ -86,6 +90,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         getFilterProps,
         getSortProps,
         getCellProps,
+        getRowHeaderCellProps,
     } = usePagination({
         items: data,
         columns,
@@ -117,6 +122,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                 <table className={classes.table}>
                     <thead>
                         <tr className={classes.headerRow}>
+                            <th className={classnames(classes.headerCell, classes.rowHeaderCell)} />
                             {columns.map((column, index) => {
                                 const key = `awesome-table-header-${column.name}-${index}`;
                                 return (
@@ -136,6 +142,13 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                 item.length > 0 ? item[0].rowKey : `empty-row-${rowIndex}`;
                             return (
                                 <tr className={classes.row} key={rowKey}>
+                                    <th
+                                        className={classnames(
+                                            classes.headerCell,
+                                            classes.rowHeaderCell
+                                        )}
+                                        {...getRowHeaderCellProps(rowIndex)}
+                                    />
                                     {item.map((cell, colIndex) => {
                                         const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
                                         return (

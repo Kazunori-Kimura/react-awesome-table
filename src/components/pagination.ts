@@ -5,6 +5,7 @@ import {
     CellProps,
     ColumnDefinition,
     FilterProps,
+    RowHeaderCellProps,
     SortProps,
     SortState,
 } from './types';
@@ -34,6 +35,7 @@ interface usePaginationValues<T> {
     getFilterProps: (name: keyof T) => FilterProps;
     getSortProps: (name: keyof T) => SortProps;
     getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
+    getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
 }
 
 /**
@@ -99,6 +101,8 @@ export const usePagination = <T>({
     const [selection, setSelection] = useState<CellLocation[]>([]);
     // ドラッグ中かどうか
     const [dragging, setDragging] = useState(false);
+    // 行のドラッグ
+    const [draggingRow, setDraggingRow] = useState(false);
 
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();
@@ -128,6 +132,7 @@ export const usePagination = <T>({
                 console.log('drag end.');
                 // ドラッグ強制終了
                 setDragging(false);
+                setDraggingRow(false);
             }
         }
     };
@@ -311,8 +316,8 @@ export const usePagination = <T>({
         if (editCell) {
             // TODO: 変更を確定
             // 編集状態を解除
+            newData[editCell.row][editCell.column].editing = false;
             setEditCell(undefined);
-            newData[row][colIndex].editing = false;
         }
 
         // 選択状態を解除
@@ -343,23 +348,72 @@ export const usePagination = <T>({
     };
 
     /**
+     * 行頭のセルをクリック
+     * @param event
+     * @param rowIndex
+     */
+    const onRowClick = (event: MouseEvent, rowIndex: number) => {
+        // 全体を通しての行番号
+        const row = rowIndex + currentPage * perPage;
+
+        const newData = clone(data);
+
+        // 編集中だった場合
+        if (editCell) {
+            // TODO: 変更を確定
+            // 編集状態を解除
+            newData[editCell.row][editCell.column].editing = false;
+            setEditCell(undefined);
+        }
+
+        // 選択状態を解除
+        clearSelection(newData, selection);
+        const newSelection: CellLocation[] = [];
+
+        if (currentCell && event.shiftKey) {
+            // シフトキーを押しながらセルクリック -> 範囲選択
+            // カレントセルは変更しない
+            const rangeStart: CellLocation = {
+                row: currentCell.row,
+                column: 0,
+            };
+            const rangeEnd: CellLocation = {
+                row,
+                column: newData[row].length - 1,
+            };
+            const selections = selectRange(newData, rangeStart, rangeEnd);
+            newSelection.push(...selections);
+        } else {
+            // 単一行選択
+            const rangeStart: CellLocation = { row, column: 0 };
+            const rangeEnd: CellLocation = {
+                row,
+                column: newData[row].length - 1,
+            };
+            const selections = selectRange(newData, rangeStart, rangeEnd);
+            newSelection.push(...selections);
+
+            // 前のカレントセルを解除
+            if (currentCell) {
+                newData[currentCell.row][currentCell.column].current = false;
+            }
+
+            // 選択行の先頭をカレントセルとする
+            newData[rangeStart.row][rangeStart.column].current = true;
+            setCurrentCell(rangeStart);
+        }
+
+        setData(newData);
+        setSelection(newSelection);
+    };
+
+    /**
      * セルに設定する props を生成
      * @param cell
      * @param rowIndex
      * @param colIndex
      */
     const getCellProps = (cell: Cell<T>, rowIndex: number, colIndex: number) => ({
-        /**
-         * セルのクリック
-         * @param event
-         */
-        onClick: (event: MouseEvent) => {
-            // 全体を通しての行番号
-            const row = rowIndex + currentPage * perPage;
-            // 現在セルの位置
-            const location: CellLocation = { row, column: colIndex };
-            console.log('click', location);
-        },
         /**
          * セルのダブルクリック
          */
@@ -370,7 +424,10 @@ export const usePagination = <T>({
             const location: CellLocation = { row, column: colIndex };
             console.log('double click', location);
         },
-        // ドラッグ
+        /**
+         * セルのクリック / ドラッグの開始
+         * @param event
+         */
         onMouseDown: (event: MouseEvent) => {
             // 全体を通しての行番号
             const row = rowIndex + currentPage * perPage;
@@ -383,7 +440,11 @@ export const usePagination = <T>({
             // ドラッグ開始
             setDragging(true);
         },
-        onMouseOver: (event: MouseEvent) => {
+        /**
+         * ドラッグ中
+         * @param event
+         */
+        onMouseOver: () => {
             if (dragging) {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
@@ -402,6 +463,9 @@ export const usePagination = <T>({
                 setData(newData);
             }
         },
+        /**
+         * ドラッグ終了
+         */
         onMouseUp: () => {
             // 全体を通しての行番号
             const row = rowIndex + currentPage * perPage;
@@ -410,6 +474,54 @@ export const usePagination = <T>({
             console.log('mouse up', location);
             // ドラッグ終了
             setDragging(false);
+        },
+    });
+
+    /**
+     * 行頭セルに設定する props を生成
+     * @param rowIndex
+     */
+    const getRowHeaderCellProps = (rowIndex: number): RowHeaderCellProps => ({
+        onMouseDown: (event: MouseEvent) => {
+            // 全体を通しての行番号
+            const row = rowIndex + currentPage * perPage;
+            // 現在セルの位置
+            const location: CellLocation = { row, column: 0 };
+            console.log('row mouse down', location);
+
+            // クリック時の処理
+            onRowClick(event, row);
+
+            // ドラッグ開始
+            setDraggingRow(true);
+        },
+        onMouseOver: (event: MouseEvent) => {
+            if (draggingRow) {
+                // 全体を通しての行番号
+                const row = rowIndex + currentPage * perPage;
+                // 現在セルの位置
+                const location: CellLocation = { row, column: data[row].length - 1 };
+                console.log('row mouse over', location);
+
+                // 選択範囲を更新
+                const newData = clone(data);
+                // 選択状態を解除
+                clearSelection(newData, selection);
+                // 範囲選択
+                const selections = selectRange(newData, currentCell, location);
+                // state更新
+                setSelection(selections);
+                setData(newData);
+            }
+        },
+        onMouseUp: () => {
+            // 全体を通しての行番号
+            const row = rowIndex + currentPage * perPage;
+            // 現在セルの位置
+            const location: CellLocation = { row, column: 0 };
+            console.log('row mouse up', location);
+            // ドラッグ終了
+            setDraggingRow(false);
         },
     });
 
@@ -465,5 +577,6 @@ export const usePagination = <T>({
         getFilterProps,
         getSortProps,
         getCellProps,
+        getRowHeaderCellProps,
     };
 };
