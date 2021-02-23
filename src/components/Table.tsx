@@ -1,4 +1,5 @@
 import { makeStyles } from '@material-ui/styles';
+import classnames from 'classnames';
 import React, { MouseEvent } from 'react';
 import { usePagination } from './pagination';
 import SortButton from './SortButton';
@@ -39,7 +40,7 @@ const useStyles = makeStyles({
         borderRightWidth: 1,
         borderRightStyle: 'solid',
         borderRightColor: '#ccc',
-        padding: '0.25rem',
+        padding: '0.3rem',
     },
     row: {
         minHeight: '1.5rem',
@@ -51,7 +52,16 @@ const useStyles = makeStyles({
         borderRightWidth: 1,
         borderRightStyle: 'solid',
         borderRightColor: '#ccc',
-        padding: '0.25rem',
+        padding: '0.3rem',
+        // テキストを選択状態にしない
+        userSelect: 'none',
+    },
+    current: {
+        // 枠線
+        boxShadow: '0px 0px 1px 2px #0096ff inset',
+    },
+    selected: {
+        backgroundColor: '#E2EDFB',
     },
     footer: {
         //
@@ -74,6 +84,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         onChangeRowsPerPage,
         getFilterProps,
         getSortProps,
+        getCellProps,
     } = usePagination({
         items: data,
         columns,
@@ -127,7 +138,14 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                     {item.map((cell, colIndex) => {
                                         const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
                                         return (
-                                            <td className={classes.cell} key={key}>
+                                            <td
+                                                className={classnames(classes.cell, {
+                                                    [classes.current]: cell.current,
+                                                    [classes.selected]: cell.selected,
+                                                })}
+                                                key={key}
+                                                {...getCellProps(cell, rowIndex, colIndex)}
+                                            >
                                                 {cell.value}
                                             </td>
                                         );
