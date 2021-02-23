@@ -61,10 +61,11 @@ const useStyles = makeStyles({
         userSelect: 'none',
     },
     current: {
-        // 枠線
+        // カレントセルの枠線
         boxShadow: '0px 0px 1px 2px #0096ff inset',
     },
     selected: {
+        // 選択セルの背景色
         backgroundColor: '#E2EDFB',
     },
     footer: {
