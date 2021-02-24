@@ -1,3 +1,4 @@
+import hotkeys, { HotkeysEvent } from 'hotkeys-js';
 import {
     ChangeEvent,
     MouseEvent,
@@ -15,6 +16,7 @@ import {
     CellProps,
     ColumnDefinition,
     FilterProps,
+    HotkeyProps,
     RowHeaderCellProps,
     SortProps,
     SortState,
@@ -124,7 +126,7 @@ export const usePagination = <T>({
         (event: globalThis.MouseEvent) => {
             const within = withinTbody(event);
             debug('document mouse down', within);
-            setFocus(withinTbody(event));
+            setFocus(within);
         },
         [withinTbody]
     );
@@ -306,6 +308,168 @@ export const usePagination = <T>({
             document.removeEventListener('paste', handlePaste);
         };
     }, [handleCopy, handleMouseDownDocument, handleMouseUpDocument, handlePaste]);
+
+    // --- hotkeys ---
+
+    /**
+     * カーソル移動
+     * @param row
+     * @param column
+     */
+    const navigateCursor = useCallback(
+        (row: number, column: number) => {
+            debug('navigateCursor', row, column, currentCell);
+            if (currentCell) {
+                // 新しいカーソル位置
+                const newCurrent: CellLocation = {
+                    row: currentCell.row + row,
+                    column: currentCell.column + column,
+                };
+
+                // 移動可能か判定
+                if (
+                    newCurrent.row < 0 ||
+                    newCurrent.column < 0 ||
+                    newCurrent.column >= columns.length ||
+                    newCurrent.row >= data.length
+                ) {
+                    // 移動不可
+                    return;
+                }
+
+                const newData = clone(data);
+
+                // 選択をクリア
+                clearSelection(newData, selection);
+                // 現在のカレントをクリア
+                newData[currentCell.row][currentCell.column].current = false;
+
+                // 選択、カレントを更新
+                const cell = newData[newCurrent.row][newCurrent.column];
+                cell.current = true;
+                cell.selected = true;
+                const newSelection: CellLocation[] = [newCurrent];
+
+                // 行数からページ番号を割り出して
+                // 前/次ページに移動した場合はページ番号を更新
+                const newPage = Math.ceil((newCurrent.row + 1) / rowsPerPage) - 1;
+                if (currentPage !== newPage) {
+                    setPage(newPage);
+                }
+
+                // state更新
+                setData(newData);
+                setSelection(newSelection);
+                setCurrentCell(newCurrent);
+            }
+        },
+        [columns.length, currentCell, currentPage, data, rowsPerPage, selection]
+    );
+
+    /**
+     * 矢印キーによるカーソル移動
+     */
+    const handleArrowKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus || editCell) {
+                // フォーカスが無い、あるいは編集中の場合は何もしない
+                return;
+            }
+            const { key } = hotkeysEvent;
+            debug('keydown: ', key);
+
+            switch (key) {
+                case 'left':
+                    navigateCursor(0, -1);
+                    break;
+                case 'right':
+                    navigateCursor(0, 1);
+                    break;
+                case 'up':
+                    navigateCursor(-1, 0);
+                    break;
+                case 'down':
+                    navigateCursor(1, 0);
+                    break;
+            }
+
+            // デフォルトの挙動をキャンセル
+            event.preventDefault();
+
+            // TODO カレントセルが表示されるようにスクロールしてほしい
+        },
+        [editCell, focus, navigateCursor]
+    );
+
+    /**
+     * Tab, Enterによるカーソル移動
+     */
+    const handleTabKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus) {
+                return;
+            }
+            const { key } = hotkeysEvent;
+            debug('keydown: ', key);
+
+            if (editCell) {
+                // TODO 更新を確定する
+            }
+
+            switch (key) {
+                case 'shift+tab':
+                    navigateCursor(0, -1);
+                    break;
+                case 'tab':
+                    navigateCursor(0, 1);
+                    break;
+                case 'shift+enter':
+                    navigateCursor(-1, 0);
+                    break;
+                case 'enter':
+                    navigateCursor(1, 0);
+                    break;
+            }
+
+            // デフォルトの挙動をキャンセル
+            event.preventDefault();
+
+            // TODO カレントセルが表示されるようにスクロールしてほしい
+        },
+        [editCell, focus, navigateCursor]
+    );
+
+    /**
+     * Hotkyesの設定
+     */
+    const hotkeySettings: HotkeyProps[] = useMemo(() => {
+        return [
+            // 矢印キー
+            {
+                keys: 'left,right,up,down',
+                handler: handleArrowKeyDown,
+            },
+            // Tab, Enter
+            {
+                keys: 'shift+tab,tab,shift+enter,enter',
+                handler: handleTabKeyDown,
+            },
+        ];
+    }, [handleArrowKeyDown, handleTabKeyDown]);
+
+    // Hotkeys
+    useEffect(() => {
+        hotkeySettings.forEach(({ keys, handler }) => {
+            hotkeys(keys, handler);
+        });
+
+        return () => {
+            // 割当削除
+            hotkeySettings.forEach(({ keys }) => {
+                hotkeys.unbind(keys);
+            });
+        };
+    }, [hotkeySettings]);
 
     /**
      * フィルタリングされたデータ

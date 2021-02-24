@@ -1,3 +1,4 @@
+import { KeyHandler } from 'hotkeys-js';
 import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 
 /**
@@ -99,4 +100,12 @@ export interface RowHeaderCellProps {
     onMouseDown?: (event: MouseEvent) => void;
     onMouseOver?: (event: MouseEvent) => void;
     onMouseUp?: (event: MouseEvent) => void;
+}
+
+/**
+ * Hotkeysの定義
+ */
+export interface HotkeyProps {
+    keys: string;
+    handler: KeyHandler;
 }
