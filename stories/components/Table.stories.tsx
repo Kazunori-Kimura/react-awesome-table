@@ -1,7 +1,7 @@
 import { Meta, Story } from '@storybook/react/types-6-0';
 import React from 'react';
-import Table, { TableProps } from '../../src/components/Table';
-import { ColumnDefinition } from '../../src/components/types';
+import Table from '../../src/components/Table';
+import { ColumnDefinition, TableProps } from '../../src/components/types';
 
 export default {
     title: 'components/Table',
@@ -30,25 +30,49 @@ const data: Point2D[] = [...Array(999)].map((_, index) => {
     };
 });
 
+// 必須チェック
+const requiredValidator = (value: string): [boolean, string?] => {
+    if (value.length === 0) {
+        return [false, '必須項目です'];
+    }
+    return [true];
+};
+
+// 数値チェック
+const numericValidator = (value: string): [boolean, string?] => {
+    const v = parseFloat(value);
+    if (isNaN(v)) {
+        return [false, '数値で入力してください'];
+    }
+    return [true];
+};
+
 // 列定義
 const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'name',
         getValue: (item) => item.name,
+        defaultValue: (row: number) => `point_${row}`,
+        validator: requiredValidator,
     },
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
+        validator: numericValidator,
     },
     {
         name: 'y',
         getValue: (item) => `${item.y}`,
+        validator: numericValidator,
     },
 ];
 
 // キーの生成
-const getRowKey = (item: Point2D): string => {
-    return item.name;
+const getRowKey = (item: Point2D | undefined, rowIndex: number): string => {
+    if (item) {
+        return item.name;
+    }
+    return `new_point_${rowIndex}`;
 };
 
 const Template: Story<TableProps<Point2D>> = (args) => <Table {...args} />;

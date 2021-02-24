@@ -1,4 +1,13 @@
-import { ChangeEvent, MouseEvent, RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    ChangeEvent,
+    MouseEvent,
+    RefObject,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import {
     Cell,
     CellLocation,
@@ -99,6 +108,8 @@ export const usePagination = <T>({
     const [editCell, setEditCell] = useState<CellLocation>();
     // 現在選択中のセル
     const [selection, setSelection] = useState<CellLocation[]>([]);
+    // テーブルがフォーカスを持っている
+    const [focus, setFocus] = useState(false);
     // ドラッグ中かどうか
     const [dragging, setDragging] = useState(false);
     // 行のドラッグ
@@ -120,32 +131,202 @@ export const usePagination = <T>({
     }, [columns, getRowKey, items]);
 
     /**
-     * document での mouse upイベント
+     * 当該イベントが tbody の範囲内で発生している？
      * @param event
      */
-    const handleMouseUpDocument = (event: globalThis.MouseEvent) => {
+    const withinTbody = (event: globalThis.MouseEvent): boolean => {
         if (tbodyRef.current) {
             const { left: x, top: y, width, height } = tbodyRef.current.getBoundingClientRect();
             const { pageX, pageY } = event;
-            const within = y <= pageY && y + height >= pageY && x <= pageX && x + width >= pageX;
-            if (!within) {
+            return y <= pageY && y + height >= pageY && x <= pageX && x + width >= pageX;
+        }
+        return false;
+    };
+
+    /**
+     * document での mouse down イベント
+     * @param event
+     */
+    const handleMouseDownDocument = useCallback((event: globalThis.MouseEvent) => {
+        const within = withinTbody(event);
+        console.log('document mouse down', within);
+        setFocus(withinTbody(event));
+    }, []);
+
+    /**
+     * document での mouse upイベント
+     * @param event
+     */
+    const handleMouseUpDocument = useCallback((event: globalThis.MouseEvent) => {
+        if (tbodyRef.current) {
+            if (!withinTbody(event)) {
                 console.log('drag end.');
                 // ドラッグ強制終了
                 setDragging(false);
                 setDraggingRow(false);
             }
         }
-    };
+    }, []);
+
+    /**
+     * クリップボードにコピーするデータを生成する
+     */
+    const createCopyData = useCallback((): string => {
+        if (selection) {
+            const range = selection.sort(compareLocation);
+            const rowRange = [range[0].row, range[range.length - 1].row].sort();
+            const colRange = [range[0].column, range[range.length - 1].column].sort();
+            const copiedData: string[][] = [];
+
+            for (let r = rowRange[0]; r <= rowRange[1]; r++) {
+                const row: string[] = [];
+                for (let c = colRange[0]; c <= colRange[1]; c++) {
+                    row.push(data[r][c].value);
+                }
+                copiedData.push(row);
+            }
+
+            return copiedData.map((row) => row.join('\t')).join('\n');
+        }
+        return '';
+    }, [data, selection]);
+
+    /**
+     * copy
+     * @param event
+     */
+    const handleCopy = useCallback(
+        (event: globalThis.ClipboardEvent) => {
+            if (focus && !Boolean(editCell)) {
+                const copyData = createCopyData();
+                console.log('copy: ', copyData);
+                event.clipboardData.setData('text/plain', copyData);
+                event.preventDefault();
+            }
+        },
+        [createCopyData, editCell, focus]
+    );
+
+    /**
+     * セルに値をセットする (注意! 引数の cells を変更します)
+     */
+    const setCellValue = useCallback(
+        (value: string, location: CellLocation, cells: Cell<T>[][]): Cell<T>[][] => {
+            const { validator } = columns[location.column];
+            const cell = cells[location.row][location.column];
+            // 値のセット
+            cell.value = value;
+            // エラーチェック
+            if (validator) {
+                const [valid, message] = validator(value, location, cells);
+                cell.invalid = !valid;
+                cell.invalidMessage = message;
+            }
+            return cells;
+        },
+        [columns]
+    );
+
+    /**
+     * 空行を生成する
+     */
+    const makeNewRow = useCallback(
+        (row: number, cells: Cell<T>[][]): Cell<T>[] => {
+            return columns.map((column, index) => {
+                let value = '';
+                if (column.defaultValue) {
+                    if (typeof column.defaultValue === 'string') {
+                        value = column.defaultValue;
+                    } else {
+                        value = column.defaultValue(row);
+                    }
+                }
+                const [valid, message] = column.validator(value, { row, column: index }, cells);
+                return {
+                    entityName: column.name,
+                    rowKey: getRowKey(undefined, row),
+                    value,
+                    invalid: !valid,
+                    invalidMessage: message,
+                };
+            });
+        },
+        [columns, getRowKey]
+    );
+
+    /**
+     * 値のペースト
+     */
+    const pasteData = useCallback(
+        (rawData: string) => {
+            if (currentCell && rawData) {
+                // 改行・タブで区切って配列に変換
+                const pasteItems: string[][] = rawData
+                    .split('\n')
+                    .map((value) => value.split('\t'));
+                console.log(pasteItems);
+
+                const newData = clone(data);
+
+                for (let i = 0; i < pasteItems.length; i++) {
+                    const row = currentCell.row + i;
+                    if (row >= newData.length) {
+                        // 新規行を追加
+                        const newRow = makeNewRow(row, newData);
+                        newData.push(newRow);
+                    }
+
+                    for (let j = 0; j < pasteItems[i].length; j++) {
+                        const column = currentCell.column + j;
+                        if (column >= newData[row].length) {
+                            // 範囲外のため貼り付けしない
+                            break;
+                        }
+
+                        // 貼り付け処理
+                        const value = pasteItems[i][j];
+                        const location: CellLocation = { row, column };
+                        setCellValue(value, location, newData);
+                    }
+                }
+
+                // stateの更新
+                setData(newData);
+            }
+        },
+        [currentCell, data, makeNewRow, setCellValue]
+    );
+
+    /**
+     * paste
+     */
+    const handlePaste = useCallback(
+        (event: globalThis.ClipboardEvent) => {
+            if (focus && !Boolean(editCell) && currentCell) {
+                const rawData = event.clipboardData.getData('text');
+                console.log('paste: ', rawData);
+
+                pasteData(rawData);
+            }
+        },
+        [currentCell, editCell, focus, pasteData]
+    );
 
     // イベントリスナーの設定
     useEffect(() => {
+        document.addEventListener('mousedown', handleMouseDownDocument);
         document.addEventListener('mouseup', handleMouseUpDocument);
+        document.addEventListener('copy', handleCopy);
+        document.addEventListener('paste', handlePaste);
 
         return () => {
             // イベントリスナーの削除
+            document.removeEventListener('mousedown', handleMouseDownDocument);
             document.removeEventListener('mouseup', handleMouseUpDocument);
+            document.removeEventListener('copy', handleCopy);
+            document.removeEventListener('paste', handlePaste);
         };
-    }, []);
+    }, [handleCopy, handleMouseDownDocument, handleMouseUpDocument, handlePaste]);
 
     /**
      * フィルタリングされたデータ
@@ -179,6 +360,20 @@ export const usePagination = <T>({
     );
 
     /**
+     * 最終ページの空行数
+     */
+    const emptyRows = useMemo(() => {
+        return perPage - Math.min(perPage, data.length - currentPage * perPage);
+    }, [data.length, currentPage, perPage]);
+
+    /**
+     * 最終ページ番号
+     */
+    const last = useMemo(() => {
+        return Math.ceil(data.length / perPage) - 1;
+    }, [data.length, perPage]);
+
+    /**
      * セルの選択状態を解除 (注意！ 引数の cells を変更します)
      * @param cells
      * @param selectedCells
@@ -188,6 +383,48 @@ export const usePagination = <T>({
             cells[row][column].selected = false;
         });
         return cells;
+    };
+
+    /**
+     * 範囲選択 (注意！ 引数の cells を変更します)
+     * @param cells
+     * @param cell1
+     * @param cell2
+     */
+    const selectRange = (
+        cells: Cell<T>[][],
+        cell1: CellLocation,
+        cell2: CellLocation
+    ): CellLocation[] => {
+        const newSelection: CellLocation[] = [];
+        const rowRange = [cell1.row, cell2.row].sort();
+        const colRange = [cell1.column, cell2.column].sort();
+
+        for (let r = rowRange[0]; r <= rowRange[1]; r++) {
+            for (let c = colRange[0]; c <= colRange[1]; c++) {
+                const select: CellLocation = { row: r, column: c };
+                newSelection.push(select);
+                cells[r][c].selected = true;
+            }
+        }
+
+        return newSelection;
+    };
+
+    /**
+     * 選択状態、カレントセルをクリア
+     */
+    const clearSelectionAndCurrentCell = () => {
+        const newData = clone(data);
+        // 選択状態の解除
+        clearSelection(newData, selection);
+        if (currentCell) {
+            // カレントセルのクリア
+            newData[currentCell.row][currentCell.column].current = false;
+        }
+        setData(newData);
+        setCurrentCell(undefined);
+        setSelection([]);
     };
 
     /**
@@ -201,10 +438,8 @@ export const usePagination = <T>({
         });
         // ページングをリセットする
         setPage(0);
-        // 選択状態をクリアする
-        const newData = clone(data);
-        clearSelection(newData, selection);
-        setData(newData);
+        // カレントセル、選択状態をクリアする
+        clearSelectionAndCurrentCell();
     };
 
     /**
@@ -266,32 +501,6 @@ export const usePagination = <T>({
             setData(newData);
         },
     });
-
-    /**
-     * 範囲選択 (注意！ 引数の cells を変更します)
-     * @param cells
-     * @param cell1
-     * @param cell2
-     */
-    const selectRange = (
-        cells: Cell<T>[][],
-        cell1: CellLocation,
-        cell2: CellLocation
-    ): CellLocation[] => {
-        const newSelection: CellLocation[] = [];
-        const rowRange = [cell1.row, cell2.row].sort();
-        const colRange = [cell1.column, cell2.column].sort();
-
-        for (let r = rowRange[0]; r <= rowRange[1]; r++) {
-            for (let c = colRange[0]; c <= colRange[1]; c++) {
-                const select: CellLocation = { row: r, column: c };
-                newSelection.push(select);
-                cells[r][c].selected = true;
-            }
-        }
-
-        return newSelection;
-    };
 
     /**
      * セルのクリック
@@ -490,7 +699,7 @@ export const usePagination = <T>({
             console.log('row mouse down', location);
 
             // クリック時の処理
-            onRowClick(event, row);
+            onRowClick(event, rowIndex);
 
             // ドラッグ開始
             setDraggingRow(true);
@@ -532,6 +741,8 @@ export const usePagination = <T>({
      */
     const onChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
+        // カレントセル、選択状態をクリアする
+        clearSelectionAndCurrentCell();
     };
 
     /**
@@ -544,22 +755,10 @@ export const usePagination = <T>({
         if (!Number.isNaN(v)) {
             setPage(0);
             setRowsPerPage(v);
+            // カレントセル、選択状態をクリアする
+            clearSelectionAndCurrentCell();
         }
     };
-
-    /**
-     * 最終ページの空行数
-     */
-    const emptyRows = useMemo(() => {
-        return perPage - Math.min(perPage, data.length - currentPage * perPage);
-    }, [data.length, currentPage, perPage]);
-
-    /**
-     * 最終ページ番号
-     */
-    const last = useMemo(() => {
-        return Math.ceil(data.length / perPage) - 1;
-    }, [data.length, perPage]);
 
     return {
         emptyRows,
