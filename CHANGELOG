@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- キーボードでセル移動
 - ダブルクリックで編集
+- キーボードで編集
+    - `F2`
 - バリデーション
     - セルのエラー表示
     - 列のvalidatorを配列でセットできるように
@@ -23,10 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 左上セルクリック時に全選択
 - PaginationProps の整理
 - hook名の変更: `useTable`
-- 公開メソッドを `useCallback` で括る
 
 ### Fixed
-- セルを右クリックした際もドラッグが開始されている
+- カーソル移動時、カレントセルが表示されるようにスクロールしてほしい
 
 ## [0.0.0] - 2021-02-XX
 ### Added
@@ -37,3 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 行選択
 - コピー
 - ペースト
+- キーボードでセル移動
+    - Tab で 右 (Shiftで反対)
+    - Enter で 下 (Shiftで反対)
+    - 十字キーで任意の方向
+    - ページの下端/上端で行移動したらページ移動
+
+### Fixed
+- セルを右クリックした際もドラッグが開始されている
+- 公開メソッドを `useCallback` で括る

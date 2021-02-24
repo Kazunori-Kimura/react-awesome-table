@@ -171,7 +171,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                     className={classes.row}
                                     key={`awesome-table-body-empty-rows-${index}`}
                                 >
-                                    <td className={classes.cell} colSpan={columns.length}>
+                                    <td className={classes.cell} colSpan={columns.length + 1}>
                                         &nbsp;
                                     </td>
                                 </tr>
