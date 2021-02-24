@@ -3,11 +3,7 @@ import classnames from 'classnames';
 import React, { MouseEvent } from 'react';
 import { usePagination } from './pagination';
 import SortButton from './SortButton';
-import { TableDefinition } from './types';
-
-export interface TableProps<T> extends TableDefinition<T> {
-    data: T[];
-}
+import { TableProps } from './types';
 
 const useStyles = makeStyles({
     root: {

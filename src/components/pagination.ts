@@ -207,19 +207,126 @@ export const usePagination = <T>({
         [createCopyData, editCell, focus]
     );
 
+    /**
+     * セルに値をセットする (注意! 引数の cells を変更します)
+     */
+    const setCellValue = useCallback(
+        (value: string, location: CellLocation, cells: Cell<T>[][]): Cell<T>[][] => {
+            const { validator } = columns[location.column];
+            const cell = cells[location.row][location.column];
+            // 値のセット
+            cell.value = value;
+            // エラーチェック
+            if (validator) {
+                const [valid, message] = validator(value, location, cells);
+                cell.invalid = !valid;
+                cell.invalidMessage = message;
+            }
+            return cells;
+        },
+        [columns]
+    );
+
+    /**
+     * 空行を生成する
+     */
+    const makeNewRow = useCallback(
+        (row: number, cells: Cell<T>[][]): Cell<T>[] => {
+            return columns.map((column, index) => {
+                let value = '';
+                if (column.defaultValue) {
+                    if (typeof column.defaultValue === 'string') {
+                        value = column.defaultValue;
+                    } else {
+                        value = column.defaultValue(row);
+                    }
+                }
+                const [valid, message] = column.validator(value, { row, column: index }, cells);
+                return {
+                    entityName: column.name,
+                    rowKey: getRowKey(undefined, row),
+                    value,
+                    invalid: !valid,
+                    invalidMessage: message,
+                };
+            });
+        },
+        [columns, getRowKey]
+    );
+
+    /**
+     * 値のペースト
+     */
+    const pasteData = useCallback(
+        (rawData: string) => {
+            if (currentCell && rawData) {
+                // 改行・タブで区切って配列に変換
+                const pasteItems: string[][] = rawData
+                    .split('\n')
+                    .map((value) => value.split('\t'));
+                console.log(pasteItems);
+
+                const newData = clone(data);
+
+                for (let i = 0; i < pasteItems.length; i++) {
+                    const row = currentCell.row + i;
+                    if (row >= newData.length) {
+                        // 新規行を追加
+                        const newRow = makeNewRow(row, newData);
+                        newData.push(newRow);
+                    }
+
+                    for (let j = 0; j < pasteItems[i].length; j++) {
+                        const column = currentCell.column + j;
+                        if (column >= newData[row].length) {
+                            // 範囲外のため貼り付けしない
+                            break;
+                        }
+
+                        // 貼り付け処理
+                        const value = pasteItems[i][j];
+                        const location: CellLocation = { row, column };
+                        setCellValue(value, location, newData);
+                    }
+                }
+
+                // stateの更新
+                setData(newData);
+            }
+        },
+        [currentCell, data, makeNewRow, setCellValue]
+    );
+
+    /**
+     * paste
+     */
+    const handlePaste = useCallback(
+        (event: globalThis.ClipboardEvent) => {
+            if (focus && !Boolean(editCell) && currentCell) {
+                const rawData = event.clipboardData.getData('text');
+                console.log('paste: ', rawData);
+
+                pasteData(rawData);
+            }
+        },
+        [currentCell, editCell, focus, pasteData]
+    );
+
     // イベントリスナーの設定
     useEffect(() => {
         document.addEventListener('mousedown', handleMouseDownDocument);
         document.addEventListener('mouseup', handleMouseUpDocument);
         document.addEventListener('copy', handleCopy);
+        document.addEventListener('paste', handlePaste);
 
         return () => {
             // イベントリスナーの削除
             document.removeEventListener('mousedown', handleMouseDownDocument);
             document.removeEventListener('mouseup', handleMouseUpDocument);
             document.removeEventListener('copy', handleCopy);
+            document.removeEventListener('paste', handlePaste);
         };
-    }, [handleCopy, handleMouseDownDocument, handleMouseUpDocument]);
+    }, [handleCopy, handleMouseDownDocument, handleMouseUpDocument, handlePaste]);
 
     /**
      * フィルタリングされたデータ

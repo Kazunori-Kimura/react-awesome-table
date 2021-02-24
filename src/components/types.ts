@@ -1,22 +1,6 @@
 import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 
 /**
- * 列定義
- */
-export interface ColumnDefinition<T> {
-    name: keyof T;
-    getValue: (item: T) => string;
-}
-
-/**
- * テーブル定義
- */
-export interface TableDefinition<T> {
-    columns: ColumnDefinition<T>[];
-    getRowKey: (item: T, index: number) => string;
-}
-
-/**
  * セル位置
  */
 export interface CellLocation {
@@ -34,8 +18,35 @@ export interface Cell<T> {
     selected?: boolean;
     current?: boolean;
     editing?: boolean;
+    invalid?: boolean;
+    invalidMessage?: string;
 }
 
+/**
+ * 列定義
+ */
+export interface ColumnDefinition<T> {
+    name: keyof T;
+    getValue: (item: T) => string;
+    setValue?: (value: string) => Partial<T>;
+    validator?: (value: string, location: CellLocation, cells: Cell<T>[][]) => [boolean, string?];
+    defaultValue?: string | ((row: number) => string);
+}
+
+/**
+ * テーブル定義
+ */
+export interface TableProps<T> {
+    data: T[];
+    columns: ColumnDefinition<T>[];
+    getRowKey: (item: T | undefined, rowIndex: number) => string;
+    validator: (item: unknown) => item is T;
+    onChange?: (data: T[]) => void;
+}
+
+/**
+ * ソート定義
+ */
 export type SortOrder = 'asc' | 'desc' | undefined;
 
 /**

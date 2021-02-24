@@ -1,0 +1,39 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+- キーボードでセル移動
+- ダブルクリックで編集
+- バリデーション
+    - セルのエラー表示
+    - 列のvalidatorを配列でセットできるように
+    - `type ValidateFunction` を追加
+- 行追加
+    - カレントセルの下に挿入
+    - 最下部に挿入
+- 削除処理
+- `onChange`
+- Ctrl-Z で戻す
+- カスタムコンポーネントの表示
+- 非表示列
+- 左上セルクリック時に全選択
+- PaginationProps の整理
+- hook名の変更: `useTable`
+- 公開メソッドを `useCallback` で括る
+
+### Fixed
+- セルを右クリックした際もドラッグが開始されている
+
+## [0.0.0] - 2021-02-XX
+### Added
+- データ表示
+- ソート
+- ページング
+- セル選択
+- 行選択
+- コピー
+- ペースト
