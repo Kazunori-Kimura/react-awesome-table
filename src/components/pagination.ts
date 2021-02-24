@@ -885,7 +885,7 @@ export const usePagination = <T>({
      * @param newPage
      */
     const onChangePage = useCallback(
-        (event: unknown, newPage: number) => {
+        (_: unknown, newPage: number) => {
             setPage(newPage);
             // カレントセル、選択状態をクリアする
             clearSelectionAndCurrentCell();
