@@ -112,6 +112,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         tbodyRef,
         onChangePage,
         onChangeRowsPerPage,
+        onDeleteRows,
+        onInsertRow,
         getFilterProps,
         getSortProps,
         getCellProps,
@@ -141,8 +143,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
     return (
         <div className={classes.root}>
             <div className={classes.header}>
-                <button disabled>Add Row</button>
-                <button disabled>Delete Rows</button>
+                <button onClick={onInsertRow}>Add Row</button>
+                <button onClick={onDeleteRows}>Delete Rows</button>
             </div>
             <div className={classes.container}>
                 <table className={classes.table}>

@@ -52,7 +52,7 @@ const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'name',
         getValue: (item) => item.name,
-        defaultValue: (row: number) => `point_${row}`,
+        defaultValue: (row: number) => `point_${row + 1}`,
         validator: requiredValidator,
     },
     {
