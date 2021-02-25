@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 読み取り専用
 - カスタムコンポーネントの表示
     - コンボボックス表示
-    - 任意のコンポーネント
+    - 任意のコンポーネント (ボタン、複数選択)
 - バリデーション
     - セルのエラー表示
     - 列のvalidatorを配列でセットできるように
@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `onChange`
 - Ctrl-Z で戻す
 - Shift+矢印キーで選択範囲を更新
-- 左上セルクリック時に全選択
+- テーブルヘッダーの先頭セルクリックで全選択
+- Ctrl-Aで全選択
 
 ### Fixes
 - `getXxxxProps` も `useCallback` で括る
