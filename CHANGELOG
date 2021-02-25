@@ -6,27 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- ダブルクリックで編集
-- キーボードで編集
-    - `F2`
+- 行追加
+    - カレントセルの下に挿入
+    - 最下部に挿入
+- 行削除
+- 列の定義
+    - 非表示列
+    - 読み取り専用
+- カスタムコンポーネントの表示
+    - コンボボックス表示
+    - 任意のコンポーネント
 - バリデーション
     - セルのエラー表示
     - 列のvalidatorを配列でセットできるように
     - `type ValidateFunction` を追加
-- 行追加
-    - カレントセルの下に挿入
-    - 最下部に挿入
-- 削除処理
 - `onChange`
 - Ctrl-Z で戻す
-- カスタムコンポーネントの表示
-- 非表示列
+- Shift+矢印キーで選択範囲を更新
 - 左上セルクリック時に全選択
-- PaginationProps の整理
-- hook名の変更: `useTable`
 
-### Fixed
+### Fixes
+- `getXxxxProps` も `useCallback` で括る
+- hook名の変更: `useTable`
 - カーソル移動時、カレントセルが表示されるようにスクロールしてほしい
+- `useStyles` を hooks に移動する
+- `XxxxProps` に `className` を含める
+- PaginationProps の整理
 
 ## [0.0.0] - 2021-02-XX
 ### Added
@@ -42,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Enter で 下 (Shiftで反対)
     - 十字キーで任意の方向
     - ページの下端/上端で行移動したらページ移動
-
-### Fixed
-- セルを右クリックした際もドラッグが開始されている
-- 公開メソッドを `useCallback` で括る
+- ダブルクリックで編集
+- キーボードで編集
+    - `F2`
+    - 任意のキー押下

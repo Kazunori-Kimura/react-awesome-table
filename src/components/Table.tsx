@@ -64,6 +64,25 @@ const useStyles = makeStyles({
         // 選択セルの背景色
         backgroundColor: '#E2EDFB',
     },
+    edit: {
+        padding: 0,
+    },
+    editor: {
+        marginLeft: 2,
+        fontSize: '1rem',
+        height: '100%',
+        width: 'calc(100% - 4px)',
+        boxSizing: 'border-box',
+        border: 'none',
+        backgroundColor: 'inherit',
+        boxShadow: 'none',
+        outline: 0,
+        '&:focus': {
+            border: 'none',
+            boxShadow: 'none',
+            outline: 0,
+        },
+    },
     footer: {
         //
     },
@@ -88,6 +107,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         getSortProps,
         getCellProps,
         getRowHeaderCellProps,
+        getEditorProps,
     } = usePagination({
         items: data,
         columns,
@@ -112,8 +132,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
     return (
         <div className={classes.root}>
             <div className={classes.header}>
-                <button>Add</button>
-                <button>Delete</button>
+                <button disabled>Add Row</button>
+                <button disabled>Delete Rows</button>
             </div>
             <div className={classes.container}>
                 <table className={classes.table}>
@@ -153,11 +173,21 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                                 className={classnames(classes.cell, {
                                                     [classes.current]: cell.current,
                                                     [classes.selected]: cell.selected,
+                                                    [classes.edit]: cell.editing,
                                                 })}
                                                 key={key}
                                                 {...getCellProps(cell, rowIndex, colIndex)}
                                             >
-                                                {cell.value}
+                                                {cell.editing ? (
+                                                    <input
+                                                        type="text"
+                                                        className={classes.editor}
+                                                        autoFocus
+                                                        {...getEditorProps()}
+                                                    />
+                                                ) : (
+                                                    <span>{cell.value}</span>
+                                                )}
                                             </td>
                                         );
                                     })}

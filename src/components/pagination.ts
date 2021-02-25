@@ -1,6 +1,7 @@
 import hotkeys, { HotkeysEvent } from 'hotkeys-js';
 import {
     ChangeEvent,
+    KeyboardEvent,
     MouseEvent,
     RefObject,
     useCallback,
@@ -15,6 +16,8 @@ import {
     CellLocation,
     CellProps,
     ColumnDefinition,
+    EditorKeyDownAction,
+    EditorProps,
     FilterProps,
     HotkeyProps,
     RowHeaderCellProps,
@@ -49,6 +52,7 @@ interface usePaginationValues<T> {
     getSortProps: (name: keyof T) => SortProps;
     getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
     getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
+    getEditorProps: () => EditorProps;
 }
 
 /**
@@ -80,7 +84,7 @@ export const usePagination = <T>({
     // 現在フォーカスのあるセル
     const [currentCell, setCurrentCell] = useState<CellLocation>();
     // 現在編集中のセル
-    const [editCell, setEditCell] = useState<CellLocation>();
+    const [editCell, setEditCell] = useState<{ location: CellLocation; value: string }>();
     // 現在選択中のセル
     const [selection, setSelection] = useState<CellLocation[]>([]);
     // テーブルがフォーカスを持っている
@@ -190,22 +194,95 @@ export const usePagination = <T>({
 
     /**
      * セルに値をセットする (注意! 引数の cells を変更します)
+     * @returns value が更新されたかどうか
      */
     const setCellValue = useCallback(
-        (value: string, location: CellLocation, cells: Cell<T>[][]): Cell<T>[][] => {
+        (value: string, location: CellLocation, cells: Cell<T>[][]): boolean => {
+            debug('setCellValue: ', value, location);
+            let changed = false;
             const { validator } = columns[location.column];
             const cell = cells[location.row][location.column];
+
             // 値のセット
-            cell.value = value;
+            if (cell.value !== value) {
+                cell.value = value;
+                changed = true;
+            }
+
             // エラーチェック
             if (validator) {
                 const [valid, message] = validator(value, location, cells);
                 cell.invalid = !valid;
                 cell.invalidMessage = message;
             }
-            return cells;
+
+            return changed;
         },
         [columns]
+    );
+
+    /**
+     * セルの編集を開始する (stateを更新します)
+     */
+    const startEditing = useCallback(
+        (location: CellLocation, defaultValue?: string) => {
+            debug('startEditing');
+            const newData = clone(data);
+            newData[location.row][location.column].editing = true;
+            const value = defaultValue ?? newData[location.row][location.column].value;
+            setEditCell({
+                location,
+                value,
+            });
+            setData(newData);
+        },
+        [data]
+    );
+
+    /**
+     * セルの編集を終了する (注意! 引数の cells を変更します)
+     * 編集中の内容は破棄されます。
+     */
+    const endEditing = useCallback(
+        (cells: Cell<T>[][]): Cell<T>[][] => {
+            if (editCell) {
+                debug('endEditing: ', editCell);
+                cells[editCell.location.row][editCell.location.column].editing = false;
+                setEditCell(undefined);
+            }
+            return cells;
+        },
+        [editCell]
+    );
+
+    /**
+     * セルの編集を終了する
+     */
+    const cancelEditing = useCallback(() => {
+        let newData = clone(data);
+        newData = endEditing(newData);
+        setData(newData);
+    }, [data, endEditing]);
+
+    /**
+     * セルの編集を確定する (注意! 引数の cells を変更します)
+     */
+    const commitEditing = useCallback(
+        (cells: Cell<T>[][]): Cell<T>[][] => {
+            debug('commitEditing');
+            // セルの更新する
+            const { location, value } = editCell;
+            const changed = setCellValue(value, location, cells);
+            // 編集終了
+            const d = endEditing(cells);
+
+            if (changed) {
+                // TODO onChange をよぶ
+            }
+
+            return d;
+        },
+        [editCell, endEditing, setCellValue]
     );
 
     /**
@@ -248,6 +325,7 @@ export const usePagination = <T>({
                 debug(pasteItems);
 
                 const newData = clone(data);
+                let changed = true;
 
                 for (let i = 0; i < pasteItems.length; i++) {
                     const row = currentCell.row + i;
@@ -267,12 +345,16 @@ export const usePagination = <T>({
                         // 貼り付け処理
                         const value = pasteItems[i][j];
                         const location: CellLocation = { row, column };
-                        setCellValue(value, location, newData);
+                        changed = changed && setCellValue(value, location, newData);
                     }
                 }
 
                 // stateの更新
                 setData(newData);
+
+                if (changed) {
+                    // TODO onChange を呼ぶ
+                }
             }
         },
         [currentCell, data, makeNewRow, setCellValue]
@@ -317,7 +399,7 @@ export const usePagination = <T>({
      * @param column
      */
     const navigateCursor = useCallback(
-        (row: number, column: number) => {
+        (row: number, column: number, cells: Cell<T>[][]): Cell<T>[][] => {
             debug('navigateCursor', row, column, currentCell);
             if (currentCell) {
                 // 新しいカーソル位置
@@ -337,15 +419,13 @@ export const usePagination = <T>({
                     return;
                 }
 
-                const newData = clone(data);
-
                 // 選択をクリア
-                clearSelection(newData, selection);
+                clearSelection(cells, selection);
                 // 現在のカレントをクリア
-                newData[currentCell.row][currentCell.column].current = false;
+                cells[currentCell.row][currentCell.column].current = false;
 
                 // 選択、カレントを更新
-                const cell = newData[newCurrent.row][newCurrent.column];
+                const cell = cells[newCurrent.row][newCurrent.column];
                 cell.current = true;
                 cell.selected = true;
                 const newSelection: CellLocation[] = [newCurrent];
@@ -358,9 +438,10 @@ export const usePagination = <T>({
                 }
 
                 // state更新
-                setData(newData);
                 setSelection(newSelection);
                 setCurrentCell(newCurrent);
+
+                return cells;
             }
         },
         [columns.length, currentCell, currentPage, data, rowsPerPage, selection]
@@ -378,31 +459,64 @@ export const usePagination = <T>({
             const { key } = hotkeysEvent;
             debug('keydown: ', key);
 
+            let cells = clone(data);
             switch (key) {
                 case 'left':
-                    navigateCursor(0, -1);
+                    cells = navigateCursor(0, -1, cells);
                     break;
                 case 'right':
-                    navigateCursor(0, 1);
+                    cells = navigateCursor(0, 1, cells);
                     break;
                 case 'up':
-                    navigateCursor(-1, 0);
+                    cells = navigateCursor(-1, 0, cells);
                     break;
                 case 'down':
-                    navigateCursor(1, 0);
+                    cells = navigateCursor(1, 0, cells);
                     break;
             }
 
+            setData(cells);
             // デフォルトの挙動をキャンセル
             event.preventDefault();
 
             // TODO カレントセルが表示されるようにスクロールしてほしい
         },
-        [editCell, focus, navigateCursor]
+        [data, editCell, focus, navigateCursor]
     );
 
     /**
      * Tab, Enterによるカーソル移動
+     */
+    const keyDownTabEnter = useCallback(
+        (key: string) => {
+            let cells = clone(data);
+            if (editCell) {
+                // 更新を確定する
+                cells = commitEditing(cells);
+            }
+
+            switch (key) {
+                case 'shift+tab':
+                    cells = navigateCursor(0, -1, cells);
+                    break;
+                case 'tab':
+                    cells = navigateCursor(0, 1, cells);
+                    break;
+                case 'shift+enter':
+                    cells = navigateCursor(-1, 0, cells);
+                    break;
+                case 'enter':
+                    cells = navigateCursor(1, 0, cells);
+                    break;
+            }
+
+            setData(cells);
+        },
+        [commitEditing, data, editCell, navigateCursor]
+    );
+
+    /**
+     * Tab, Enterによるカーソル移動 (hotkeysから呼ばれる)
      */
     const handleTabKeyDown = useCallback(
         (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
@@ -411,32 +525,71 @@ export const usePagination = <T>({
             }
             const { key } = hotkeysEvent;
             debug('keydown: ', key);
-
-            if (editCell) {
-                // TODO 更新を確定する
-            }
-
-            switch (key) {
-                case 'shift+tab':
-                    navigateCursor(0, -1);
-                    break;
-                case 'tab':
-                    navigateCursor(0, 1);
-                    break;
-                case 'shift+enter':
-                    navigateCursor(-1, 0);
-                    break;
-                case 'enter':
-                    navigateCursor(1, 0);
-                    break;
-            }
-
+            // カーソル移動
+            keyDownTabEnter(key);
             // デフォルトの挙動をキャンセル
             event.preventDefault();
 
             // TODO カレントセルが表示されるようにスクロールしてほしい
         },
-        [editCell, focus, navigateCursor]
+        [focus, keyDownTabEnter]
+    );
+
+    /**
+     * F2キーによる編集開始
+     */
+    const handleF2KeyDown = useCallback(
+        (event: globalThis.KeyboardEvent) => {
+            if (!focus) {
+                return;
+            }
+            if (editCell) {
+                return;
+            }
+
+            // 編集開始
+            if (currentCell) {
+                startEditing(currentCell);
+                // デフォルトの挙動をキャンセル
+                event.preventDefault();
+            }
+        },
+        [currentCell, editCell, focus, startEditing]
+    );
+
+    /**
+     * 任意のキー押下で値をセットするとともに編集開始
+     */
+    const handleAnyKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus) {
+                return;
+            }
+            if (editCell) {
+                return;
+            }
+
+            if (currentCell) {
+                const { key } = event;
+                debug('anyKeydown: ', key);
+
+                let defaultPrevent = false;
+
+                if (['delete', 'backspace', 'clear'].includes(key.toLowerCase())) {
+                    startEditing(currentCell, '');
+                    defaultPrevent = true;
+                }
+                if (key.length === 1) {
+                    startEditing(currentCell, key);
+                    defaultPrevent = true;
+                }
+
+                if (defaultPrevent) {
+                    event.preventDefault();
+                }
+            }
+        },
+        [currentCell, editCell, focus, startEditing]
     );
 
     /**
@@ -454,8 +607,18 @@ export const usePagination = <T>({
                 keys: 'shift+tab,tab,shift+enter,enter',
                 handler: handleTabKeyDown,
             },
+            // F2
+            {
+                keys: 'f2',
+                handler: handleF2KeyDown,
+            },
+            // any
+            {
+                keys: '*',
+                handler: handleAnyKeyDown,
+            },
         ];
-    }, [handleArrowKeyDown, handleTabKeyDown]);
+    }, [handleAnyKeyDown, handleArrowKeyDown, handleF2KeyDown, handleTabKeyDown]);
 
     // Hotkeys
     useEffect(() => {
@@ -639,10 +802,8 @@ export const usePagination = <T>({
             const newData = clone(data);
             // 編集中に別のセルをクリック
             if (editCell) {
-                // TODO: 変更を確定
-                // 編集状態を解除
-                newData[editCell.row][editCell.column].editing = false;
-                setEditCell(undefined);
+                // 更新を確定
+                commitEditing(newData);
             }
 
             // 選択状態を解除
@@ -671,7 +832,23 @@ export const usePagination = <T>({
             setData(newData);
             setSelection(newSelection);
         },
-        [currentCell, currentPage, data, editCell, perPage, selection]
+        [commitEditing, currentCell, currentPage, data, editCell, perPage, selection]
+    );
+
+    /**
+     * セルのダブルクリック
+     */
+    const onCellDoubleClick = useCallback(
+        (_: MouseEvent, rowIndex: number, colIndex: number) => {
+            // 全体を通しての行番号
+            const row = rowIndex + currentPage * perPage;
+            // 選択セルの位置
+            const location: CellLocation = { row, column: colIndex };
+
+            // 該当セルの編集開始
+            startEditing(location);
+        },
+        [currentPage, perPage, startEditing]
     );
 
     /**
@@ -706,10 +883,8 @@ export const usePagination = <T>({
 
             // 編集中だった場合
             if (editCell) {
-                // TODO: 変更を確定
-                // 編集状態を解除
-                newData[editCell.row][editCell.column].editing = false;
-                setEditCell(undefined);
+                // 更新を確定
+                commitEditing(newData);
             }
 
             // 選択状態を解除
@@ -752,7 +927,7 @@ export const usePagination = <T>({
             setData(newData);
             setSelection(newSelection);
         },
-        [currentCell, currentPage, data, editCell, perPage, selection]
+        [commitEditing, currentCell, currentPage, data, editCell, perPage, selection]
     );
 
     /**
@@ -783,12 +958,14 @@ export const usePagination = <T>({
         /**
          * セルのダブルクリック
          */
-        onDoubleClick: () => {
+        onDoubleClick: (event: MouseEvent) => {
             // 全体を通しての行番号
             const row = rowIndex + currentPage * perPage;
             // 現在セルの位置
             const location: CellLocation = { row, column: colIndex };
             debug('double click', location);
+
+            onCellDoubleClick(event, rowIndex, colIndex);
         },
         /**
          * セルのクリック / ドラッグの開始
@@ -880,6 +1057,62 @@ export const usePagination = <T>({
     });
 
     /**
+     * 編集モードでのキーボード操作
+     * @param event
+     */
+    const handleEditorKeyDown = useCallback(
+        (event: KeyboardEvent) => {
+            const keys: string[] = [];
+            let action: EditorKeyDownAction = undefined;
+            if (event.shiftKey) {
+                keys.push('shift');
+            }
+            switch (event.key) {
+                case 'Tab':
+                    keys.push('tab');
+                    action = 'commit';
+                    break;
+                case 'Enter':
+                    keys.push('enter');
+                    action = 'commit';
+                    break;
+                case 'Escape':
+                    action = 'cancel';
+                    break;
+            }
+
+            if (action) {
+                if (action === 'commit') {
+                    keyDownTabEnter(keys.join('+'));
+                }
+                if (action === 'cancel') {
+                    cancelEditing();
+                }
+                event.preventDefault();
+            }
+        },
+        [cancelEditing, keyDownTabEnter]
+    );
+
+    /**
+     * 編集セルの props を生成
+     */
+    const getEditorProps = useCallback(
+        (): EditorProps => ({
+            value: editCell?.value ?? '',
+            onChange: (event: ChangeEvent<{ value: string }>) => {
+                const { value } = event.target;
+                setEditCell({
+                    ...editCell,
+                    value,
+                });
+            },
+            onKeyDown: handleEditorKeyDown,
+        }),
+        [editCell, handleEditorKeyDown]
+    );
+
+    /**
      * ページ変更
      * @param event
      * @param newPage
@@ -928,5 +1161,6 @@ export const usePagination = <T>({
         getSortProps,
         getCellProps,
         getRowHeaderCellProps,
+        getEditorProps,
     };
 };
