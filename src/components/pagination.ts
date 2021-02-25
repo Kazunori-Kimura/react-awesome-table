@@ -48,6 +48,8 @@ interface usePaginationValues<T> {
     tbodyRef: RefObject<HTMLTableSectionElement>;
     onChangePage: (event: unknown, page: number) => void;
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
+    onDeleteRows: VoidFunction;
+    onInsertRow: VoidFunction;
     getFilterProps: (name: keyof T) => FilterProps;
     getSortProps: (name: keyof T) => SortProps;
     getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
@@ -130,6 +132,7 @@ export const usePagination = <T>({
         (event: globalThis.MouseEvent) => {
             const within = withinTbody(event);
             debug('document mouse down', within);
+
             setFocus(within);
         },
         [withinTbody]
@@ -416,7 +419,7 @@ export const usePagination = <T>({
                     newCurrent.row >= data.length
                 ) {
                     // 移動不可
-                    return;
+                    return cells;
                 }
 
                 // 選択をクリア
@@ -990,7 +993,7 @@ export const usePagination = <T>({
          * @param event
          */
         onMouseOver: () => {
-            if (dragging) {
+            if (dragging && !Boolean(editCell)) {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
@@ -1144,6 +1147,91 @@ export const usePagination = <T>({
         [clearSelectionAndCurrentCell]
     );
 
+    /**
+     * 行追加
+     */
+    const insertRow = useCallback(
+        (rowIndex?: number) => {
+            const insertRowNumber = rowIndex + 1 ?? data.length;
+            const newData = clone(data);
+            const newRow = makeNewRow(insertRowNumber, newData);
+
+            // 選択状態の解除
+            clearSelection(newData, selection);
+            if (currentCell) {
+                // カレントセルのクリア
+                newData[currentCell.row][currentCell.column].current = false;
+            }
+
+            if (typeof rowIndex === 'number') {
+                newData.splice(insertRowNumber, 0, newRow);
+            } else {
+                newData.push(newRow);
+            }
+
+            // 挿入行にフォーカスを設定する
+            const location: CellLocation = {
+                row: insertRowNumber,
+                column: 0,
+            };
+            newData[location.row][location.column].current = true;
+            newData[location.row][location.column].selected = true;
+
+            setCurrentCell(location);
+            setSelection([location]);
+            setData(newData);
+            setFocus(true);
+        },
+        [currentCell, data, makeNewRow, selection]
+    );
+
+    /**
+     * 選択セルの下 / 最下部に新規行を追加する
+     */
+    const onInsertRow = useCallback(() => {
+        insertRow(currentCell?.row);
+    }, [currentCell?.row, insertRow]);
+
+    /**
+     * 行削除
+     */
+    const deleteRows = useCallback(() => {
+        if (selection.length === 0) {
+            return;
+        }
+
+        // TODO メッセージの多言語対応
+        const rows = selection.map((s) => s.row);
+        const min = Math.min(...rows);
+        const max = Math.max(...rows);
+        const message = `${max - min + 1}件 のデータを削除します。よろしいですか？`;
+        if (window.confirm(message)) {
+            const newData = clone(data);
+
+            // 選択状態の解除
+            clearSelection(newData, selection);
+            if (currentCell) {
+                // カレントセルのクリア
+                newData[currentCell.row][currentCell.column].current = false;
+            }
+
+            // 削除
+            newData.splice(min, max - min + 1);
+
+            setCurrentCell(undefined);
+            setSelection([]);
+            setData(newData);
+            setFocus(false);
+        }
+    }, [currentCell, data, selection]);
+
+    /**
+     * 選択セルを削除する
+     */
+    const onDeleteRows = useCallback(() => {
+        deleteRows();
+    }, [deleteRows]);
+
     return {
         emptyRows,
         page: currentPage,
@@ -1157,6 +1245,8 @@ export const usePagination = <T>({
         tbodyRef,
         onChangePage,
         onChangeRowsPerPage,
+        onDeleteRows,
+        onInsertRow,
         getFilterProps,
         getSortProps,
         getCellProps,

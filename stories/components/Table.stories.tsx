@@ -41,7 +41,7 @@ const requiredValidator = (value: string): [boolean, string?] => {
 // 数値チェック
 const numericValidator = (value: string): [boolean, string?] => {
     const v = parseFloat(value);
-    if (isNaN(v)) {
+    if (isNaN(v) || v.toString() !== value) {
         return [false, '数値で入力してください'];
     }
     return [true];
@@ -52,7 +52,7 @@ const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'name',
         getValue: (item) => item.name,
-        defaultValue: (row: number) => `point_${row}`,
+        defaultValue: (row: number) => `point_${row + 1}`,
         validator: requiredValidator,
     },
     {
