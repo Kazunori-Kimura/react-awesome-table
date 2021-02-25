@@ -46,6 +46,7 @@ const useStyles = makeStyles({
         width: '1.4rem',
     },
     cell: {
+        position: 'relative',
         borderBottomWidth: 1,
         borderBottomStyle: 'solid',
         borderBottomColor: '#ccc',
@@ -63,6 +64,14 @@ const useStyles = makeStyles({
     selected: {
         // 選択セルの背景色
         backgroundColor: '#E2EDFB',
+    },
+    invalid: {
+        // エラーセル
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        borderTop: '0.6rem solid #ff0000',
+        borderLeft: '0.6rem solid transparent',
     },
     edit: {
         padding: 0,
@@ -172,7 +181,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                             <td
                                                 className={classnames(classes.cell, {
                                                     [classes.current]: cell.current,
-                                                    [classes.selected]: cell.selected,
+                                                    [classes.selected]:
+                                                        cell.selected && !cell.editing,
                                                     [classes.edit]: cell.editing,
                                                 })}
                                                 key={key}
@@ -187,6 +197,12 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                                     />
                                                 ) : (
                                                     <span>{cell.value}</span>
+                                                )}
+                                                {cell.invalid && (
+                                                    <div
+                                                        className={classes.invalid}
+                                                        title={cell.invalidMessage}
+                                                    />
                                                 )}
                                             </td>
                                         );

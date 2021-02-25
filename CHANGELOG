@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - コンボボックス表示
     - 任意のコンポーネント (ボタン、複数選択)
 - バリデーション
-    - セルのエラー表示
     - 列のvalidatorを配列でセットできるように
     - `type ValidateFunction` を追加
 - `onChange`
@@ -52,3 +51,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - キーボードで編集
     - `F2`
     - 任意のキー押下
+- セルのエラー表示

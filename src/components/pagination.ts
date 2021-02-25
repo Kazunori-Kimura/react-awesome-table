@@ -990,7 +990,7 @@ export const usePagination = <T>({
          * @param event
          */
         onMouseOver: () => {
-            if (dragging) {
+            if (dragging && !Boolean(editCell)) {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
