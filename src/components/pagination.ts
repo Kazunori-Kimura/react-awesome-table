@@ -416,7 +416,7 @@ export const usePagination = <T>({
                     newCurrent.row >= data.length
                 ) {
                     // 移動不可
-                    return;
+                    return cells;
                 }
 
                 // 選択をクリア
