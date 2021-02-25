@@ -1,6 +1,8 @@
 import { KeyHandler } from 'hotkeys-js';
 import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 
+export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
+
 /**
  * セル位置
  */
@@ -100,6 +102,15 @@ export interface RowHeaderCellProps {
     onMouseDown?: (event: MouseEvent) => void;
     onMouseOver?: (event: MouseEvent) => void;
     onMouseUp?: (event: MouseEvent) => void;
+}
+
+/**
+ * 編集セルの props
+ */
+export interface EditorProps {
+    value: string;
+    onChange?: (event: ChangeEvent<{ value: string }>) => void;
+    onKeyDown?: (event: KeyboardEvent) => void;
 }
 
 /**
