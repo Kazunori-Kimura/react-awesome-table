@@ -152,10 +152,14 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                         <tr className={classes.headerRow}>
                             <th className={classnames(classes.headerCell, classes.rowHeaderCell)} />
                             {columns.map((column, index) => {
+                                if (column.hidden) {
+                                    return undefined;
+                                }
+
                                 const key = `awesome-table-header-${column.name}-${index}`;
                                 return (
                                     <th className={classes.headerCell} key={key}>
-                                        {column.name}
+                                        {column.displayName ?? column.name}
                                         <SortButton {...getSortProps(column.name)} />
                                         <br />
                                         <input type="text" {...getFilterProps(column.name)} />

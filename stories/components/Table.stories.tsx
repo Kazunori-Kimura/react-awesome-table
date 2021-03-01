@@ -172,8 +172,12 @@ const columns2: ColumnDefinition<Point3D>[] = [
     },
 ];
 
-const getRowKey2 = (item: Point3D | undefined, rowIndex: number): string => {
-    return item ? item.id : `p_${rowIndex}`;
+const getRowKey2 = (
+    item: Point3D | undefined,
+    rowIndex: number,
+    cells?: Cell<Point3D>[][]
+): string => {
+    return item ? item.id : `p_${cells ? cells.length + 1 : 0}`;
 };
 
 // 列定義サンプル
