@@ -299,7 +299,7 @@ export const usePagination = <T>({
                     if (typeof column.defaultValue === 'string') {
                         value = column.defaultValue;
                     } else {
-                        value = column.defaultValue(row);
+                        value = column.defaultValue(row, cells);
                     }
                 }
                 const [valid, message] = column.validator(value, { row, column: index }, cells);

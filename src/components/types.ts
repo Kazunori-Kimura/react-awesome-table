@@ -34,9 +34,11 @@ export interface ColumnDefinition<T> {
     getValue: (item: T) => string;
     setValue?: (value: string) => Partial<T>;
     validator?: (value: string, location: CellLocation, cells: Cell<T>[][]) => [boolean, string?];
-    defaultValue?: string | ((row: number) => string);
+    defaultValue?: string | ((row: number, cells: Cell<T>[][]) => string);
     hidden?: boolean;
     readOnly?: boolean;
+    required?: boolean;
+    dataList?: Readonly<{ name: string; value: string }[]>;
 }
 
 /**
