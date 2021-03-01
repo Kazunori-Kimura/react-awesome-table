@@ -1,7 +1,7 @@
-import { Meta, Story } from '@storybook/react/types-6-0';
+import { Meta } from '@storybook/react/types-6-0';
 import React from 'react';
 import Table from '../../src/components/Table';
-import { ColumnDefinition, TableProps } from '../../src/components/types';
+import { ColumnDefinition } from '../../src/components/types';
 
 export default {
     title: 'components/Table',
@@ -14,6 +14,15 @@ interface Point2D {
     x: number;
     y: number;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isPoint2D = (item: any): item is Point2D => {
+    return (
+        typeof item === 'object' &&
+        typeof item.name === 'string' &&
+        typeof item.x === 'number' &&
+        typeof item.y === 'number'
+    );
+};
 
 // ランダムな数値を取得
 const random = (): number => {
@@ -75,11 +84,7 @@ const getRowKey = (item: Point2D | undefined, rowIndex: number): string => {
     return `new_point_${rowIndex}`;
 };
 
-const Template: Story<TableProps<Point2D>> = (args) => <Table {...args} />;
-
-export const Sample = Template.bind({});
-Sample.args = {
-    data,
-    columns,
-    getRowKey,
-};
+// 最も単純なサンプル
+export const Sample: React.VFC<Record<string, never>> = () => (
+    <Table<Point2D> data={data} columns={columns} getRowKey={getRowKey} validator={isPoint2D} />
+);

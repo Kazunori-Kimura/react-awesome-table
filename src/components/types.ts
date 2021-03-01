@@ -30,10 +30,13 @@ export interface Cell<T> {
  */
 export interface ColumnDefinition<T> {
     name: keyof T;
+    displayName?: string;
     getValue: (item: T) => string;
     setValue?: (value: string) => Partial<T>;
     validator?: (value: string, location: CellLocation, cells: Cell<T>[][]) => [boolean, string?];
     defaultValue?: string | ((row: number) => string);
+    hidden?: boolean;
+    readOnly?: boolean;
 }
 
 /**
