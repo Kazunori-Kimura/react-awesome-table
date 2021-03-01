@@ -6,11 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- 列の定義
-    - 非表示列
-    - 読み取り専用
 - カスタムコンポーネントの表示
-    - コンボボックス表示
     - 任意のコンポーネント (ボタン、複数選択)
 - バリデーション
     - 列のvalidatorを配列でセットできるように
@@ -59,3 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - カレントセルの下に挿入
     - 最下部に挿入
 - 行削除
+- 列の定義
+    - 非表示列
+    - 読み取り専用
+    - コンボボックス表示
