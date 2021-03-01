@@ -108,6 +108,7 @@ export const usePagination = <T>({
                     entityName: column.name,
                     rowKey: getRowKey(item, index),
                     value: column.getValue(item),
+                    readOnly: column.readOnly ?? false,
                 }));
         });
         setData(newData);
@@ -213,6 +214,11 @@ export const usePagination = <T>({
             const cell = cells[location.row][location.column];
             const column = columns.find((c) => c.name === cell.entityName);
             if (column) {
+                // 読み取り専用時は更新しない
+                if (cell.readOnly) {
+                    return false;
+                }
+
                 // 値のセット
                 if (cell.value !== value) {
                     cell.value = value;
@@ -238,6 +244,10 @@ export const usePagination = <T>({
      */
     const startEditing = useCallback(
         (location: CellLocation, defaultValue?: string) => {
+            if (data[location.row][location.column].readOnly) {
+                // 読み取り専用の場合は何もしない
+                return;
+            }
             debug('startEditing');
             const newData = clone(data);
             newData[location.row][location.column].editing = true;
@@ -330,6 +340,7 @@ export const usePagination = <T>({
                         value,
                         invalid,
                         invalidMessage,
+                        readOnly: column.readOnly,
                     };
                 });
         },

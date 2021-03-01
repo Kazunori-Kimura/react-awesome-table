@@ -65,6 +65,10 @@ const useStyles = makeStyles({
         // 選択セルの背景色
         backgroundColor: '#E2EDFB',
     },
+    readOnly: {
+        // 読み取り専用セルの背景色
+        backgroundColor: '#f9f9f9',
+    },
     invalid: {
         // エラーセル
         position: 'absolute',
@@ -187,9 +191,11 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                             <td
                                                 className={classnames(classes.cell, {
                                                     [classes.current]: cell.current,
+                                                    [classes.edit]: cell.editing,
+                                                    [classes.readOnly]:
+                                                        cell.readOnly && !cell.selected,
                                                     [classes.selected]:
                                                         cell.selected && !cell.editing,
-                                                    [classes.edit]: cell.editing,
                                                 })}
                                                 key={key}
                                                 {...getCellProps(cell, rowIndex, colIndex)}

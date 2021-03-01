@@ -154,6 +154,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         getValue: (item) => `${item.x}`,
         validator: numericValidator,
         readOnly: true,
+        defaultValue: '0',
     },
     {
         name: 'y',

@@ -23,6 +23,7 @@ export interface Cell<T> {
     editing?: boolean;
     invalid?: boolean;
     invalidMessage?: string;
+    readOnly?: boolean;
 }
 
 /**
