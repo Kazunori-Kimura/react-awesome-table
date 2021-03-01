@@ -29,7 +29,7 @@ import { clearSelection, clone, compareLocation, debug, selectRange } from './ut
 interface usePaginationParams<T> {
     items: T[];
     columns: ColumnDefinition<T>[];
-    getRowKey: (item: T, index: number) => string;
+    getRowKey: (item: T, index: number, cells?: Cell<T>[][]) => string;
     page?: number;
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
@@ -102,14 +102,22 @@ export const usePagination = <T>({
     // 初期化処理
     useEffect(() => {
         const newData: Cell<T>[][] = items.map((item, index) => {
-            return columns.map((column) => ({
-                entityName: column.name,
-                rowKey: getRowKey(item, index),
-                value: column.getValue(item),
-            }));
+            return columns
+                .filter((c) => !(c.hidden ?? false))
+                .map((column) => ({
+                    entityName: column.name,
+                    rowKey: getRowKey(item, index),
+                    value: column.getValue(item),
+                    readOnly: column.readOnly ?? false,
+                }));
         });
         setData(newData);
     }, [columns, getRowKey, items]);
+
+    // テーブルの列数
+    const columnLength = useMemo(() => {
+        return columns.filter((column) => !(column.hidden ?? false)).length;
+    }, [columns]);
 
     /**
      * 当該イベントが tbody の範囲内で発生している？
@@ -203,20 +211,27 @@ export const usePagination = <T>({
         (value: string, location: CellLocation, cells: Cell<T>[][]): boolean => {
             debug('setCellValue: ', value, location);
             let changed = false;
-            const { validator } = columns[location.column];
             const cell = cells[location.row][location.column];
+            const column = columns.find((c) => c.name === cell.entityName);
+            if (column) {
+                // 読み取り専用時は更新しない
+                if (cell.readOnly) {
+                    return false;
+                }
 
-            // 値のセット
-            if (cell.value !== value) {
-                cell.value = value;
-                changed = true;
-            }
+                // 値のセット
+                if (cell.value !== value) {
+                    cell.value = value;
+                    changed = true;
+                }
 
-            // エラーチェック
-            if (validator) {
-                const [valid, message] = validator(value, location, cells);
-                cell.invalid = !valid;
-                cell.invalidMessage = message;
+                const { validator } = column;
+                // エラーチェック
+                if (validator) {
+                    const [valid, message] = validator(value, location, cells);
+                    cell.invalid = !valid;
+                    cell.invalidMessage = message;
+                }
             }
 
             return changed;
@@ -229,6 +244,10 @@ export const usePagination = <T>({
      */
     const startEditing = useCallback(
         (location: CellLocation, defaultValue?: string) => {
+            if (data[location.row][location.column].readOnly) {
+                // 読み取り専用の場合は何もしない
+                return;
+            }
             debug('startEditing');
             const newData = clone(data);
             newData[location.row][location.column].editing = true;
@@ -293,24 +312,37 @@ export const usePagination = <T>({
      */
     const makeNewRow = useCallback(
         (row: number, cells: Cell<T>[][]): Cell<T>[] => {
-            return columns.map((column, index) => {
-                let value = '';
-                if (column.defaultValue) {
-                    if (typeof column.defaultValue === 'string') {
-                        value = column.defaultValue;
-                    } else {
-                        value = column.defaultValue(row);
+            return columns
+                .filter((c) => !(c.hidden ?? false))
+                .map((column, index) => {
+                    let value = '';
+                    if (column.defaultValue) {
+                        if (typeof column.defaultValue === 'string') {
+                            value = column.defaultValue;
+                        } else {
+                            value = column.defaultValue(row, cells);
+                        }
                     }
-                }
-                const [valid, message] = column.validator(value, { row, column: index }, cells);
-                return {
-                    entityName: column.name,
-                    rowKey: getRowKey(undefined, row),
-                    value,
-                    invalid: !valid,
-                    invalidMessage: message,
-                };
-            });
+                    let invalid = false;
+                    let invalidMessage: string | undefined = undefined;
+                    if (column.validator) {
+                        const [valid, message] = column.validator(
+                            value,
+                            { row, column: index },
+                            cells
+                        );
+                        invalid = !valid;
+                        invalidMessage = message;
+                    }
+                    return {
+                        entityName: column.name,
+                        rowKey: getRowKey(undefined, row, cells),
+                        value,
+                        invalid,
+                        invalidMessage,
+                        readOnly: column.readOnly,
+                    };
+                });
         },
         [columns, getRowKey]
     );
@@ -415,7 +447,7 @@ export const usePagination = <T>({
                 if (
                     newCurrent.row < 0 ||
                     newCurrent.column < 0 ||
-                    newCurrent.column >= columns.length ||
+                    newCurrent.column >= columnLength ||
                     newCurrent.row >= data.length
                 ) {
                     // 移動不可
@@ -447,7 +479,7 @@ export const usePagination = <T>({
                 return cells;
             }
         },
-        [columns.length, currentCell, currentPage, data, rowsPerPage, selection]
+        [columnLength, currentCell, currentPage, data.length, rowsPerPage, selection]
     );
 
     /**
@@ -746,14 +778,17 @@ export const usePagination = <T>({
                 const newData = clone(data);
                 newData.sort((a, b) => {
                     for (const { name, order } of newSort) {
-                        const index = columns.findIndex((c) => c.name === name);
-                        if (a[index].value > b[index].value) {
+                        // TODO column から数値か文字列かを判定して比較する
+                        const column = columns.find((c) => c.name === name);
+                        const aValue = a.find((e) => e.entityName === column.name).value;
+                        const bValue = b.find((e) => e.entityName === column.name).value;
+                        if (aValue > bValue) {
                             if (order === 'asc') {
                                 return 1;
                             } else if (order === 'desc') {
                                 return -1;
                             }
-                        } else if (a[index].value < b[index].value) {
+                        } else if (aValue < bValue) {
                             if (order === 'asc') {
                                 return -1;
                             } else if (order === 'desc') {

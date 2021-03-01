@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import React, { MouseEvent } from 'react';
 import { usePagination } from './pagination';
 import SortButton from './SortButton';
+import TableCell from './TableCell';
 import { TableProps } from './types';
 
 const useStyles = makeStyles({
@@ -56,41 +57,6 @@ const useStyles = makeStyles({
         padding: '0.3rem',
         // テキストを選択状態にしない
         userSelect: 'none',
-    },
-    current: {
-        // カレントセルの枠線
-        boxShadow: '0px 0px 1px 2px #0096ff inset',
-    },
-    selected: {
-        // 選択セルの背景色
-        backgroundColor: '#E2EDFB',
-    },
-    invalid: {
-        // エラーセル
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        borderTop: '0.6rem solid #ff0000',
-        borderLeft: '0.6rem solid transparent',
-    },
-    edit: {
-        padding: 0,
-    },
-    editor: {
-        marginLeft: 2,
-        fontSize: '1rem',
-        height: '100%',
-        width: 'calc(100% - 4px)',
-        boxSizing: 'border-box',
-        border: 'none',
-        backgroundColor: 'inherit',
-        boxShadow: 'none',
-        outline: 0,
-        '&:focus': {
-            border: 'none',
-            boxShadow: 'none',
-            outline: 0,
-        },
     },
     footer: {
         //
@@ -152,10 +118,14 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                         <tr className={classes.headerRow}>
                             <th className={classnames(classes.headerCell, classes.rowHeaderCell)} />
                             {columns.map((column, index) => {
+                                if (column.hidden) {
+                                    return undefined;
+                                }
+
                                 const key = `awesome-table-header-${column.name}-${index}`;
                                 return (
                                     <th className={classes.headerCell} key={key}>
-                                        {column.name}
+                                        {column.displayName ?? column.name}
                                         <SortButton {...getSortProps(column.name)} />
                                         <br />
                                         <input type="text" {...getFilterProps(column.name)} />
@@ -179,34 +149,17 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                     />
                                     {item.map((cell, colIndex) => {
                                         const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                        const column = columns.find(
+                                            (c) => c.name === cell.entityName
+                                        );
                                         return (
-                                            <td
-                                                className={classnames(classes.cell, {
-                                                    [classes.current]: cell.current,
-                                                    [classes.selected]:
-                                                        cell.selected && !cell.editing,
-                                                    [classes.edit]: cell.editing,
-                                                })}
+                                            <TableCell
                                                 key={key}
+                                                column={column}
+                                                {...cell}
                                                 {...getCellProps(cell, rowIndex, colIndex)}
-                                            >
-                                                {cell.editing ? (
-                                                    <input
-                                                        type="text"
-                                                        className={classes.editor}
-                                                        autoFocus
-                                                        {...getEditorProps()}
-                                                    />
-                                                ) : (
-                                                    <span>{cell.value}</span>
-                                                )}
-                                                {cell.invalid && (
-                                                    <div
-                                                        className={classes.invalid}
-                                                        title={cell.invalidMessage}
-                                                    />
-                                                )}
-                                            </td>
+                                                editorProps={getEditorProps()}
+                                            />
                                         );
                                     })}
                                 </tr>

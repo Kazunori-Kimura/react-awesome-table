@@ -23,6 +23,7 @@ export interface Cell<T> {
     editing?: boolean;
     invalid?: boolean;
     invalidMessage?: string;
+    readOnly?: boolean;
 }
 
 /**
@@ -30,10 +31,15 @@ export interface Cell<T> {
  */
 export interface ColumnDefinition<T> {
     name: keyof T;
+    displayName?: string;
     getValue: (item: T) => string;
     setValue?: (value: string) => Partial<T>;
     validator?: (value: string, location: CellLocation, cells: Cell<T>[][]) => [boolean, string?];
-    defaultValue?: string | ((row: number) => string);
+    defaultValue?: string | ((row: number, cells: Cell<T>[][]) => string);
+    hidden?: boolean;
+    readOnly?: boolean;
+    required?: boolean;
+    dataList?: Readonly<{ name: string; value: string }[]>;
 }
 
 /**
@@ -42,7 +48,7 @@ export interface ColumnDefinition<T> {
 export interface TableProps<T> {
     data: T[];
     columns: ColumnDefinition<T>[];
-    getRowKey: (item: T | undefined, rowIndex: number) => string;
+    getRowKey: (item: T | undefined, rowIndex: number, cells?: Cell<T>[][]) => string;
     validator: (item: unknown) => item is T;
     onChange?: (data: T[]) => void;
 }
