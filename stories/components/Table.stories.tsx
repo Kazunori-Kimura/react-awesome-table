@@ -95,6 +95,10 @@ export const Sample: React.VFC<Record<string, never>> = () => (
 
 const Colors = ['Red', 'Green', 'Blue'] as const;
 type Color = typeof Colors[number];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isColor = (item: any): item is Color => {
+    return Colors.includes(item);
+};
 
 interface Point3D {
     id: string;
@@ -114,7 +118,7 @@ const isPoint3D = (item: any): item is Point3D => {
         typeof item.x === 'number' &&
         typeof item.y === 'number' &&
         typeof item.z === 'number' &&
-        Colors.includes(item.color)
+        isColor(item.color)
     );
 };
 
@@ -170,6 +174,12 @@ const columns2: ColumnDefinition<Point3D>[] = [
         name: 'color',
         getValue: (item) => `${item.color}`,
         dataList: Colors.map((c) => ({ name: c, value: c })),
+        validator: (value: string): [boolean, string?] => {
+            if (!isColor(value)) {
+                return [false, `${Colors.join(',')}のいずれかを指定してください`];
+            }
+            return [true];
+        },
     },
 ];
 
