@@ -24,13 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 - `getXxxxProps` も `useCallback` で括る
-- hook名の変更: `useTable`
-- カーソル移動時、カレントセルが表示されるようにスクロールしてほしい
-- `useStyles` を hooks に移動する
+- カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - `XxxxProps` に `className` を含める
-- PaginationProps の整理
 - "1" とだけ入力後、Enter/Tab でコミットできない (Storybook にフォーカス持っていかれてる？)
 - emptyRow の下線
+- リファクタリング
+    - hook名の変更: `useTable`
+    - `useStyles` を hooks に移動する
+    - PaginationProps の整理
 
 ## [0.0.0] - 2021-02-XX
 ### Added
