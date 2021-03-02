@@ -27,6 +27,21 @@ export interface Cell<T> {
 }
 
 /**
+ * セルの validator の結果
+ * [成否, エラーメッセージ]
+ */
+export type ValidatorResult = [boolean, string?];
+
+/**
+ * セルの validator
+ */
+export type ValidatorFunction<T> = (
+    value: string,
+    location: CellLocation,
+    cells: Cell<T>[][]
+) => ValidatorResult;
+
+/**
  * カスタムコンポーネント描画時に渡される props
  */
 export interface CellRenderProps<T> {
@@ -36,20 +51,26 @@ export interface CellRenderProps<T> {
     editorProps: EditorProps;
 }
 
+export type ValueType = 'string' | 'numeric';
+
+export type DataListType = Readonly<{ name: string; value: string }[]>;
+
 /**
  * 列定義
  */
 export interface ColumnDefinition<T> {
     name: keyof T;
     displayName?: string;
+    valueType?: ValueType;
     getValue: (item: T) => string;
     setValue?: (value: string) => Partial<T>;
-    validator?: (value: string, location: CellLocation, cells: Cell<T>[][]) => [boolean, string?];
+    validator?: ValidatorFunction<T> | ValidatorFunction<T>[];
     defaultValue?: string | ((row: number, cells: Cell<T>[][]) => string);
     hidden?: boolean;
     readOnly?: boolean;
     required?: boolean;
-    dataList?: Readonly<{ name: string; value: string }[]>;
+    dataList?: DataListType;
+    isPermittedExceptList?: boolean;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 
