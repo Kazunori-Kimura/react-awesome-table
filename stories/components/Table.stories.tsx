@@ -1,7 +1,7 @@
 import { Meta } from '@storybook/react/types-6-0';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Table from '../../src/components/Table';
-import { Cell, ColumnDefinition } from '../../src/components/types';
+import { Cell, CellRenderProps, ColumnDefinition } from '../../src/components/types';
 
 export default {
     title: 'components/Table',
@@ -137,6 +137,13 @@ const points: Point3D[] = [...Array(999)].map((_, index) => {
     };
 });
 
+const colorValidator = (value: string): [boolean, string?] => {
+    if (!isColor(value)) {
+        return [false, `${Colors.join(',')}のいずれかを指定してください`];
+    }
+    return [true];
+};
+
 // 列定義
 const columns2: ColumnDefinition<Point3D>[] = [
     {
@@ -167,19 +174,14 @@ const columns2: ColumnDefinition<Point3D>[] = [
     },
     {
         name: 'z',
-        getValue: (item) => `${item.y}`,
+        getValue: (item) => `${item.z}`,
         validator: numericValidator,
     },
     {
         name: 'color',
         getValue: (item) => `${item.color}`,
         dataList: Colors.map((c) => ({ name: c, value: c })),
-        validator: (value: string): [boolean, string?] => {
-            if (!isColor(value)) {
-                return [false, `${Colors.join(',')}のいずれかを指定してください`];
-            }
-            return [true];
-        },
+        validator: colorValidator,
     },
 ];
 
@@ -194,4 +196,70 @@ const getRowKey2 = (
 // 列定義サンプル
 export const ColumnDef: React.VFC<Record<string, never>> = () => (
     <Table<Point3D> data={points} columns={columns2} getRowKey={getRowKey2} validator={isPoint3D} />
+);
+
+// ====== カスタムコンポーネントサンプル ======
+
+const Button: React.FC<CellRenderProps<Point3D>> = ({ location, row, cellProps, editorProps }) => {
+    const cell = row[location.column];
+
+    // rowKeyをもとに元の要素を取得する
+    const entity = useMemo(() => {
+        return points.find((p) => getRowKey2(p, location.row) === cell.rowKey);
+    }, [cell.rowKey, location.row]);
+
+    const handleClick = () => {
+        let message = '該当のデータが見つからなかったよ';
+        if (entity) {
+            message = `${entity.id}: ${entity.name}`;
+        }
+        alert(message);
+    };
+
+    return <button onClick={handleClick}>{cell.value}</button>;
+};
+
+// 列定義
+const columns3: ColumnDefinition<Point3D>[] = [
+    {
+        name: 'id',
+        getValue: (item) => item.id,
+        defaultValue: (_: number, cells: Cell<Point3D>[][]) => `p_${cells.length + 1}`,
+        hidden: true,
+        required: true,
+    },
+    {
+        name: 'name',
+        getValue: (item) => item.name,
+        defaultValue: (row: number) => `point_${row + 1}`,
+        validator: requiredValidator,
+        required: true,
+        render: (props: CellRenderProps<Point3D>) => <Button {...props} />,
+    },
+    {
+        name: 'x',
+        getValue: (item) => `${item.x}`,
+        validator: numericValidator,
+    },
+    {
+        name: 'y',
+        getValue: (item) => `${item.y}`,
+        validator: numericValidator,
+    },
+    {
+        name: 'z',
+        getValue: (item) => `${item.z}`,
+        validator: numericValidator,
+    },
+    {
+        name: 'color',
+        getValue: (item) => `${item.color}`,
+        dataList: Colors.map((c) => ({ name: c, value: c })),
+        validator: colorValidator,
+    },
+];
+
+// カスタムコンポーネントサンプル
+export const CustomCell: React.VFC<Record<string, never>> = () => (
+    <Table<Point3D> data={points} columns={columns3} getRowKey={getRowKey2} validator={isPoint3D} />
 );

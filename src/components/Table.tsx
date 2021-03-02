@@ -4,7 +4,7 @@ import React, { MouseEvent } from 'react';
 import { usePagination } from './pagination';
 import SortButton from './SortButton';
 import TableCell from './TableCell';
-import { TableProps } from './types';
+import { CellLocation, TableProps } from './types';
 
 const useStyles = makeStyles({
     root: {
@@ -135,9 +135,8 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                         </tr>
                     </thead>
                     <tbody ref={tbodyRef}>
-                        {pageItems.map((item, rowIndex) => {
-                            const rowKey =
-                                item.length > 0 ? item[0].rowKey : `empty-row-${rowIndex}`;
+                        {pageItems.map((row, rowIndex) => {
+                            const rowKey = row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
                             return (
                                 <tr className={classes.row} key={rowKey}>
                                     <th
@@ -147,11 +146,34 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                         )}
                                         {...getRowHeaderCellProps(rowIndex)}
                                     />
-                                    {item.map((cell, colIndex) => {
+                                    {row.map((cell, colIndex) => {
                                         const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
                                         const column = columns.find(
                                             (c) => c.name === cell.entityName
                                         );
+
+                                        // カスタムコンポーネントの描画
+                                        if (column.render) {
+                                            const location: CellLocation = {
+                                                row: rowIndex,
+                                                column: colIndex,
+                                            };
+                                            return (
+                                                <td key={key} className={classes.cell}>
+                                                    {column.render({
+                                                        location,
+                                                        row,
+                                                        cellProps: getCellProps(
+                                                            cell,
+                                                            rowIndex,
+                                                            colIndex
+                                                        ),
+                                                        editorProps: getEditorProps(),
+                                                    })}
+                                                </td>
+                                            );
+                                        }
+
                                         return (
                                             <TableCell
                                                 key={key}
