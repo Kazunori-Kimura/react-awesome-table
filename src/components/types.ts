@@ -27,6 +27,16 @@ export interface Cell<T> {
 }
 
 /**
+ * カスタムコンポーネント描画時に渡される props
+ */
+export interface CellRenderProps<T> {
+    location: CellLocation;
+    row: Cell<T>[];
+    cellProps: CellProps;
+    editorProps: EditorProps;
+}
+
+/**
  * 列定義
  */
 export interface ColumnDefinition<T> {
@@ -40,6 +50,7 @@ export interface ColumnDefinition<T> {
     readOnly?: boolean;
     required?: boolean;
     dataList?: Readonly<{ name: string; value: string }[]>;
+    render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 
 /**

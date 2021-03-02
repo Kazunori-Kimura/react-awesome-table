@@ -60,3 +60,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 非表示列
     - 読み取り専用
     - コンボボックス表示
+- カスタムコンポーネントの表示
+    - 任意のコンポーネント (ボタン、複数選択)
