@@ -1,12 +1,14 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useMemo } from 'react';
-import { Cell, CellProps, ColumnDefinition, EditorProps } from './types';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './types';
 
 type PropsBase<T> = Cell<T> & CellProps;
 
 interface TableCellProps<T> extends PropsBase<T> {
     column: ColumnDefinition<T>;
+    row: Cell<T>[];
+    location: CellLocation;
     editorProps: EditorProps;
 }
 
@@ -62,10 +64,29 @@ const useStyles = makeStyles({
             outline: 0,
         },
     },
+    inner: {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    spacer: {
+        flex: 1,
+    },
+    caret: {
+        backgroundColor: 'inherit',
+        border: 'none',
+        outline: 0,
+        '&:focus': {
+            border: 'none',
+            boxShadow: 'none',
+            outline: 0,
+        },
+    },
 });
 
 function TableCell<T>({
     column,
+    location,
+    row,
     rowKey,
     current = false,
     editing = false,
@@ -82,6 +103,7 @@ function TableCell<T>({
     onMouseUp,
 }: TableCellProps<T>): React.ReactElement {
     const classes = useStyles();
+    const ref = useRef<HTMLInputElement>();
 
     const list = useMemo(() => {
         if (column.dataList) {
@@ -89,6 +111,15 @@ function TableCell<T>({
         }
         return undefined;
     }, [column.dataList, column.name, rowKey]);
+
+    useEffect(() => {
+        if (editing && column.dataList && ref.current) {
+            setTimeout(() => {
+                console.log('hoge');
+                ref.current.click();
+            }, 1000);
+        }
+    }, [column.dataList, editing]);
 
     return (
         <td
@@ -104,31 +135,54 @@ function TableCell<T>({
             onMouseOver={onMouseOver}
             onMouseUp={onMouseUp}
         >
-            {editing ? (
-                <>
-                    <input
-                        type="text"
-                        className={classes.editor}
-                        autoFocus
-                        {...editorProps}
-                        list={list}
-                    />
-                    {column.dataList && (
-                        <datalist id={list}>
-                            {column.dataList.map(({ name, value: optionValue }) => {
-                                const key = `${rowKey}_${column.name}_${optionValue}`;
-                                return (
-                                    <option key={key} value={optionValue}>
-                                        {name}
-                                    </option>
-                                );
-                            })}
-                        </datalist>
-                    )}
-                </>
-            ) : (
-                <span>{value}</span>
-            )}
+            {/* カスタムコンポーネント */}
+            {column.render &&
+                column.render({
+                    cell: row[location.column],
+                    location,
+                    row,
+                    column,
+                })}
+            {/* 通常のコンポーネント */}
+            {!Boolean(column.render) &&
+                (editing ? (
+                    <>
+                        {/* 編集モード */}
+                        <input
+                            type="text"
+                            className={classes.editor}
+                            autoFocus
+                            ref={ref}
+                            {...editorProps}
+                            list={list}
+                        />
+                        {column.dataList && (
+                            <datalist id={list}>
+                                {column.dataList.map(({ name, value: optionValue }) => {
+                                    const key = `${rowKey}_${column.name}_${optionValue}`;
+                                    return (
+                                        <option key={key} value={optionValue}>
+                                            {name}
+                                        </option>
+                                    );
+                                })}
+                            </datalist>
+                        )}
+                    </>
+                ) : (
+                    <div className={classes.inner}>
+                        {/* 通常モード */}
+                        <span>{value}</span>
+                        {column.dataList && (
+                            <>
+                                <div className={classes.spacer} />
+                                <button className={classes.caret} onClick={onDoubleClick}>
+                                    ▼
+                                </button>
+                            </>
+                        )}
+                    </div>
+                ))}
             {invalid && <div className={classes.invalid} title={invalidMessage} />}
         </td>
     );

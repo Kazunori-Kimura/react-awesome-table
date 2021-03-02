@@ -45,10 +45,10 @@ export type ValidatorFunction<T> = (
  * カスタムコンポーネント描画時に渡される props
  */
 export interface CellRenderProps<T> {
+    cell: Cell<T>;
     location: CellLocation;
     row: Cell<T>[];
-    cellProps: CellProps;
-    editorProps: EditorProps;
+    column: ColumnDefinition<T>;
 }
 
 export type ValueType = 'string' | 'numeric';

@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `useStyles` を hooks に移動する
     - PaginationProps の整理
 - カスタムコンポーネント、これだと選択とか矢印移動ができないんじゃない？
+- コンボボックスのクリック、自分で三角を書けばいいのでは？
+- Ctrl+Cが変
 
 ## [0.0.0] - 2021-02-XX
 ### Added

@@ -151,35 +151,20 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
                                         const column = columns.find(
                                             (c) => c.name === cell.entityName
                                         );
-
-                                        // カスタムコンポーネントの描画
-                                        if (column.render) {
-                                            const location: CellLocation = {
-                                                row: rowIndex,
-                                                column: colIndex,
-                                            };
-                                            return (
-                                                <td key={key} className={classes.cell}>
-                                                    {column.render({
-                                                        location,
-                                                        row,
-                                                        cellProps: getCellProps(
-                                                            cell,
-                                                            rowIndex,
-                                                            colIndex
-                                                        ),
-                                                        editorProps: getEditorProps(),
-                                                    })}
-                                                </td>
-                                            );
-                                        }
+                                        const cellProps = getCellProps(cell, rowIndex, colIndex);
+                                        const location: CellLocation = {
+                                            row: rowIndex,
+                                            column: colIndex,
+                                        };
 
                                         return (
                                             <TableCell
                                                 key={key}
                                                 column={column}
+                                                row={row}
+                                                location={location}
                                                 {...cell}
-                                                {...getCellProps(cell, rowIndex, colIndex)}
+                                                {...cellProps}
                                                 editorProps={getEditorProps()}
                                             />
                                         );
