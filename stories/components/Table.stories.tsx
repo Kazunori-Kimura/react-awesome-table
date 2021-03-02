@@ -41,40 +41,23 @@ const data: Point2D[] = [...Array(999)].map((_, index) => {
     };
 });
 
-// 必須チェック
-const requiredValidator = (value: string): [boolean, string?] => {
-    if (value.length === 0) {
-        return [false, '必須項目です'];
-    }
-    return [true];
-};
-
-// 数値チェック
-const numericValidator = (value: string): [boolean, string?] => {
-    const v = parseFloat(value);
-    if (isNaN(v) || v.toString() !== value) {
-        return [false, '数値で入力してください'];
-    }
-    return [true];
-};
-
 // 列定義
 const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'name',
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
-        validator: requiredValidator,
+        required: true,
     },
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'y',
         getValue: (item) => `${item.y}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
 ];
 
@@ -137,13 +120,6 @@ const points: Point3D[] = [...Array(999)].map((_, index) => {
     };
 });
 
-const colorValidator = (value: string): [boolean, string?] => {
-    if (!isColor(value)) {
-        return [false, `${Colors.join(',')}のいずれかを指定してください`];
-    }
-    return [true];
-};
-
 // 列定義
 const columns2: ColumnDefinition<Point3D>[] = [
     {
@@ -157,31 +133,29 @@ const columns2: ColumnDefinition<Point3D>[] = [
         name: 'name',
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
-        validator: requiredValidator,
         required: true,
     },
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
-        validator: numericValidator,
+        valueType: 'numeric',
         readOnly: true,
         defaultValue: '0',
     },
     {
         name: 'y',
         getValue: (item) => `${item.y}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'z',
         getValue: (item) => `${item.z}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'color',
         getValue: (item) => `${item.color}`,
         dataList: Colors.map((c) => ({ name: c, value: c })),
-        validator: colorValidator,
     },
 ];
 
@@ -232,30 +206,28 @@ const columns3: ColumnDefinition<Point3D>[] = [
         name: 'name',
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
-        validator: requiredValidator,
         required: true,
         render: (props: CellRenderProps<Point3D>) => <Button {...props} />,
     },
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'y',
         getValue: (item) => `${item.y}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'z',
         getValue: (item) => `${item.z}`,
-        validator: numericValidator,
+        valueType: 'numeric',
     },
     {
         name: 'color',
         getValue: (item) => `${item.color}`,
         dataList: Colors.map((c) => ({ name: c, value: c })),
-        validator: colorValidator,
     },
 ];
 

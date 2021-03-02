@@ -25,6 +25,7 @@ import {
     SortState,
 } from './types';
 import { clearSelection, clone, compareLocation, debug, selectRange } from './util';
+import { validateCell } from './validate';
 
 interface usePaginationParams<T> {
     items: T[];
@@ -225,13 +226,10 @@ export const usePagination = <T>({
                     changed = true;
                 }
 
-                const { validator } = column;
                 // エラーチェック
-                if (validator) {
-                    const [valid, message] = validator(value, location, cells);
-                    cell.invalid = !valid;
-                    cell.invalidMessage = message;
-                }
+                const [valid, message] = validateCell(column, value, location, cells);
+                cell.invalid = !valid;
+                cell.invalidMessage = message;
             }
 
             return changed;
@@ -323,23 +321,21 @@ export const usePagination = <T>({
                             value = column.defaultValue(row, cells);
                         }
                     }
-                    let invalid = false;
-                    let invalidMessage: string | undefined = undefined;
-                    if (column.validator) {
-                        const [valid, message] = column.validator(
-                            value,
-                            { row, column: index },
-                            cells
-                        );
-                        invalid = !valid;
-                        invalidMessage = message;
-                    }
+
+                    // エラーチェック
+                    const [valid, message] = validateCell(
+                        column,
+                        value,
+                        { row, column: index },
+                        cells
+                    );
+
                     return {
                         entityName: column.name,
                         rowKey: getRowKey(undefined, row, cells),
                         value,
-                        invalid,
-                        invalidMessage,
+                        invalid: !valid,
+                        invalidMessage: message,
                         readOnly: column.readOnly,
                     };
                 });
