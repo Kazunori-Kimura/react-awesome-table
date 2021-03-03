@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { KeyboardEvent, useRef, useState } from 'react';
+import React, { KeyboardEvent, useState } from 'react';
 import { CellLocation, DataListType, EditorProps } from './types';
 
 interface DropdownListPopoverProps extends EditorProps {
@@ -54,23 +54,16 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
     position,
     value,
     items,
-    onChange,
     commit,
     cancel,
 }) => {
     const classes = useStyles(position);
     const [activeIndex, setActive] = useState(-1);
 
-    const ref = useRef<HTMLInputElement>();
-
     const triggerChange = (selectedValue?: string) => {
-        if (ref.current && typeof selectedValue === 'string' && value !== selectedValue) {
-            ref.current.value = selectedValue;
-            // onChangeイベントを呼ぶ
-            const event = new Event('input', { bubbles: true });
-            ref.current.dispatchEvent(event);
+        if (typeof selectedValue === 'string' && value !== selectedValue) {
             // 更新の確定
-            commit();
+            commit(selectedValue);
             return;
         }
 
@@ -103,7 +96,6 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
 
     return (
         <div className={classes.root} tabIndex={0} onKeyDown={handleKeyDown}>
-            <input type="hidden" ref={ref} value={value} onChange={onChange} />
             {items.map((item, index) => {
                 const key = `${location.row}_${location.column}_${item.value}`;
                 return (

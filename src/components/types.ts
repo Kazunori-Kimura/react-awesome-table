@@ -170,7 +170,7 @@ export interface EditorProps {
     onChange?: (event: ChangeEvent<{ value: string }>) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
     cancel?: VoidFunction;
-    commit?: VoidFunction;
+    commit?: (value: string) => void;
 }
 
 /**

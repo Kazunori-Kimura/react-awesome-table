@@ -275,7 +275,7 @@ export const usePagination = <T>({
     const endEditing = useCallback(
         (cells: Cell<T>[][]): Cell<T>[][] => {
             if (editCell) {
-                debug('endEditing: ', editCell);
+                debug('endEditing: ', editCell.location);
                 cells[editCell.location.row][editCell.location.column].editing = false;
                 setEditCell(undefined);
             }
@@ -297,11 +297,15 @@ export const usePagination = <T>({
      * セルの編集を確定する (注意! 引数の cells を変更します)
      */
     const commitEditing = useCallback(
-        (cells: Cell<T>[][]): Cell<T>[][] => {
+        (cells: Cell<T>[][], optionValue?: string): Cell<T>[][] => {
             debug('commitEditing');
             // セルの更新する
             const { location, value } = editCell;
-            const changed = setCellValue(value, location, cells);
+            let val: string = value;
+            if (optionValue) {
+                val = optionValue;
+            }
+            const changed = setCellValue(val, location, cells);
             // 編集終了
             const d = endEditing(cells);
 
@@ -312,6 +316,18 @@ export const usePagination = <T>({
             return d;
         },
         [editCell, endEditing, setCellValue]
+    );
+
+    /**
+     * セルの編集を確定する
+     */
+    const commit = useCallback(
+        (value: string) => {
+            const cells = clone(data);
+            commitEditing(cells, value);
+            setData(cells);
+        },
+        [commitEditing, data]
     );
 
     /**
@@ -1152,8 +1168,10 @@ export const usePagination = <T>({
                 });
             },
             onKeyDown: handleEditorKeyDown,
+            cancel: cancelEditing,
+            commit,
         }),
-        [editCell, handleEditorKeyDown]
+        [cancelEditing, commit, editCell, handleEditorKeyDown]
     );
 
     /**
