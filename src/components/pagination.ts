@@ -19,6 +19,7 @@ import {
     EditorKeyDownAction,
     EditorProps,
     FilterProps,
+    getCellComponentType,
     HotkeyProps,
     RowHeaderCellProps,
     SortProps,
@@ -110,6 +111,7 @@ export const usePagination = <T>({
                     rowKey: getRowKey(item, index),
                     value: column.getValue(item),
                     readOnly: column.readOnly ?? false,
+                    cellType: getCellComponentType(column),
                 }));
         });
         setData(newData);
@@ -248,8 +250,15 @@ export const usePagination = <T>({
             }
             debug('startEditing');
             const newData = clone(data);
-            newData[location.row][location.column].editing = true;
-            const value = defaultValue ?? newData[location.row][location.column].value;
+            const cell = newData[location.row][location.column];
+            cell.editing = true;
+
+            // 初期値のセット
+            let value = cell.value;
+            if (cell.cellType === 'text' && typeof defaultValue !== 'undefined') {
+                value = defaultValue;
+            }
+
             setEditCell({
                 location,
                 value,
@@ -337,6 +346,7 @@ export const usePagination = <T>({
                         invalid: !valid,
                         invalidMessage: message,
                         readOnly: column.readOnly,
+                        cellType: getCellComponentType(column),
                     };
                 });
         },

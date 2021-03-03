@@ -12,6 +12,11 @@ export interface CellLocation {
 }
 
 /**
+ * セル種別
+ */
+export type CellComponentType = 'text' | 'select' | 'custom';
+
+/**
  * セル
  */
 export interface Cell<T> {
@@ -24,6 +29,21 @@ export interface Cell<T> {
     invalid?: boolean;
     invalidMessage?: string;
     readOnly?: boolean;
+    cellType: CellComponentType;
+}
+
+/**
+ * 列定義からセル種別を判定する
+ * @param column
+ */
+export function getCellComponentType<T>(column: ColumnDefinition<T>): CellComponentType {
+    if (column.render) {
+        return 'custom';
+    }
+    if (column.dataList) {
+        return 'select';
+    }
+    return 'text';
 }
 
 /**
@@ -149,6 +169,8 @@ export interface EditorProps {
     value: string;
     onChange?: (event: ChangeEvent<{ value: string }>) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
+    cancel?: VoidFunction;
+    commit?: VoidFunction;
 }
 
 /**

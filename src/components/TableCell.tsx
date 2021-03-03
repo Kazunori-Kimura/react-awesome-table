@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect } from 'react';
+import DropdownList from './DropdownList';
 import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './types';
 
 type PropsBase<T> = Cell<T> & CellProps;
@@ -72,6 +73,7 @@ const useStyles = makeStyles({
         flex: 1,
     },
     caret: {
+        marginRight: -4,
         backgroundColor: 'inherit',
         border: 'none',
         outline: 0,
@@ -103,21 +105,10 @@ function TableCell<T>({
     onMouseUp,
 }: TableCellProps<T>): React.ReactElement {
     const classes = useStyles();
-    const ref = useRef<HTMLInputElement>();
-
-    const list = useMemo(() => {
-        if (column.dataList) {
-            return `${rowKey}_${column.name}`;
-        }
-        return undefined;
-    }, [column.dataList, column.name, rowKey]);
 
     useEffect(() => {
-        if (editing && column.dataList && ref.current) {
-            setTimeout(() => {
-                console.log('hoge');
-                ref.current.click();
-            }, 1000);
+        if (editing && column.dataList) {
+            console.log('show list!');
         }
     }, [column.dataList, editing]);
 
@@ -148,25 +139,20 @@ function TableCell<T>({
                 (editing ? (
                     <>
                         {/* 編集モード */}
-                        <input
-                            type="text"
-                            className={classes.editor}
-                            autoFocus
-                            ref={ref}
-                            {...editorProps}
-                            list={list}
-                        />
-                        {column.dataList && (
-                            <datalist id={list}>
-                                {column.dataList.map(({ name, value: optionValue }) => {
-                                    const key = `${rowKey}_${column.name}_${optionValue}`;
-                                    return (
-                                        <option key={key} value={optionValue}>
-                                            {name}
-                                        </option>
-                                    );
-                                })}
-                            </datalist>
+                        {column.dataList ? (
+                            <DropdownList
+                                className={classes.editor}
+                                location={location}
+                                dataList={column.dataList}
+                                {...editorProps}
+                            />
+                        ) : (
+                            <input
+                                type="text"
+                                className={classes.editor}
+                                autoFocus
+                                {...editorProps}
+                            />
                         )}
                     </>
                 ) : (
