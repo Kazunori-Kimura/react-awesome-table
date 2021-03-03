@@ -1,12 +1,15 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useMemo } from 'react';
-import { Cell, CellProps, ColumnDefinition, EditorProps } from './types';
+import React from 'react';
+import DropdownList from './DropdownList';
+import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './types';
 
 type PropsBase<T> = Cell<T> & CellProps;
 
 interface TableCellProps<T> extends PropsBase<T> {
     column: ColumnDefinition<T>;
+    row: Cell<T>[];
+    location: CellLocation;
     editorProps: EditorProps;
 }
 
@@ -62,10 +65,30 @@ const useStyles = makeStyles({
             outline: 0,
         },
     },
+    inner: {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    spacer: {
+        flex: 1,
+    },
+    caret: {
+        marginRight: -4,
+        backgroundColor: 'inherit',
+        border: 'none',
+        outline: 0,
+        '&:focus': {
+            border: 'none',
+            boxShadow: 'none',
+            outline: 0,
+        },
+    },
 });
 
 function TableCell<T>({
     column,
+    location,
+    row,
     rowKey,
     current = false,
     editing = false,
@@ -83,13 +106,6 @@ function TableCell<T>({
 }: TableCellProps<T>): React.ReactElement {
     const classes = useStyles();
 
-    const list = useMemo(() => {
-        if (column.dataList) {
-            return `${rowKey}_${column.name}`;
-        }
-        return undefined;
-    }, [column.dataList, column.name, rowKey]);
-
     return (
         <td
             className={classnames(classes.cell, {
@@ -104,31 +120,51 @@ function TableCell<T>({
             onMouseOver={onMouseOver}
             onMouseUp={onMouseUp}
         >
-            {editing ? (
-                <>
-                    <input
-                        type="text"
-                        className={classes.editor}
-                        autoFocus
-                        {...editorProps}
-                        list={list}
-                    />
-                    {column.dataList && (
-                        <datalist id={list}>
-                            {column.dataList.map(({ name, value: optionValue }) => {
-                                const key = `${rowKey}_${column.name}_${optionValue}`;
-                                return (
-                                    <option key={key} value={optionValue}>
-                                        {name}
-                                    </option>
-                                );
-                            })}
-                        </datalist>
-                    )}
-                </>
-            ) : (
-                <span>{value}</span>
-            )}
+            {/* カスタムコンポーネント */}
+            {column.render &&
+                column.render({
+                    cell: row[location.column],
+                    location,
+                    row,
+                    column,
+                })}
+            {/* 通常のコンポーネント */}
+            {!Boolean(column.render) &&
+                (editing ? (
+                    <>
+                        {/* 編集モード */}
+                        {column.dataList ? (
+                            <DropdownList
+                                className={classes.editor}
+                                location={location}
+                                dataList={column.dataList}
+                                {...editorProps}
+                            />
+                        ) : (
+                            <input
+                                type="text"
+                                className={classes.editor}
+                                autoFocus
+                                value={editorProps.value}
+                                onChange={editorProps.onChange}
+                                onKeyDown={editorProps.onKeyDown}
+                            />
+                        )}
+                    </>
+                ) : (
+                    <div className={classes.inner}>
+                        {/* 通常モード */}
+                        <span>{value}</span>
+                        {column.dataList && (
+                            <>
+                                <div className={classes.spacer} />
+                                <button className={classes.caret} onClick={onDoubleClick}>
+                                    ▼
+                                </button>
+                            </>
+                        )}
+                    </div>
+                ))}
             {invalid && <div className={classes.invalid} title={invalidMessage} />}
         </td>
     );

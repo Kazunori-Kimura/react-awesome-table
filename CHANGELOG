@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - hook名の変更: `useTable`
     - `useStyles` を hooks に移動する
     - PaginationProps の整理
-- カスタムコンポーネント、これだと選択とか矢印移動ができないんじゃない？
 
 ## [0.0.0] - 2021-02-XX
 ### Added

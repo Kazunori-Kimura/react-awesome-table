@@ -19,6 +19,7 @@ import {
     EditorKeyDownAction,
     EditorProps,
     FilterProps,
+    getCellComponentType,
     HotkeyProps,
     RowHeaderCellProps,
     SortProps,
@@ -110,6 +111,7 @@ export const usePagination = <T>({
                     rowKey: getRowKey(item, index),
                     value: column.getValue(item),
                     readOnly: column.readOnly ?? false,
+                    cellType: getCellComponentType(column),
                 }));
         });
         setData(newData);
@@ -248,8 +250,15 @@ export const usePagination = <T>({
             }
             debug('startEditing');
             const newData = clone(data);
-            newData[location.row][location.column].editing = true;
-            const value = defaultValue ?? newData[location.row][location.column].value;
+            const cell = newData[location.row][location.column];
+            cell.editing = true;
+
+            // 初期値のセット
+            let value = cell.value;
+            if (cell.cellType === 'text' && typeof defaultValue !== 'undefined') {
+                value = defaultValue;
+            }
+
             setEditCell({
                 location,
                 value,
@@ -266,7 +275,7 @@ export const usePagination = <T>({
     const endEditing = useCallback(
         (cells: Cell<T>[][]): Cell<T>[][] => {
             if (editCell) {
-                debug('endEditing: ', editCell);
+                debug('endEditing: ', editCell.location);
                 cells[editCell.location.row][editCell.location.column].editing = false;
                 setEditCell(undefined);
             }
@@ -288,11 +297,15 @@ export const usePagination = <T>({
      * セルの編集を確定する (注意! 引数の cells を変更します)
      */
     const commitEditing = useCallback(
-        (cells: Cell<T>[][]): Cell<T>[][] => {
+        (cells: Cell<T>[][], optionValue?: string): Cell<T>[][] => {
             debug('commitEditing');
             // セルの更新する
             const { location, value } = editCell;
-            const changed = setCellValue(value, location, cells);
+            let val: string = value;
+            if (optionValue) {
+                val = optionValue;
+            }
+            const changed = setCellValue(val, location, cells);
             // 編集終了
             const d = endEditing(cells);
 
@@ -303,6 +316,18 @@ export const usePagination = <T>({
             return d;
         },
         [editCell, endEditing, setCellValue]
+    );
+
+    /**
+     * セルの編集を確定する
+     */
+    const commit = useCallback(
+        (value: string) => {
+            const cells = clone(data);
+            commitEditing(cells, value);
+            setData(cells);
+        },
+        [commitEditing, data]
     );
 
     /**
@@ -337,6 +362,7 @@ export const usePagination = <T>({
                         invalid: !valid,
                         invalidMessage: message,
                         readOnly: column.readOnly,
+                        cellType: getCellComponentType(column),
                     };
                 });
         },
@@ -488,7 +514,7 @@ export const usePagination = <T>({
                 return;
             }
             const { key } = hotkeysEvent;
-            debug('keydown: ', key);
+            debug('handleArrowKeyDown: ', key);
 
             let cells = clone(data);
             switch (key) {
@@ -522,6 +548,11 @@ export const usePagination = <T>({
         (key: string) => {
             let cells = clone(data);
             if (editCell) {
+                // DropdownのPopover表示中はカーソル移動しない
+                const cell = cells[editCell.location.row][editCell.location.column];
+                if (cell.cellType === 'select' && cell.editing) {
+                    return;
+                }
                 // 更新を確定する
                 cells = commitEditing(cells);
             }
@@ -555,7 +586,7 @@ export const usePagination = <T>({
                 return;
             }
             const { key } = hotkeysEvent;
-            debug('keydown: ', key);
+            debug('handleTabKeyDown: ', key);
             // カーソル移動
             keyDownTabEnter(key);
             // デフォルトの挙動をキャンセル
@@ -601,8 +632,8 @@ export const usePagination = <T>({
             }
 
             if (currentCell) {
-                const { key } = event;
-                debug('anyKeydown: ', key);
+                const { key, metaKey, ctrlKey } = event;
+                debug('handleAnyKeyDown: ', key);
 
                 let defaultPrevent = false;
 
@@ -610,7 +641,7 @@ export const usePagination = <T>({
                     startEditing(currentCell, '');
                     defaultPrevent = true;
                 }
-                if (key.length === 1) {
+                if (key.length === 1 && !metaKey && !ctrlKey) {
                     startEditing(currentCell, key);
                     defaultPrevent = true;
                 }
@@ -1142,8 +1173,10 @@ export const usePagination = <T>({
                 });
             },
             onKeyDown: handleEditorKeyDown,
+            cancel: cancelEditing,
+            commit,
         }),
-        [editCell, handleEditorKeyDown]
+        [cancelEditing, commit, editCell, handleEditorKeyDown]
     );
 
     /**
