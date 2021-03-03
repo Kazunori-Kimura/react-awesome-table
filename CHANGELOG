@@ -27,8 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - hook名の変更: `useTable`
     - `useStyles` を hooks に移動する
     - PaginationProps の整理
-- コンボボックスのクリック、自分で三角を書けばいいのでは？
 - Ctrl+Cが変
+- キー入力で DropdownListItem を選択
 
 ## [0.0.0] - 2021-02-XX
 ### Added

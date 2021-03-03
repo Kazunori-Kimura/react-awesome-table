@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { KeyboardEvent, useState } from 'react';
+import React, { KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { CellLocation, DataListType, EditorProps } from './types';
 
 interface DropdownListPopoverProps extends EditorProps {
@@ -28,6 +28,7 @@ const useStyles = makeStyles({
         backgroundColor: '#fff',
         display: 'flex',
         flexDirection: 'column',
+        outline: 0,
         position: 'absolute',
         ...props,
     }),
@@ -58,6 +59,8 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
     cancel,
 }) => {
     const classes = useStyles(position);
+    const ref = useRef<HTMLDivElement>();
+
     const [activeIndex, setActive] = useState(-1);
 
     const triggerChange = (selectedValue?: string) => {
@@ -88,14 +91,43 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
      */
     const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         const { key } = event;
-        console.log(key);
         // ArrowUp, ArrowDown で選択
         // Space, Enter で確定
         // Escape でキャンセル
+        switch (key) {
+            case 'ArrowUp':
+                setActive(activeIndex === 0 ? 0 : activeIndex - 1);
+                break;
+            case 'ArrowDown':
+                setActive(activeIndex === items.length - 1 ? items.length - 1 : activeIndex + 1);
+                break;
+            case ' ':
+                if (activeIndex >= 0) {
+                    triggerChange(items[activeIndex].value);
+                }
+                break;
+            case 'Enter':
+                if (activeIndex >= 0) {
+                    triggerChange(items[activeIndex].value);
+                }
+                break;
+            case 'Escape':
+                triggerChange();
+                break;
+            case 'Esc':
+                triggerChange();
+                break;
+        }
     };
 
+    useEffect(() => {
+        if (ref.current) {
+            ref.current.focus();
+        }
+    }, []);
+
     return (
-        <div className={classes.root} tabIndex={0} onKeyDown={handleKeyDown}>
+        <div className={classes.root} ref={ref} tabIndex={0} onKeyDown={handleKeyDown}>
             {items.map((item, index) => {
                 const key = `${location.row}_${location.column}_${item.value}`;
                 return (

@@ -14,15 +14,6 @@ const useStyles = makeStyles({
     root: {
         position: 'relative',
     },
-    list: {
-        //
-    },
-    listItem: {
-        //
-        '&:hover': {
-            //
-        },
-    },
 });
 
 const DropdownList: React.FC<DropdownListProps> = ({
@@ -39,19 +30,8 @@ const DropdownList: React.FC<DropdownListProps> = ({
 
     const setPopoverPosition = useCallback(() => {
         if (ref.current) {
-            const { width, height, top, left, right, bottom } = ref.current.getBoundingClientRect();
-            const { width: screenWidth, height: screenHeight } = window.screen;
-
-            console.log('target: ', {
-                width,
-                height,
-                top,
-                left,
-                right,
-                bottom,
-                screenWidth,
-                screenHeight,
-            });
+            const { width, height, top, right, bottom } = ref.current.getBoundingClientRect();
+            const { height: screenHeight } = window.screen;
 
             const POPOVER_WIDTH = 400;
             const POPOVER_HEIGHT = 200;

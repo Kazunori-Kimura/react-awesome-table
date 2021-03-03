@@ -514,7 +514,7 @@ export const usePagination = <T>({
                 return;
             }
             const { key } = hotkeysEvent;
-            debug('keydown: ', key);
+            debug('handleArrowKeyDown: ', key);
 
             let cells = clone(data);
             switch (key) {
@@ -548,6 +548,11 @@ export const usePagination = <T>({
         (key: string) => {
             let cells = clone(data);
             if (editCell) {
+                // DropdownのPopover表示中はカーソル移動しない
+                const cell = cells[editCell.location.row][editCell.location.column];
+                if (cell.cellType === 'select' && cell.editing) {
+                    return;
+                }
                 // 更新を確定する
                 cells = commitEditing(cells);
             }
@@ -581,7 +586,7 @@ export const usePagination = <T>({
                 return;
             }
             const { key } = hotkeysEvent;
-            debug('keydown: ', key);
+            debug('handleTabKeyDown: ', key);
             // カーソル移動
             keyDownTabEnter(key);
             // デフォルトの挙動をキャンセル
@@ -628,7 +633,7 @@ export const usePagination = <T>({
 
             if (currentCell) {
                 const { key } = event;
-                debug('anyKeydown: ', key);
+                debug('handleAnyKeyDown: ', key);
 
                 let defaultPrevent = false;
 

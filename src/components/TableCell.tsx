@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useEffect } from 'react';
+import React from 'react';
 import DropdownList from './DropdownList';
 import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './types';
 
@@ -106,12 +106,6 @@ function TableCell<T>({
 }: TableCellProps<T>): React.ReactElement {
     const classes = useStyles();
 
-    useEffect(() => {
-        if (editing && column.dataList) {
-            console.log('show list!');
-        }
-    }, [column.dataList, editing]);
-
     return (
         <td
             className={classnames(classes.cell, {
@@ -151,7 +145,9 @@ function TableCell<T>({
                                 type="text"
                                 className={classes.editor}
                                 autoFocus
-                                {...editorProps}
+                                value={editorProps.value}
+                                onChange={editorProps.onChange}
+                                onKeyDown={editorProps.onKeyDown}
                             />
                         )}
                     </>
