@@ -632,7 +632,7 @@ export const usePagination = <T>({
             }
 
             if (currentCell) {
-                const { key } = event;
+                const { key, metaKey, ctrlKey } = event;
                 debug('handleAnyKeyDown: ', key);
 
                 let defaultPrevent = false;
@@ -641,7 +641,7 @@ export const usePagination = <T>({
                     startEditing(currentCell, '');
                     defaultPrevent = true;
                 }
-                if (key.length === 1) {
+                if (key.length === 1 && !metaKey && !ctrlKey) {
                     startEditing(currentCell, key);
                     defaultPrevent = true;
                 }
