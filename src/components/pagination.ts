@@ -27,6 +27,10 @@ import {
 import { clearSelection, clone, compareLocation, debug, parse, selectRange } from './util';
 import { validateCell } from './validate';
 
+type TableData<T> = Cell<T>[][];
+
+type HistoryCommand = 'undo' | 'redo';
+
 /**
  * ページあたりの行数のデフォルト候補
  */
@@ -45,7 +49,7 @@ export const usePagination = <T>({
     rowsPerPageOptions = defaultRowsPerPageOptions,
 }: TableHookParameters<T>): TableHookReturns<T> => {
     // データ全体
-    const [data, setData] = useState<Cell<T>[][]>([]);
+    const [data, setData] = useState<TableData<T>>([]);
     // 現在表示ページ
     const [currentPage, setPage] = useState(page);
     // ページあたりの行数
@@ -66,13 +70,17 @@ export const usePagination = <T>({
     const [dragging, setDragging] = useState(false);
     // 行のドラッグ
     const [draggingRow, setDraggingRow] = useState(false);
+    // undoデータ
+    const [undo, setUndo] = useState<TableData<T>[]>([]);
+    // undo履歴の位置
+    const [undoIndex, setUndoIndex] = useState(-1);
 
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();
 
     // 初期化処理
     useEffect(() => {
-        const newData: Cell<T>[][] = items.map((item, index) => {
+        const newData: TableData<T> = items.map((item, index) => {
             return columns
                 .filter((c) => !(c.hidden ?? false))
                 .map((column) => ({
@@ -84,6 +92,8 @@ export const usePagination = <T>({
                 }));
         });
         setData(newData);
+        setUndo([newData]);
+        setUndoIndex(0);
     }, [columns, getRowKey, items]);
 
     // テーブルの列数
@@ -180,7 +190,7 @@ export const usePagination = <T>({
      * @returns value が更新されたかどうか
      */
     const setCellValue = useCallback(
-        (value: string, location: CellLocation, cells: Cell<T>[][]): boolean => {
+        (value: string, location: CellLocation, cells: TableData<T>): boolean => {
             debug('setCellValue: ', value, location);
             let changed = false;
             const cell = cells[location.row][location.column];
@@ -206,6 +216,43 @@ export const usePagination = <T>({
             return changed;
         },
         [columns]
+    );
+
+    /**
+     * onChangeの呼び出し
+     */
+    const handleChange = useCallback(
+        (cells: TableData<T>) => {
+            if (onChange) {
+                const newData = parse(items, cells, columns, getRowKey);
+                onChange(newData);
+            }
+        },
+        [columns, getRowKey, items, onChange]
+    );
+
+    /**
+     * undo履歴に追加する
+     */
+    const pushUndoList = useCallback(
+        (cells: TableData<T>) => {
+            // セルの選択状態、カレントセルの指定をクリアする
+            let temp = clone(cells);
+            temp = clearSelection(temp, selection);
+            if (currentCell) {
+                temp[currentCell.row][currentCell.column].current = false;
+            }
+
+            // 履歴追加
+            const index = undoIndex + 1;
+            const history = clone(undo).slice(0, index);
+            history.push(temp);
+
+            // state更新
+            setUndo(history);
+            setUndoIndex(index);
+        },
+        [currentCell, selection, undo, undoIndex]
     );
 
     /**
@@ -242,7 +289,7 @@ export const usePagination = <T>({
      * 編集中の内容は破棄されます。
      */
     const endEditing = useCallback(
-        (cells: Cell<T>[][]): Cell<T>[][] => {
+        (cells: TableData<T>): TableData<T> => {
             if (editCell) {
                 debug('endEditing: ', editCell.location);
                 cells[editCell.location.row][editCell.location.column].editing = false;
@@ -266,7 +313,7 @@ export const usePagination = <T>({
      * セルの編集を確定する (注意! 引数の cells を変更します)
      */
     const commitEditing = useCallback(
-        (cells: Cell<T>[][], optionValue?: string): Cell<T>[][] => {
+        (cells: TableData<T>, optionValue?: string): TableData<T> => {
             debug('commitEditing');
             // セルの更新する
             const { location, value } = editCell;
@@ -278,14 +325,15 @@ export const usePagination = <T>({
             // 編集終了
             const d = endEditing(cells);
 
-            if (changed && onChange) {
-                const newData = parse(items, cells, columns, getRowKey);
-                onChange(newData);
+            if (changed) {
+                handleChange(cells);
+                // 履歴更新
+                pushUndoList(cells);
             }
 
             return d;
         },
-        [columns, editCell, endEditing, getRowKey, items, onChange, setCellValue]
+        [editCell, endEditing, handleChange, pushUndoList, setCellValue]
     );
 
     /**
@@ -304,7 +352,7 @@ export const usePagination = <T>({
      * 空行を生成する
      */
     const makeNewRow = useCallback(
-        (row: number, cells: Cell<T>[][]): Cell<T>[] => {
+        (row: number, cells: TableData<T>): Cell<T>[] => {
             return columns
                 .filter((c) => !(c.hidden ?? false))
                 .map((column, index) => {
@@ -380,11 +428,13 @@ export const usePagination = <T>({
                 setData(newData);
 
                 if (changed) {
-                    // TODO onChange を呼ぶ
+                    handleChange(newData);
+                    // 履歴更新
+                    pushUndoList(newData);
                 }
             }
         },
-        [currentCell, data, makeNewRow, setCellValue]
+        [currentCell, data, handleChange, makeNewRow, pushUndoList, setCellValue]
     );
 
     /**
@@ -426,7 +476,7 @@ export const usePagination = <T>({
      * @param column
      */
     const navigateCursor = useCallback(
-        (row: number, column: number, cells: Cell<T>[][]): Cell<T>[][] => {
+        (row: number, column: number, cells: TableData<T>): TableData<T> => {
             debug('navigateCursor', row, column, currentCell);
             if (currentCell) {
                 // 新しいカーソル位置
@@ -590,6 +640,83 @@ export const usePagination = <T>({
     );
 
     /**
+     * undo/redo 処理
+     */
+    const restoreHistory = useCallback(
+        (command: HistoryCommand) => {
+            debug(`${command}: `, undoIndex, undo);
+            let index = undoIndex;
+            if (command === 'undo') {
+                index = Math.max(-1, index - 1);
+            } else {
+                index = index === undo.length - 1 ? index : index + 1;
+            }
+
+            if (index !== undoIndex && index > -1) {
+                const history = clone(undo[index]);
+                const newSelection: CellLocation[] = [];
+
+                // カレントセルを選択状態とする
+                if (currentCell) {
+                    if (history.length - 1 > currentCell.row) {
+                        history[currentCell.row][currentCell.column].current = true;
+                        history[currentCell.row][currentCell.column].selected = true;
+                        newSelection.push(currentCell);
+                    } else {
+                        // 該当セルが存在しない
+                        setCurrentCell(undefined);
+                    }
+                }
+
+                setData(history);
+                setUndoIndex(index);
+                // 選択解除
+                setSelection(newSelection);
+
+                // onChangeを呼び出す
+                handleChange(history);
+            }
+        },
+        [currentCell, handleChange, undo, undoIndex]
+    );
+
+    /**
+     * Ctrl+Z / Ctrl+Y による undo/redo
+     */
+    const handleUndoRedo = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus) {
+                return;
+            }
+            if (editCell) {
+                return;
+            }
+
+            const { key } = hotkeysEvent;
+            debug('handleUndoRedo: ', key);
+
+            switch (key) {
+                case 'ctrl+z':
+                    restoreHistory('undo');
+                    break;
+                case 'command+z':
+                    restoreHistory('undo');
+                    break;
+                case 'ctrl+y':
+                    restoreHistory('redo');
+                    break;
+                case 'command+y':
+                    restoreHistory('redo');
+                    break;
+            }
+
+            // デフォルトの挙動をキャンセル
+            event.preventDefault();
+        },
+        [editCell, focus, restoreHistory]
+    );
+
+    /**
      * 任意のキー押下で値をセットするとともに編集開始
      */
     const handleAnyKeyDown = useCallback(
@@ -644,13 +771,18 @@ export const usePagination = <T>({
                 keys: 'f2',
                 handler: handleF2KeyDown,
             },
+            // Ctrl+Z/Ctrl+Y
+            {
+                keys: 'ctrl+z,command+z,ctrl+y,command+y',
+                handler: handleUndoRedo,
+            },
             // any
             {
                 keys: '*',
                 handler: handleAnyKeyDown,
             },
         ];
-    }, [handleAnyKeyDown, handleArrowKeyDown, handleF2KeyDown, handleTabKeyDown]);
+    }, [handleAnyKeyDown, handleArrowKeyDown, handleF2KeyDown, handleTabKeyDown, handleUndoRedo]);
 
     // Hotkeys
     useEffect(() => {

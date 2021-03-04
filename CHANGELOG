@@ -6,8 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `onChange`
-- Ctrl+Z で戻す
+- Ctrl+Z でundo, Ctrl+Y でredo
 - Shift+矢印キーで選択範囲を更新
 - 最下行で Enter キーを押すと新規行生成
 - 右端で →, Tab キーを押すと次の行の先頭に移動
