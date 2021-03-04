@@ -22,14 +22,14 @@ interface Point2D {
     y: number;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isPoint2D = (item: any): item is Point2D => {
-    return (
-        typeof item === 'object' &&
-        typeof item.name === 'string' &&
-        typeof item.x === 'number' &&
-        typeof item.y === 'number'
-    );
-};
+// const isPoint2D = (item: any): item is Point2D => {
+//     return (
+//         typeof item === 'object' &&
+//         typeof item.name === 'string' &&
+//         typeof item.x === 'number' &&
+//         typeof item.y === 'number'
+//     );
+// };
 
 // 1000件生成
 const data: Point2D[] = [...Array(999)].map((_, index) => {
@@ -69,9 +69,13 @@ const getRowKey = (item: Point2D | undefined, rowIndex: number): string => {
     return `new_point_${rowIndex}`;
 };
 
+const onChange = (values: Partial<Point2D>[]) => {
+    console.log(values);
+};
+
 // 最も単純なサンプル
 export const Sample: React.VFC<Record<string, never>> = () => (
-    <Table<Point2D> data={data} columns={columns} getRowKey={getRowKey} validator={isPoint2D} />
+    <Table<Point2D> data={data} columns={columns} getRowKey={getRowKey} onChange={onChange} />
 );
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
@@ -79,9 +83,9 @@ export const Sample: React.VFC<Record<string, never>> = () => (
 const Colors = ['Red', 'Green', 'Blue'] as const;
 type Color = typeof Colors[number];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isColor = (item: any): item is Color => {
-    return Colors.includes(item);
-};
+// const isColor = (item: any): item is Color => {
+//     return Colors.includes(item);
+// };
 
 interface Point3D {
     id: string;
@@ -93,17 +97,17 @@ interface Point3D {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isPoint3D = (item: any): item is Point3D => {
-    return (
-        typeof item === 'object' &&
-        typeof item.id === 'string' &&
-        typeof item.name === 'string' &&
-        typeof item.x === 'number' &&
-        typeof item.y === 'number' &&
-        typeof item.z === 'number' &&
-        isColor(item.color)
-    );
-};
+// const isPoint3D = (item: any): item is Point3D => {
+//     return (
+//         typeof item === 'object' &&
+//         typeof item.id === 'string' &&
+//         typeof item.name === 'string' &&
+//         typeof item.x === 'number' &&
+//         typeof item.y === 'number' &&
+//         typeof item.z === 'number' &&
+//         isColor(item.color)
+//     );
+// };
 
 // 1000件生成
 const points: Point3D[] = [...Array(999)].map((_, index) => {
@@ -169,12 +173,12 @@ const getRowKey2 = (
 
 // 列定義サンプル
 export const ColumnDef: React.VFC<Record<string, never>> = () => (
-    <Table<Point3D> data={points} columns={columns2} getRowKey={getRowKey2} validator={isPoint3D} />
+    <Table<Point3D> data={points} columns={columns2} getRowKey={getRowKey2} />
 );
 
 // ====== カスタムコンポーネントサンプル ======
 
-const Button: React.FC<CellRenderProps<Point3D>> = ({ location, row, cellProps, editorProps }) => {
+const Button: React.FC<CellRenderProps<Point3D>> = ({ location, row }) => {
     const cell = row[location.column];
 
     // rowKeyをもとに元の要素を取得する
@@ -233,5 +237,5 @@ const columns3: ColumnDefinition<Point3D>[] = [
 
 // カスタムコンポーネントサンプル
 export const CustomCell: React.VFC<Record<string, never>> = () => (
-    <Table<Point3D> data={points} columns={columns3} getRowKey={getRowKey2} validator={isPoint3D} />
+    <Table<Point3D> data={points} columns={columns3} getRowKey={getRowKey2} />
 );

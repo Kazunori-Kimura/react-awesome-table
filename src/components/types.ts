@@ -1,5 +1,5 @@
 import { KeyHandler } from 'hotkeys-js';
-import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+import { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
 
 export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 
@@ -83,7 +83,7 @@ export interface ColumnDefinition<T> {
     displayName?: string;
     valueType?: ValueType;
     getValue: (item: T) => string;
-    setValue?: (value: string) => Partial<T>;
+    parseValue?: (value: string) => Partial<T>;
     validator?: ValidatorFunction<T> | ValidatorFunction<T>[];
     defaultValue?: string | ((row: number, cells: Cell<T>[][]) => string);
     hidden?: boolean;
@@ -92,17 +92,6 @@ export interface ColumnDefinition<T> {
     dataList?: DataListType;
     isPermittedExceptList?: boolean;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
-}
-
-/**
- * テーブル定義
- */
-export interface TableProps<T> {
-    data: T[];
-    columns: ColumnDefinition<T>[];
-    getRowKey: (item: T | undefined, rowIndex: number, cells?: Cell<T>[][]) => string;
-    validator: (item: unknown) => item is T;
-    onChange?: (data: T[]) => void;
 }
 
 /**
@@ -179,4 +168,48 @@ export interface EditorProps {
 export interface HotkeyProps {
     keys: string;
     handler: KeyHandler;
+}
+
+export type GenerateRowKeyFunction<T> = (item: T, index: number, cells?: Cell<T>[][]) => string;
+
+export interface TableHookParameters<T> {
+    items: T[];
+    columns: ColumnDefinition<T>[];
+    page?: number;
+    rowsPerPage: Readonly<number>;
+    rowsPerPageOptions?: Readonly<number[]>;
+    getRowKey: GenerateRowKeyFunction<T>;
+    onChange?: (data: Partial<T>[]) => void;
+}
+
+export interface TableHookReturns<T> {
+    emptyRows: number;
+    page: number;
+    pageItems: Cell<T>[][];
+    total: number;
+    lastPage: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+    rowsPerPage: Readonly<number>;
+    rowsPerPageOptions?: Readonly<number[]>;
+    tbodyRef: RefObject<HTMLTableSectionElement>;
+    onChangePage: (event: unknown, page: number) => void;
+    onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
+    onDeleteRows: VoidFunction;
+    onInsertRow: VoidFunction;
+    getFilterProps: (name: keyof T) => FilterProps;
+    getSortProps: (name: keyof T) => SortProps;
+    getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
+    getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
+    getEditorProps: () => EditorProps;
+}
+
+/**
+ * テーブル定義
+ */
+export interface TableProps<T> {
+    data: T[];
+    columns: ColumnDefinition<T>[];
+    getRowKey: GenerateRowKeyFunction<T>;
+    onChange?: (data: Partial<T>[]) => void;
 }

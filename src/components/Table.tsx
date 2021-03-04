@@ -63,7 +63,7 @@ const useStyles = makeStyles({
     },
 });
 
-function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactElement {
+function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.ReactElement {
     const classes = useStyles();
     const {
         page,
@@ -89,6 +89,7 @@ function Table<T>({ data, columns, getRowKey }: TableProps<T>): React.ReactEleme
         items: data,
         columns,
         getRowKey,
+        onChange,
         rowsPerPage: 10,
         rowsPerPageOptions: [10, 30, 100],
     });
