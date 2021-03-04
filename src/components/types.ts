@@ -2,6 +2,9 @@ import { KeyHandler } from 'hotkeys-js';
 import { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
 
 export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
+export type TableData<T> = Cell<T>[][];
+export type HistoryCommand = 'undo' | 'redo';
+export type Direction = 'up' | 'down' | 'left' | 'right';
 
 /**
  * セル位置
@@ -10,6 +13,24 @@ export interface CellLocation {
     row: number;
     column: number;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export const isCellLocation = (item: any): item is CellLocation => {
+    return (
+        typeof item === 'object' && typeof item.row === 'number' && typeof item.column === 'number'
+    );
+};
+
+/**
+ * セル範囲
+ */
+export interface CellRange {
+    start: CellLocation;
+    end: CellLocation;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export const isCellRange = (item: any): item is CellRange => {
+    return typeof item === 'object' && isCellLocation(item.start) && isCellLocation(item.end);
+};
 
 /**
  * セル種別

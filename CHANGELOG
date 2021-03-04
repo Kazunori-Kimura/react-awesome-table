@@ -6,14 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Shift+矢印キーで選択範囲を更新
 - 最下行で Enter キーを押すと新規行生成
+    - 下端セルでのEnterキー処理制御 (行追加、なにもしない)
 - 右端で →, Tab キーを押すと次の行の先頭に移動
+    - 右端セルからの移動制御 (ループ、次行、なにもしない)
 - テーブルヘッダーの先頭セルクリックで全選択
 - Ctrl+Aで全選択
 - ソート、フィルタの可否切り替え
-- 右端セルからの移動制御 (ループ、次行、なにもしない)
-- 下端セルでのEnterキー処理制御 (行追加、なにもしない)
 
 ### Fixes
 - `getXxxxProps` も `useCallback` で括る
@@ -59,3 +58,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 列のvalidatorを配列でセットできるように
     - required, numeric, list のチェック
 - Ctrl+Z でundo, Ctrl+Y でredo
+- Shift+矢印キーで選択範囲を更新

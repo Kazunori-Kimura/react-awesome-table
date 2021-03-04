@@ -13,23 +13,30 @@ import { MouseButton } from './keys';
 import {
     Cell,
     CellLocation,
+    Direction,
     EditorKeyDownAction,
     EditorProps,
     FilterProps,
     getCellComponentType,
+    HistoryCommand,
     HotkeyProps,
     RowHeaderCellProps,
     SortProps,
     SortState,
+    TableData,
     TableHookParameters,
     TableHookReturns,
 } from './types';
-import { clearSelection, clone, compareLocation, debug, parse, selectRange } from './util';
+import {
+    clearSelection,
+    clone,
+    compareLocation,
+    convertRange,
+    debug,
+    parse,
+    selectRange,
+} from './util';
 import { validateCell } from './validate';
-
-type TableData<T> = Cell<T>[][];
-
-type HistoryCommand = 'undo' | 'redo';
 
 /**
  * ページあたりの行数のデフォルト候補
@@ -471,6 +478,16 @@ export const usePagination = <T>({
     // --- hotkeys ---
 
     /**
+     * 行数からページ番号を割り出す
+     */
+    const getPageNumberByRowIndex = useCallback(
+        (rowIndex: number): number => {
+            return Math.ceil((rowIndex + 1) / rowsPerPage) - 1;
+        },
+        [rowsPerPage]
+    );
+
+    /**
      * カーソル移動
      * @param row
      * @param column
@@ -509,7 +526,7 @@ export const usePagination = <T>({
 
                 // 行数からページ番号を割り出して
                 // 前/次ページに移動した場合はページ番号を更新
-                const newPage = Math.ceil((newCurrent.row + 1) / rowsPerPage) - 1;
+                const newPage = getPageNumberByRowIndex(newCurrent.row);
                 if (currentPage !== newPage) {
                     setPage(newPage);
                 }
@@ -521,7 +538,7 @@ export const usePagination = <T>({
                 return cells;
             }
         },
-        [columnLength, currentCell, currentPage, data.length, rowsPerPage, selection]
+        [columnLength, currentCell, currentPage, data.length, getPageNumberByRowIndex, selection]
     );
 
     /**
@@ -559,6 +576,96 @@ export const usePagination = <T>({
             // TODO カレントセルが表示されるようにスクロールしてほしい
         },
         [data, editCell, focus, navigateCursor]
+    );
+
+    /**
+     * 選択範囲を拡張する
+     */
+    const expandSelection = useCallback(
+        (direction: Direction, cells: TableData<T>): [boolean, TableData<T>, CellLocation[]] => {
+            // 現在の選択範囲
+            const range = convertRange(selection);
+            switch (direction) {
+                case 'up':
+                    range.start.row -= 1;
+                    if (
+                        range.start.row < 0 ||
+                        getPageNumberByRowIndex(range.start.row) !== currentPage
+                    ) {
+                        return [false, cells, selection];
+                    }
+                    break;
+                case 'down':
+                    range.end.row += 1;
+                    if (
+                        range.end.row >= cells.length ||
+                        getPageNumberByRowIndex(range.end.row) !== currentPage
+                    ) {
+                        return [false, cells, selection];
+                    }
+                    break;
+                case 'left':
+                    range.start.column -= 1;
+                    if (range.start.column < 0) {
+                        return [false, cells, selection];
+                    }
+                    break;
+                case 'right':
+                    range.end.column += 1;
+                    if (range.end.column >= columnLength) {
+                        return [false, cells, selection];
+                    }
+                    break;
+            }
+
+            // 選択範囲の更新
+            const newSelection = selectRange(cells, range);
+
+            return [true, cells, newSelection];
+        },
+        [columnLength, currentPage, getPageNumberByRowIndex, selection]
+    );
+
+    /**
+     * Shift+矢印キーによる選択範囲の拡張
+     */
+    const handleShiftArrowKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus || editCell) {
+                // フォーカスが無い、あるいは編集中の場合は何もしない
+                return;
+            }
+            const { key } = hotkeysEvent;
+            debug('handleArrowKeyDown: ', key);
+
+            const cells = clone(data);
+            let direction: Direction;
+            switch (key) {
+                case 'shift+left':
+                    direction = 'left';
+                    break;
+                case 'shift+right':
+                    direction = 'right';
+                    break;
+                case 'shift+up':
+                    direction = 'up';
+                    break;
+                case 'shift+down':
+                    direction = 'down';
+                    break;
+            }
+
+            const [ok, newData, newSelection] = expandSelection(direction, cells);
+            if (ok) {
+                setData(newData);
+                setSelection(newSelection);
+            }
+            // デフォルトの挙動をキャンセル
+            event.preventDefault();
+
+            // TODO カレントセルが表示されるようにスクロールしてほしい
+        },
+        [data, editCell, expandSelection, focus]
     );
 
     /**
@@ -761,6 +868,11 @@ export const usePagination = <T>({
                 keys: 'left,right,up,down',
                 handler: handleArrowKeyDown,
             },
+            // Shift+矢印キー
+            {
+                keys: 'shift+left,shift+right,shift+up,shift+down',
+                handler: handleShiftArrowKeyDown,
+            },
             // Tab, Enter
             {
                 keys: 'shift+tab,tab,shift+enter,enter',
@@ -782,7 +894,14 @@ export const usePagination = <T>({
                 handler: handleAnyKeyDown,
             },
         ];
-    }, [handleAnyKeyDown, handleArrowKeyDown, handleF2KeyDown, handleTabKeyDown, handleUndoRedo]);
+    }, [
+        handleAnyKeyDown,
+        handleArrowKeyDown,
+        handleF2KeyDown,
+        handleShiftArrowKeyDown,
+        handleTabKeyDown,
+        handleUndoRedo,
+    ]);
 
     // Hotkeys
     useEffect(() => {
