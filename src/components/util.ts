@@ -1,4 +1,12 @@
-import { Cell, CellLocation, ColumnDefinition, GenerateRowKeyFunction } from './types';
+import {
+    Cell,
+    CellLocation,
+    CellRange,
+    ColumnDefinition,
+    GenerateRowKeyFunction,
+    isCellRange,
+    TableData,
+} from './types';
 
 /**
  * デバッグログ
@@ -56,16 +64,30 @@ export const clearSelection = <T>(
 };
 
 /**
- * 範囲選択 (注意！ 引数の cells を変更します)
+ * CellLocation[] を CellRange に変換
+ * @param locations
+ */
+export const convertRange = (locations: CellLocation[]): CellRange => {
+    const list = clone(locations).sort(compareLocation);
+    const start: CellLocation = clone(list[0]);
+    const end: CellLocation = clone(list[list.length - 1]);
+    return {
+        start,
+        end,
+    };
+};
+
+/**
+ * 範囲選択
  * @param cells
  * @param cell1
  * @param cell2
  */
-export const selectRange = <T>(
-    cells: Cell<T>[][],
+function selectCells<T>(
+    cells: TableData<T>,
     cell1: CellLocation,
     cell2: CellLocation
-): CellLocation[] => {
+): CellLocation[] {
     const newSelection: CellLocation[] = [];
     const rowRange = [cell1.row, cell2.row].sort();
     const colRange = [cell1.column, cell2.column].sort();
@@ -79,7 +101,34 @@ export const selectRange = <T>(
     }
 
     return newSelection;
-};
+}
+
+// overload定義
+export function selectRange<T>(cells: TableData<T>, range: CellRange): CellLocation[];
+export function selectRange<T>(
+    cells: TableData<T>,
+    cell1: CellLocation,
+    cell2: CellLocation
+): CellLocation[];
+
+/**
+ * 範囲選択 (注意！ 引数の cells を変更します)
+ * @param cells
+ * @param arg1
+ * @param arg2
+ */
+export function selectRange<T>(
+    cells: TableData<T>,
+    arg1: CellRange | CellLocation,
+    arg2?: CellLocation
+): CellLocation[] {
+    if (isCellRange(arg1)) {
+        return selectCells(cells, arg1.start, arg1.end);
+    }
+    if (arg2) {
+        return selectCells(cells, arg1, arg2);
+    }
+}
 
 /**
  * 行を元に entity を生成
