@@ -1,4 +1,4 @@
-import { Cell, CellLocation } from './types';
+import { Cell, CellLocation, ColumnDefinition, GenerateRowKeyFunction } from './types';
 
 /**
  * デバッグログ
@@ -79,4 +79,101 @@ export const selectRange = <T>(
     }
 
     return newSelection;
+};
+
+/**
+ * 行を元に entity を生成
+ * @param row
+ * @param columns
+ * @param rowIndex
+ * @param cells
+ * @param sourceData
+ */
+const parseEntity = <T>(
+    row: Cell<T>[],
+    columns: ColumnDefinition<T>[],
+    rowIndex: number,
+    cells: Cell<T>[][],
+    sourceData: Partial<T> = {}
+): Partial<T> => {
+    let entity: Partial<T> = clone(sourceData);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let value: any = undefined;
+
+    columns.forEach((column) => {
+        const cell = row.find((c) => c.entityName === column.name);
+
+        // セットされている値を取得
+        if (cell?.value) {
+            value = cell.value;
+        } else {
+            if (typeof entity[column.name] === 'undefined') {
+                // 値が取得できなければ defaultValue をセットする
+                if (typeof column.defaultValue === 'string') {
+                    value = column.defaultValue;
+                } else if (column.defaultValue) {
+                    value = column.defaultValue(rowIndex, cells);
+                }
+            }
+        }
+
+        if (value !== undefined) {
+            // 列定義された方法で value を変換
+            if (column.parseValue) {
+                const tmp = column.parseValue(value);
+                value = tmp[column.name];
+            } else if (column.valueType === 'numeric') {
+                const v = parseFloat(value);
+                if (!isNaN(v)) {
+                    value = v;
+                } else {
+                    value = undefined;
+                }
+            }
+
+            // value をセット
+            entity = {
+                ...entity,
+                [column.name]: value,
+            };
+        }
+    });
+
+    return entity;
+};
+
+/**
+ * テーブルを元に entity の配列を生成
+ * @param data
+ * @param cells
+ * @param columns
+ * @param getRowKey
+ */
+export const parse = <T>(
+    data: T[],
+    cells: Cell<T>[][],
+    columns: ColumnDefinition<T>[],
+    getRowKey: GenerateRowKeyFunction<T>
+): Partial<T>[] => {
+    const rows = clone(cells);
+    const entities: Partial<T>[] = [];
+
+    let additionalRowCount = 0;
+    rows.forEach((row) => {
+        const sourceIndex = data.findIndex((e, i) => row[0].rowKey === getRowKey(e, i));
+        if (sourceIndex !== -1) {
+            // 更新行
+            const source = data[sourceIndex];
+            const entity = parseEntity(row, columns, sourceIndex, cells, source);
+            entities.push(entity);
+        } else {
+            // 追加行
+            const rowIndex = data.length + additionalRowCount;
+            const entity = parseEntity(row, columns, rowIndex, cells);
+            entities.push(entity);
+            additionalRowCount += 1;
+        }
+    });
+
+    return entities;
 };

@@ -3,7 +3,6 @@ import {
     ChangeEvent,
     KeyboardEvent,
     MouseEvent,
-    RefObject,
     useCallback,
     useEffect,
     useMemo,
@@ -14,8 +13,6 @@ import { MouseButton } from './keys';
 import {
     Cell,
     CellLocation,
-    CellProps,
-    ColumnDefinition,
     EditorKeyDownAction,
     EditorProps,
     FilterProps,
@@ -24,40 +21,11 @@ import {
     RowHeaderCellProps,
     SortProps,
     SortState,
+    TableHookParameters,
+    TableHookReturns,
 } from './types';
-import { clearSelection, clone, compareLocation, debug, selectRange } from './util';
+import { clearSelection, clone, compareLocation, debug, parse, selectRange } from './util';
 import { validateCell } from './validate';
-
-interface usePaginationParams<T> {
-    items: T[];
-    columns: ColumnDefinition<T>[];
-    getRowKey: (item: T, index: number, cells?: Cell<T>[][]) => string;
-    page?: number;
-    rowsPerPage: Readonly<number>;
-    rowsPerPageOptions?: Readonly<number[]>;
-}
-
-interface usePaginationValues<T> {
-    emptyRows: number;
-    page: number;
-    pageItems: Cell<T>[][];
-    total: number;
-    lastPage: number;
-    hasPrev: boolean;
-    hasNext: boolean;
-    rowsPerPage: Readonly<number>;
-    rowsPerPageOptions?: Readonly<number[]>;
-    tbodyRef: RefObject<HTMLTableSectionElement>;
-    onChangePage: (event: unknown, page: number) => void;
-    onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
-    onDeleteRows: VoidFunction;
-    onInsertRow: VoidFunction;
-    getFilterProps: (name: keyof T) => FilterProps;
-    getSortProps: (name: keyof T) => SortProps;
-    getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
-    getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
-    getEditorProps: () => EditorProps;
-}
 
 /**
  * ページあたりの行数のデフォルト候補
@@ -71,10 +39,11 @@ export const usePagination = <T>({
     items,
     columns,
     getRowKey,
+    onChange,
     page = 0,
     rowsPerPage = defaultRowsPerPageOptions[0],
     rowsPerPageOptions = defaultRowsPerPageOptions,
-}: usePaginationParams<T>): usePaginationValues<T> => {
+}: TableHookParameters<T>): TableHookReturns<T> => {
     // データ全体
     const [data, setData] = useState<Cell<T>[][]>([]);
     // 現在表示ページ
@@ -309,13 +278,14 @@ export const usePagination = <T>({
             // 編集終了
             const d = endEditing(cells);
 
-            if (changed) {
-                // TODO onChange をよぶ
+            if (changed && onChange) {
+                const newData = parse(items, cells, columns, getRowKey);
+                onChange(newData);
             }
 
             return d;
         },
-        [editCell, endEditing, setCellValue]
+        [columns, editCell, endEditing, getRowKey, items, onChange, setCellValue]
     );
 
     /**
