@@ -218,6 +218,8 @@ export interface TableHookReturns<T> {
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
     onDeleteRows: VoidFunction;
     onInsertRow: VoidFunction;
+    onSelect: (range: CellRange) => void;
+    onSelectAll: VoidFunction;
     getFilterProps: (name: keyof T) => FilterProps;
     getSortProps: (name: keyof T) => SortProps;
     getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
@@ -226,7 +228,7 @@ export interface TableHookReturns<T> {
 }
 
 /**
- * テーブル定義
+ * テーブルのProps
  */
 export interface TableProps<T> {
     data: T[];
