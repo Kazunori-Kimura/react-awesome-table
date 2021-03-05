@@ -49,6 +49,36 @@ export function compareLocation(a: CellLocation, b: CellLocation): -1 | 0 | 1 {
 }
 
 /**
+ * range が parent の範囲内かどうか
+ * @param parent
+ * @param range
+ * @returns
+ */
+export function withinRange(parent: CellRange, range: CellRange): boolean {
+    return (
+        parent.start.row <= range.start.row &&
+        parent.end.row >= range.end.row &&
+        parent.start.column <= range.start.column &&
+        parent.end.column >= range.end.column
+    );
+}
+
+/**
+ * cell が range の範囲内かどうか
+ * @param range
+ * @param cell
+ * @returns
+ */
+export function withinCell(range: CellRange, cell: CellLocation): boolean {
+    return (
+        range.start.row <= cell.row &&
+        range.end.row >= cell.row &&
+        range.start.column <= cell.column &&
+        range.end.column >= cell.column
+    );
+}
+
+/**
  * セルの選択状態を解除 (注意！ 引数の cells を変更します)
  * @param cells
  * @param selectedCells

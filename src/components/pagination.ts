@@ -13,6 +13,7 @@ import { MouseButton } from './keys';
 import {
     Cell,
     CellLocation,
+    CellRange,
     Direction,
     EditorKeyDownAction,
     EditorProps,
@@ -35,6 +36,8 @@ import {
     debug,
     parse,
     selectRange,
+    withinCell,
+    withinRange,
 } from './util';
 import { validateCell } from './validate';
 
@@ -103,10 +106,30 @@ export const usePagination = <T>({
         setUndoIndex(0);
     }, [columns, getRowKey, items]);
 
-    // テーブルの列数
+    /**
+     * テーブルの列数
+     */
     const columnLength = useMemo(() => {
         return columns.filter((column) => !(column.hidden ?? false)).length;
     }, [columns]);
+
+    /**
+     * ページ表示範囲
+     */
+    const currentPageRange: CellRange = useMemo(() => {
+        const startRow = currentPage * rowsPerPage;
+        const endRow = startRow + rowsPerPage - 1;
+        return {
+            start: {
+                row: startRow,
+                column: 0,
+            },
+            end: {
+                row: endRow,
+                column: columnLength - 1,
+            },
+        };
+    }, [columnLength, currentPage, rowsPerPage]);
 
     /**
      * 当該イベントが tbody の範囲内で発生している？
@@ -824,6 +847,83 @@ export const usePagination = <T>({
     );
 
     /**
+     * 範囲選択
+     */
+    const onSelect = useCallback(
+        (range: CellRange) => {
+            // 引数の range が現在ページの範囲内？
+            if (!withinRange(currentPageRange, range)) {
+                // 範囲外であれば終了
+                return;
+            }
+
+            const cells = clone(data);
+            // 編集中なら確定
+            if (editCell) {
+                commitEditing(cells);
+            }
+            // 現在の選択を解除
+            clearSelection(cells, selection);
+            // 範囲選択
+            const newSelection = selectRange(cells, range);
+
+            // カレントセルの更新要否
+            let needUpdateCurrent = true;
+            if (currentCell) {
+                if (withinCell(range, currentCell)) {
+                    // カレントセルが選択範囲内なら更新不要
+                    needUpdateCurrent = false;
+                } else {
+                    // 現在のカレントセルをクリア
+                    cells[currentCell.row][currentCell.column].current = false;
+                    cells[currentCell.row][currentCell.column].selected = false;
+                }
+            }
+
+            if (needUpdateCurrent) {
+                // 選択範囲の先頭をカレントセルとする
+                const newCurrent = clone(range.start);
+                cells[newCurrent.row][newCurrent.column].current = true;
+                setCurrentCell(newCurrent);
+            }
+
+            // state保存
+            setSelection(newSelection);
+            setData(cells);
+        },
+        [commitEditing, currentCell, currentPageRange, data, editCell, selection]
+    );
+
+    /**
+     * 全件選択
+     */
+    const onSelectAll = useCallback(() => {
+        // 現在表示しているページを範囲選択
+        onSelect(currentPageRange);
+    }, [currentPageRange, onSelect]);
+
+    /**
+     * Ctrl+A で全件選択
+     */
+    const handleCtrlAKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent) => {
+            // フォーカスがないor編集中であれば何もしない
+            if (!focus) {
+                return;
+            }
+            if (editCell) {
+                return;
+            }
+
+            // 全件選択
+            onSelectAll();
+            // デフォルトの挙動をキャンセル
+            event.preventDefault();
+        },
+        [editCell, focus, onSelectAll]
+    );
+
+    /**
      * 任意のキー押下で値をセットするとともに編集開始
      */
     const handleAnyKeyDown = useCallback(
@@ -888,6 +988,11 @@ export const usePagination = <T>({
                 keys: 'ctrl+z,command+z,ctrl+y,command+y',
                 handler: handleUndoRedo,
             },
+            // Ctrl+A
+            {
+                keys: 'ctrl+a,command+a',
+                handler: handleCtrlAKeyDown,
+            },
             // any
             {
                 keys: '*',
@@ -897,6 +1002,7 @@ export const usePagination = <T>({
     }, [
         handleAnyKeyDown,
         handleArrowKeyDown,
+        handleCtrlAKeyDown,
         handleF2KeyDown,
         handleShiftArrowKeyDown,
         handleTabKeyDown,
@@ -1532,6 +1638,8 @@ export const usePagination = <T>({
         onChangeRowsPerPage,
         onDeleteRows,
         onInsertRow,
+        onSelect,
+        onSelectAll,
         getFilterProps,
         getSortProps,
         getCellProps,

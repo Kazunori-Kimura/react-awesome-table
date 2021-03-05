@@ -10,11 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 下端セルでのEnterキー処理制御 (行追加、なにもしない)
 - 右端で →, Tab キーを押すと次の行の先頭に移動
     - 右端セルからの移動制御 (ループ、次行、なにもしない)
-- テーブルヘッダーの先頭セルクリックで全選択
-- Ctrl+Aで全選択
 - ソート、フィルタの可否切り替え
 
 ### Fixes
+- `getPageNumberByRowIndex` -> `getPageNumberFromRowIndex`
 - `getXxxxProps` も `useCallback` で括る
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - `XxxxProps` に `className` を含める
@@ -59,3 +58,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - required, numeric, list のチェック
 - Ctrl+Z でundo, Ctrl+Y でredo
 - Shift+矢印キーで選択範囲を更新
+- テーブルヘッダーの先頭セルクリックで全選択
+- Ctrl+Aで全選択

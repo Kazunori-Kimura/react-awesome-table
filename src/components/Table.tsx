@@ -80,6 +80,7 @@ function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.
         onChangeRowsPerPage,
         onDeleteRows,
         onInsertRow,
+        onSelectAll,
         getFilterProps,
         getSortProps,
         getCellProps,
@@ -117,7 +118,10 @@ function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.
                 <table className={classes.table}>
                     <thead>
                         <tr className={classes.headerRow}>
-                            <th className={classnames(classes.headerCell, classes.rowHeaderCell)} />
+                            <th
+                                className={classnames(classes.headerCell, classes.rowHeaderCell)}
+                                onClick={onSelectAll}
+                            />
                             {columns.map((column, index) => {
                                 if (column.hidden) {
                                     return undefined;
