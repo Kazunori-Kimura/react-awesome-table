@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ソート、フィルタの可否切り替え
 
 ### Fixes
-- `getPageNumberByRowIndex` -> `getPageNumberFromRowIndex`
 - `getXxxxProps` も `useCallback` で括る
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - `XxxxProps` に `className` を含める

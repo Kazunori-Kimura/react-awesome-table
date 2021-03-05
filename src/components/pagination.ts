@@ -503,7 +503,7 @@ export const usePagination = <T>({
     /**
      * 行数からページ番号を割り出す
      */
-    const getPageNumberByRowIndex = useCallback(
+    const getPageNumberFromRowIndex = useCallback(
         (rowIndex: number): number => {
             return Math.ceil((rowIndex + 1) / rowsPerPage) - 1;
         },
@@ -549,7 +549,7 @@ export const usePagination = <T>({
 
                 // 行数からページ番号を割り出して
                 // 前/次ページに移動した場合はページ番号を更新
-                const newPage = getPageNumberByRowIndex(newCurrent.row);
+                const newPage = getPageNumberFromRowIndex(newCurrent.row);
                 if (currentPage !== newPage) {
                     setPage(newPage);
                 }
@@ -561,7 +561,7 @@ export const usePagination = <T>({
                 return cells;
             }
         },
-        [columnLength, currentCell, currentPage, data.length, getPageNumberByRowIndex, selection]
+        [columnLength, currentCell, currentPage, data.length, getPageNumberFromRowIndex, selection]
     );
 
     /**
@@ -613,7 +613,7 @@ export const usePagination = <T>({
                     range.start.row -= 1;
                     if (
                         range.start.row < 0 ||
-                        getPageNumberByRowIndex(range.start.row) !== currentPage
+                        getPageNumberFromRowIndex(range.start.row) !== currentPage
                     ) {
                         return [false, cells, selection];
                     }
@@ -622,7 +622,7 @@ export const usePagination = <T>({
                     range.end.row += 1;
                     if (
                         range.end.row >= cells.length ||
-                        getPageNumberByRowIndex(range.end.row) !== currentPage
+                        getPageNumberFromRowIndex(range.end.row) !== currentPage
                     ) {
                         return [false, cells, selection];
                     }
@@ -646,7 +646,7 @@ export const usePagination = <T>({
 
             return [true, cells, newSelection];
         },
-        [columnLength, currentPage, getPageNumberByRowIndex, selection]
+        [columnLength, currentPage, getPageNumberFromRowIndex, selection]
     );
 
     /**
