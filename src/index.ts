@@ -1,2 +1,3 @@
-export * from './components/Text';
-export { default as Text } from './components/Text';
+export * from './components/hook';
+export { default as Table } from './components/Table';
+export * from './components/types';
