@@ -6,18 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- メッセージの多言語対応
 
 ### Fixes
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
-- `XxxxProps` に `className` を含める
 - "1" とだけ入力後、Enter/Tab でコミットできない (Storybook にフォーカス持っていかれてる？)
-- emptyRow の下線
-- リファクタリング
-    - hook名の変更: `useTable`
-    - `useStyles` を hooks に移動する
-    - PaginationProps の整理
+- emptyRow の下線が変
 
-## [0.0.0] - 2021-03-XX
+## [0.0.0] - 2021-03-08
 ### Added
 - データ表示
 - ソート

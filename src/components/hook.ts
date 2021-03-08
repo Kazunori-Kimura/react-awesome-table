@@ -50,9 +50,9 @@ import { validateCell } from './validate';
 const defaultRowsPerPageOptions = [5, 10, 30] as const;
 
 /**
- * TablePagination の props を生成するカスタム Hooks
+ * Table の props を生成するカスタム Hooks
  */
-export const usePagination = <T>({
+export const useTable = <T>({
     items,
     columns,
     getRowKey,
