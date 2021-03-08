@@ -5,7 +5,9 @@ import {
     ColumnDefinition,
     GenerateRowKeyFunction,
     isCellRange,
+    SortOrder,
     TableData,
+    ValueType,
 } from './types';
 
 /**
@@ -255,4 +257,38 @@ export const parse = <T>(
     });
 
     return entities;
+};
+
+/**
+ * 値の比較
+ * @param a
+ * @param b
+ * @param valueType
+ * @param order
+ * @returns
+ */
+export const compareValue = (
+    a: string,
+    b: string,
+    valueType: ValueType,
+    order: SortOrder
+): number => {
+    const aValue = valueType === 'string' ? a : parseFloat(a);
+    const bValue = valueType === 'string' ? b : parseFloat(b);
+
+    if (aValue > bValue) {
+        if (order === 'asc') {
+            return 1;
+        } else if (order === 'desc') {
+            return -1;
+        }
+    } else if (aValue < bValue) {
+        if (order === 'asc') {
+            return -1;
+        } else if (order === 'desc') {
+            return 1;
+        }
+    }
+
+    return 0;
 };

@@ -34,6 +34,7 @@ import {
     clearSelection,
     clone,
     compareLocation,
+    compareValue,
     convertRange,
     debug,
     parse,
@@ -1206,19 +1207,7 @@ export const usePagination = <T>({
                         const column = columns.find((c) => c.name === name);
                         const aValue = a.find((e) => e.entityName === column.name).value;
                         const bValue = b.find((e) => e.entityName === column.name).value;
-                        if (aValue > bValue) {
-                            if (order === 'asc') {
-                                return 1;
-                            } else if (order === 'desc') {
-                                return -1;
-                            }
-                        } else if (aValue < bValue) {
-                            if (order === 'asc') {
-                                return -1;
-                            } else if (order === 'desc') {
-                                return 1;
-                            }
-                        }
+                        return compareValue(aValue, bValue, column.valueType, order);
                     }
                     return 0;
                 });
