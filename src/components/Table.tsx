@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { MouseEvent } from 'react';
-import { usePagination } from './pagination';
+import { useTable } from './hook';
 import SortButton from './SortButton';
 import TableCell from './TableCell';
 import { CellLocation, TableProps } from './types';
@@ -92,7 +92,7 @@ function Table<T>({
         getCellProps,
         getRowHeaderCellProps,
         getEditorProps,
-    } = usePagination({
+    } = useTable({
         items: data,
         columns,
         getRowKey,
