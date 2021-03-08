@@ -393,6 +393,7 @@ export const usePagination = <T>({
 
     /**
      * 空行を生成する
+     * (行の挿入は行わない)
      */
     const makeNewRow = useCallback(
         (row: number, cells: TableData<T>): Cell<T>[] => {
@@ -529,7 +530,7 @@ export const usePagination = <T>({
      * @param column
      */
     const navigateCursor = useCallback(
-        (row: number, column: number, cells: TableData<T>): TableData<T> => {
+        (row: number, column: number, cells: TableData<T>, pressedEnter = false): TableData<T> => {
             debug('navigateCursor', row, column, currentCell);
             if (currentCell) {
                 // 新しいカーソル位置
@@ -567,7 +568,18 @@ export const usePagination = <T>({
                     }
                 }
 
-                if (newCurrent.row < 0 || newCurrent.row >= data.length) {
+                if (newCurrent.row >= data.length) {
+                    if (settings.pressEnterOnLastRow === 'insert' && pressedEnter) {
+                        // 行追加する
+                        const row = makeNewRow(newCurrent.row, cells);
+                        cells.push(row);
+                    } else {
+                        // 移動不可
+                        return cells;
+                    }
+                }
+
+                if (newCurrent.row < 0) {
                     // 移動不可
                     return cells;
                 }
@@ -603,8 +615,10 @@ export const usePagination = <T>({
             currentPage,
             data.length,
             getPageNumberFromRowIndex,
+            makeNewRow,
             selection,
             settings.navigateCellFromRowEdge,
+            settings.pressEnterOnLastRow,
         ]
     );
 
@@ -762,7 +776,7 @@ export const usePagination = <T>({
                     cells = navigateCursor(-1, 0, cells);
                     break;
                 case 'enter':
-                    cells = navigateCursor(1, 0, cells);
+                    cells = navigateCursor(1, 0, cells, true);
                     break;
             }
 
