@@ -1,11 +1,22 @@
 {
-    "name": "react-awesome-table",
-    "version": "1.0.0",
-    "description": "",
+    "name": "@kazunori-kimura/react-awesome-table",
+    "version": "0.0.1",
+    "description": "JSON配列をいい感じにテーブル表示する React Component",
     "main": "build/index.js",
     "module": "build/index.es.js",
+    "types": "types/index.d.ts",
+    "files": [
+        "package.json",
+        "README.md",
+        "LICENSE",
+        "types",
+        "build"
+    ],
     "scripts": {
-        "build": "rollup -c",
+        "prebuild": "rimraf build types",
+        "build:rollup": "rollup -c",
+        "build:ts": "tsc -P tsconfig.types.json --emitDeclarationOnly",
+        "build": "run-p -l -c --aggregate-output build:*",
         "fix": "run-s fix:prettier fix:eslint",
         "fix:eslint": "npm run lint:eslint -- --fix",
         "fix:prettier": "npm run lint:prettier -- --write",
@@ -51,6 +62,7 @@
         "prettier": "^2.0.5",
         "react": "^17.0.1",
         "react-dom": "^17.0.1",
+        "rimraf": "^3.0.2",
         "rollup": "^2.39.0",
         "rollup-plugin-peer-deps-external": "^2.2.4",
         "rollup-plugin-typescript2": "^0.30.0",
@@ -80,5 +92,16 @@
         "@material-ui/styles": "^4.11.3",
         "classnames": "^2.2.6",
         "hotkeys-js": "^3.8.2"
-    }
+    },
+    "directories": {
+        "doc": "docs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Kazunori-Kimura/react-awesome-table.git"
+    },
+    "bugs": {
+        "url": "https://github.com/Kazunori-Kimura/react-awesome-table/issues"
+    },
+    "homepage": "https://github.com/Kazunori-Kimura/react-awesome-table#readme"
 }
