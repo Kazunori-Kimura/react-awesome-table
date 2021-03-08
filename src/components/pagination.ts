@@ -14,6 +14,7 @@ import {
     Cell,
     CellLocation,
     CellRange,
+    defaultTableOptions,
     Direction,
     EditorKeyDownAction,
     EditorProps,
@@ -27,6 +28,7 @@ import {
     TableData,
     TableHookParameters,
     TableHookReturns,
+    TableOptions,
 } from './types';
 import {
     clearSelection,
@@ -57,6 +59,7 @@ export const usePagination = <T>({
     page = 0,
     rowsPerPage = defaultRowsPerPageOptions[0],
     rowsPerPageOptions = defaultRowsPerPageOptions,
+    options = defaultTableOptions,
 }: TableHookParameters<T>): TableHookReturns<T> => {
     // データ全体
     const [data, setData] = useState<TableData<T>>([]);
@@ -105,6 +108,16 @@ export const usePagination = <T>({
         setUndo([newData]);
         setUndoIndex(0);
     }, [columns, getRowKey, items]);
+
+    /**
+     * オプション設定
+     */
+    const settings: TableOptions = useMemo(() => {
+        return {
+            ...defaultTableOptions,
+            ...options,
+        };
+    }, [options]);
 
     /**
      * テーブルの列数
@@ -526,12 +539,35 @@ export const usePagination = <T>({
                 };
 
                 // 移動可能か判定
-                if (
-                    newCurrent.row < 0 ||
-                    newCurrent.column < 0 ||
-                    newCurrent.column >= columnLength ||
-                    newCurrent.row >= data.length
-                ) {
+                if (newCurrent.column < 0) {
+                    if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
+                        // 前行の最後尾に移動
+                        newCurrent.row -= 1;
+                        newCurrent.column = columnLength - 1;
+                    } else if (settings.navigateCellFromRowEdge === 'loop') {
+                        // 同一行の最後尾に移動
+                        newCurrent.column = columnLength - 1;
+                    } else {
+                        // 移動不可
+                        return cells;
+                    }
+                }
+
+                if (newCurrent.column >= columnLength) {
+                    if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
+                        // 次行の先頭に移動
+                        newCurrent.row += 1;
+                        newCurrent.column = 0;
+                    } else if (settings.navigateCellFromRowEdge === 'loop') {
+                        // 同一行の先頭に移動
+                        newCurrent.column = 0;
+                    } else {
+                        // 移動不可
+                        return cells;
+                    }
+                }
+
+                if (newCurrent.row < 0 || newCurrent.row >= data.length) {
                     // 移動不可
                     return cells;
                 }
@@ -561,7 +597,15 @@ export const usePagination = <T>({
                 return cells;
             }
         },
-        [columnLength, currentCell, currentPage, data.length, getPageNumberFromRowIndex, selection]
+        [
+            columnLength,
+            currentCell,
+            currentPage,
+            data.length,
+            getPageNumberFromRowIndex,
+            selection,
+            settings.navigateCellFromRowEdge,
+        ]
     );
 
     /**

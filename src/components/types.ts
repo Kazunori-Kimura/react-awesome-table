@@ -191,6 +191,41 @@ export interface HotkeyProps {
     handler: KeyHandler;
 }
 
+type PressEnterOnLastRow = 'insert' | 'none';
+type NavigateCellFromRowEdge = 'prevOrNextRow' | 'loop' | 'none';
+
+/**
+ * テーブル設定
+ */
+export interface TableOptions {
+    /**
+     * 最下行で Enter を入力した際の挙動
+     */
+    pressEnterOnLastRow?: PressEnterOnLastRow;
+    /**
+     * 右端で次のセルに移動した際の挙動
+     */
+    navigateCellFromRowEdge?: NavigateCellFromRowEdge;
+    /**
+     * ソート可否
+     */
+    sortable?: boolean;
+    /**
+     * フィルタリング可否
+     */
+    filtable?: boolean;
+}
+
+export const defaultTableOptions: TableOptions = {
+    pressEnterOnLastRow: 'insert',
+    navigateCellFromRowEdge: 'prevOrNextRow',
+    sortable: true,
+    filtable: true,
+};
+
+/**
+ * 行をユニークにする関数
+ */
 export type GenerateRowKeyFunction<T> = (item: T, index: number, cells?: Cell<T>[][]) => string;
 
 export interface TableHookParameters<T> {
@@ -201,6 +236,7 @@ export interface TableHookParameters<T> {
     rowsPerPageOptions?: Readonly<number[]>;
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
+    options?: TableOptions;
 }
 
 export interface TableHookReturns<T> {
@@ -235,4 +271,5 @@ export interface TableProps<T> {
     columns: ColumnDefinition<T>[];
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
+    options?: TableOptions;
 }
