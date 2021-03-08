@@ -75,7 +75,13 @@ const onChange = (values: Partial<Point2D>[]) => {
 
 // 最も単純なサンプル
 export const Sample: React.VFC<Record<string, never>> = () => (
-    <Table<Point2D> data={data} columns={columns} getRowKey={getRowKey} onChange={onChange} />
+    <Table<Point2D>
+        data={data}
+        columns={columns}
+        getRowKey={getRowKey}
+        onChange={onChange}
+        options={{ sortable: false, filtable: false }}
+    />
 );
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======

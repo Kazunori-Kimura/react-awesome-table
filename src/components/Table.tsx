@@ -63,7 +63,13 @@ const useStyles = makeStyles({
     },
 });
 
-function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.ReactElement {
+function Table<T>({
+    data,
+    columns,
+    getRowKey,
+    onChange,
+    options,
+}: TableProps<T>): React.ReactElement {
     const classes = useStyles();
     const {
         page,
@@ -93,6 +99,7 @@ function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.
         onChange,
         rowsPerPage: 10,
         rowsPerPageOptions: [10, 30, 100],
+        options,
     });
 
     const handleClickPageFirst = (event: MouseEvent) => {
@@ -128,12 +135,18 @@ function Table<T>({ data, columns, getRowKey, onChange }: TableProps<T>): React.
                                 }
 
                                 const key = `awesome-table-header-${column.name}-${index}`;
+                                const sortProps = getSortProps(column.name);
+                                const filterProps = getFilterProps(column.name);
                                 return (
                                     <th className={classes.headerCell} key={key}>
                                         {column.displayName ?? column.name}
-                                        <SortButton {...getSortProps(column.name)} />
-                                        <br />
-                                        <input type="text" {...getFilterProps(column.name)} />
+                                        {sortProps.sortable && <SortButton {...sortProps} />}
+                                        {filterProps.filtable && (
+                                            <>
+                                                <br />
+                                                <input type="text" {...filterProps} />
+                                            </>
+                                        )}
                                     </th>
                                 );
                             })}

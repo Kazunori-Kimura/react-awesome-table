@@ -6,7 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- ソート、フィルタの可否切り替え
 
 ### Fixes
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
@@ -58,3 +57,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 下端セルでのEnterキー処理制御 (行追加、なにもしない)
 - 右端で →, Tab キーを押すと次の行の先頭に移動
     - 右端セルからの移動制御 (ループ、次行、なにもしない)
+- ソート、フィルタの可否切り替え
