@@ -139,6 +139,7 @@ export interface TableContainerProps {
  * ソートボタンの props
  */
 export interface SortProps {
+    sortable: boolean;
     order: SortOrder;
     onClick: VoidFunction;
 }
@@ -147,6 +148,7 @@ export interface SortProps {
  * フィルタ テキストボックスの props
  */
 export interface FilterProps {
+    filtable: boolean;
     name: string;
     value: string;
     onChange: (event: ChangeEvent<HTMLInputElement>) => void;

@@ -145,7 +145,7 @@ export const usePagination = <T>({
     }, [columnLength, currentPage, rowsPerPage]);
 
     /**
-     * 当該イベントが tbody の範囲内で発生している？
+     * 当該イベントが tbody の範囲内で発生しているかどうかを判定
      * @param event
      */
     const withinTbody = useCallback((event: globalThis.MouseEvent): boolean => {
@@ -1148,6 +1148,10 @@ export const usePagination = <T>({
      */
     const onChangeFilter = useCallback(
         (event: ChangeEvent<HTMLInputElement>) => {
+            if (!settings.filtable) {
+                return;
+            }
+
             const { name, value } = event.target;
             setFilter((state) => {
                 return state ? { ...state, [name]: value } : { [name]: value };
@@ -1157,18 +1161,22 @@ export const usePagination = <T>({
             // カレントセル、選択状態をクリアする
             clearSelectionAndCurrentCell();
         },
-        [clearSelectionAndCurrentCell]
+        [clearSelectionAndCurrentCell, settings.filtable]
     );
 
     /**
      * フィルタの input に設定する props を生成
      * @param name
      */
-    const getFilterProps = (name: keyof T): FilterProps => ({
-        name: `${name}`,
-        value: filter ? filter[`${name}`] ?? '' : '',
-        onChange: onChangeFilter,
-    });
+    const getFilterProps = useCallback(
+        (name: keyof T): FilterProps => ({
+            filtable: settings.filtable,
+            name: `${name}`,
+            value: filter ? filter[`${name}`] ?? '' : '',
+            onChange: onChangeFilter,
+        }),
+        [filter, onChangeFilter, settings.filtable]
+    );
 
     /**
      * ソートボタンのクリックイベントハンドラーを返す
@@ -1176,6 +1184,10 @@ export const usePagination = <T>({
     const getSortButtonClickEventHandler = useCallback(
         (name: keyof T) => {
             return () => {
+                if (!settings.sortable) {
+                    return;
+                }
+
                 // 1. ソートボタンをクリックした順にソート順を保持する
                 //    同じボタンが複数クリックされた場合はまず該当ソート順を削除してから
                 //    先頭にソート順を登録する
@@ -1218,17 +1230,21 @@ export const usePagination = <T>({
                 setData(newData);
             };
         },
-        [columns, data, selection, sort]
+        [columns, data, selection, settings.sortable, sort]
     );
 
     /**
      * ソートボタンに設定する props を生成
      * @param name
      */
-    const getSortProps = (name: keyof T): SortProps => ({
-        order: sort.find((e) => e.name === `${name}`)?.order,
-        onClick: getSortButtonClickEventHandler(name),
-    });
+    const getSortProps = useCallback(
+        (name: keyof T): SortProps => ({
+            sortable: settings.sortable,
+            order: sort.find((e) => e.name === `${name}`)?.order,
+            onClick: getSortButtonClickEventHandler(name),
+        }),
+        [getSortButtonClickEventHandler, settings.sortable, sort]
+    );
 
     /**
      * セルのクリック
@@ -1404,107 +1420,113 @@ export const usePagination = <T>({
      * @param rowIndex
      * @param colIndex
      */
-    const getCellProps = (cell: Cell<T>, rowIndex: number, colIndex: number) => ({
-        /**
-         * セルのダブルクリック
-         */
-        onDoubleClick: (event: MouseEvent) => {
-            // 全体を通しての行番号
-            const row = rowIndex + currentPage * perPage;
-            // 現在セルの位置
-            const location: CellLocation = { row, column: colIndex };
-            debug('double click', location);
-
-            onCellDoubleClick(event, rowIndex, colIndex);
-        },
-        /**
-         * セルのクリック / ドラッグの開始
-         * @param event
-         */
-        onMouseDown: (event: MouseEvent) => {
-            if (event.button === MouseButton.Primary) {
+    const getCellProps = useCallback(
+        (cell: Cell<T>, rowIndex: number, colIndex: number) => ({
+            /**
+             * セルのダブルクリック
+             */
+            onDoubleClick: (event: MouseEvent) => {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
                 const location: CellLocation = { row, column: colIndex };
-                debug('mouse down', location);
+                debug('double click', location);
 
-                // クリック時の処理
-                onCellClick(event, rowIndex, colIndex);
-                // ドラッグ開始
-                setDragging(true);
-            }
-        },
-        /**
-         * ドラッグ中
-         * @param event
-         */
-        onMouseOver: () => {
-            if (dragging && !Boolean(editCell)) {
+                onCellDoubleClick(event, rowIndex, colIndex);
+            },
+            /**
+             * セルのクリック / ドラッグの開始
+             * @param event
+             */
+            onMouseDown: (event: MouseEvent) => {
+                if (event.button === MouseButton.Primary) {
+                    // 全体を通しての行番号
+                    const row = rowIndex + currentPage * perPage;
+                    // 現在セルの位置
+                    const location: CellLocation = { row, column: colIndex };
+                    debug('mouse down', location);
+
+                    // クリック時の処理
+                    onCellClick(event, rowIndex, colIndex);
+                    // ドラッグ開始
+                    setDragging(true);
+                }
+            },
+            /**
+             * ドラッグ中
+             * @param event
+             */
+            onMouseOver: () => {
+                if (dragging && !Boolean(editCell)) {
+                    // 全体を通しての行番号
+                    const row = rowIndex + currentPage * perPage;
+                    // 現在セルの位置
+                    const location: CellLocation = { row, column: colIndex };
+                    debug('mouse over', location);
+
+                    // 範囲選択
+                    onCellMouseOver(location);
+                }
+            },
+            /**
+             * ドラッグ終了
+             */
+            onMouseUp: () => {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
                 const location: CellLocation = { row, column: colIndex };
-                debug('mouse over', location);
-
-                // 範囲選択
-                onCellMouseOver(location);
-            }
-        },
-        /**
-         * ドラッグ終了
-         */
-        onMouseUp: () => {
-            // 全体を通しての行番号
-            const row = rowIndex + currentPage * perPage;
-            // 現在セルの位置
-            const location: CellLocation = { row, column: colIndex };
-            debug('mouse up', location);
-            // ドラッグ終了
-            setDragging(false);
-        },
-    });
+                debug('mouse up', location);
+                // ドラッグ終了
+                setDragging(false);
+            },
+        }),
+        [currentPage, dragging, editCell, onCellClick, onCellDoubleClick, onCellMouseOver, perPage]
+    );
 
     /**
      * 行頭セルに設定する props を生成
      * @param rowIndex
      */
-    const getRowHeaderCellProps = (rowIndex: number): RowHeaderCellProps => ({
-        onMouseDown: (event: MouseEvent) => {
-            // 全体を通しての行番号
-            const row = rowIndex + currentPage * perPage;
-            // 現在セルの位置
-            const location: CellLocation = { row, column: 0 };
-            debug('row mouse down', location);
-
-            // クリック時の処理
-            onRowClick(event, rowIndex);
-
-            // ドラッグ開始
-            setDraggingRow(true);
-        },
-        onMouseOver: (event: MouseEvent) => {
-            if (draggingRow) {
+    const getRowHeaderCellProps = useCallback(
+        (rowIndex: number): RowHeaderCellProps => ({
+            onMouseDown: (event: MouseEvent) => {
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
-                const location: CellLocation = { row, column: data[row].length - 1 };
-                debug('row mouse over', location);
+                const location: CellLocation = { row, column: 0 };
+                debug('row mouse down', location);
 
-                // 選択範囲を更新
-                onRowMouseOver(location);
-            }
-        },
-        onMouseUp: () => {
-            // 全体を通しての行番号
-            const row = rowIndex + currentPage * perPage;
-            // 現在セルの位置
-            const location: CellLocation = { row, column: 0 };
-            debug('row mouse up', location);
-            // ドラッグ終了
-            setDraggingRow(false);
-        },
-    });
+                // クリック時の処理
+                onRowClick(event, rowIndex);
+
+                // ドラッグ開始
+                setDraggingRow(true);
+            },
+            onMouseOver: (event: MouseEvent) => {
+                if (draggingRow) {
+                    // 全体を通しての行番号
+                    const row = rowIndex + currentPage * perPage;
+                    // 現在セルの位置
+                    const location: CellLocation = { row, column: data[row].length - 1 };
+                    debug('row mouse over', location);
+
+                    // 選択範囲を更新
+                    onRowMouseOver(location);
+                }
+            },
+            onMouseUp: () => {
+                // 全体を通しての行番号
+                const row = rowIndex + currentPage * perPage;
+                // 現在セルの位置
+                const location: CellLocation = { row, column: 0 };
+                debug('row mouse up', location);
+                // ドラッグ終了
+                setDraggingRow(false);
+            },
+        }),
+        [currentPage, data, draggingRow, onRowClick, onRowMouseOver, perPage]
+    );
 
     /**
      * 編集モードでのキーボード操作
