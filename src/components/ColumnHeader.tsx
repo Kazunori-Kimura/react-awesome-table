@@ -8,14 +8,15 @@ function ColumnHeader<T>({
     sort,
     filter,
 }: ColumnHeaderProps<T>): React.ReactElement {
+    const { filtable, ...filterProps } = filter;
     return (
         <th className={className}>
             {column.displayName ?? column.name}
             {sort.sortable && <SortButton {...sort} />}
-            {filter.filtable && (
+            {filtable && (
                 <>
                     <br />
-                    <input type="text" {...filter} />
+                    <input type="text" {...filterProps} />
                 </>
             )}
         </th>

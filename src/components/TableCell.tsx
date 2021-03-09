@@ -68,6 +68,7 @@ const useStyles = makeStyles({
     inner: {
         display: 'flex',
         alignItems: 'center',
+        width: '100%',
     },
     spacer: {
         flex: 1,
@@ -82,6 +83,9 @@ const useStyles = makeStyles({
             boxShadow: 'none',
             outline: 0,
         },
+    },
+    numeric: {
+        justifyContent: 'flex-end',
     },
 });
 
@@ -152,7 +156,11 @@ function TableCell<T>({
                         )}
                     </>
                 ) : (
-                    <div className={classes.inner}>
+                    <div
+                        className={classnames(classes.inner, {
+                            [classes.numeric]: column.valueType === 'numeric',
+                        })}
+                    >
                         {/* 通常モード */}
                         <span>{value}</span>
                         {column.dataList && (

@@ -339,6 +339,7 @@ function ColumnHeader<T>({
     filter,
 }: ColumnHeaderProps<T>): React.ReactElement {
     const classes = useStyles();
+    const { filtable, ...filterProps } = filter;
     return (
         <th className={className}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -347,7 +348,7 @@ function ColumnHeader<T>({
                     <div className={classes.spacer} />
                     {sort.sortable && <SortButton {...sort} />}
                 </div>
-                {filter.filtable && <input type="text" {...filter} />}
+                {filtable && <input type="text" {...filterProps} />}
             </div>
         </th>
     );

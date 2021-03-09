@@ -7,15 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - メッセージの多言語対応
-- ヘッダー部分の外部コンポーネント利用
-- 列ヘッダーの外部コンポーネント利用
-- ページング部分の外部コンポーネント利用
 - クラスを外部から受け取る
 
 ### Fixes
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
-- numeric なら text-align: right とする
+
+## [0.0.2] - 2021-03-09
+### Added
+- ヘッダー部分の外部コンポーネント利用
+- 列ヘッダーの外部コンポーネント利用
+- ページング部分の外部コンポーネント利用
+
+### Fixes
+- column の ValueType が numeric なら右詰めとする
 
 ## [0.0.1] - 2021-03-08
 ### Added
