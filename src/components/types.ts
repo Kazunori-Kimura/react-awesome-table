@@ -1,5 +1,7 @@
+import { ClassNameMap } from '@material-ui/styles';
 import { KeyHandler } from 'hotkeys-js';
-import { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
+import React, { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
+import { MessageDefinitions } from './messages';
 
 export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export type TableData<T> = Cell<T>[][];
@@ -238,6 +240,7 @@ export interface TableHookParameters<T> {
     rowsPerPageOptions?: Readonly<number[]>;
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
+    messages?: MessageDefinitions;
     options?: TableOptions;
 }
 
@@ -265,13 +268,68 @@ export interface TableHookReturns<T> {
     getEditorProps: () => EditorProps;
 }
 
+export type TableCssClassNames =
+    | 'root'
+    | 'header'
+    | 'container'
+    | 'table'
+    | 'headerRow'
+    | 'headerCell'
+    | 'tbody'
+    | 'row'
+    | 'rowHeader'
+    | 'cell'
+    | 'pagination';
+
+export type TableCssClasses = Partial<ClassNameMap<TableCssClassNames>>;
+
 /**
  * テーブルのProps
  */
 export interface TableProps<T> {
+    classes?: TableCssClasses;
+    messages?: MessageDefinitions;
     data: T[];
     columns: ColumnDefinition<T>[];
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
     options?: TableOptions;
+    renderHeader?: (props: HeaderProps<T>) => React.ReactElement | null;
+    renderColumnHeader?: (props: ColumnHeaderProps<T>) => React.ReactElement;
+    renderPagination?: (props: PaginationProps<T>) => React.ReactElement | null;
+}
+
+/**
+ * ページングのprops
+ */
+export interface PaginationProps<T> {
+    className?: string;
+    page: number;
+    pageItems: Cell<T>[][];
+    total: number;
+    lastPage: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+    rowsPerPage: Readonly<number>;
+    rowsPerPageOptions?: Readonly<number[]>;
+    onChangePage: (event: unknown, page: number) => void;
+    onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
+}
+
+/**
+ * ヘッダーの props
+ */
+export interface HeaderProps<T> extends PaginationProps<T> {
+    onDeleteRows: VoidFunction;
+    onInsertRow: VoidFunction;
+}
+
+/**
+ * 列ヘッダーの props
+ */
+export interface ColumnHeaderProps<T> {
+    className?: string;
+    column: ColumnDefinition<T>;
+    sort: SortProps;
+    filter: FilterProps;
 }

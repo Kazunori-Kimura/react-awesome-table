@@ -10,6 +10,7 @@ import {
     useState,
 } from 'react';
 import { MouseButton } from './keys';
+import { defaultMessages, formatMessage } from './messages';
 import {
     Cell,
     CellLocation,
@@ -61,6 +62,7 @@ export const useTable = <T>({
     rowsPerPage = defaultRowsPerPageOptions[0],
     rowsPerPageOptions = defaultRowsPerPageOptions,
     options = defaultTableOptions,
+    messages = defaultMessages,
 }: TableHookParameters<T>): TableHookReturns<T> => {
     // データ全体
     const [data, setData] = useState<TableData<T>>([]);
@@ -252,14 +254,14 @@ export const useTable = <T>({
                 }
 
                 // エラーチェック
-                const [valid, message] = validateCell(column, value, location, cells);
+                const [valid, message] = validateCell(column, value, location, cells, messages);
                 cell.invalid = !valid;
                 cell.invalidMessage = message;
             }
 
             return changed;
         },
-        [columns]
+        [columns, messages]
     );
 
     /**
@@ -415,7 +417,8 @@ export const useTable = <T>({
                         column,
                         value,
                         { row, column: index },
-                        cells
+                        cells,
+                        messages
                     );
 
                     return {
@@ -429,7 +432,7 @@ export const useTable = <T>({
                     };
                 });
         },
-        [columns, getRowKey]
+        [columns, getRowKey, messages]
     );
 
     /**
@@ -1660,11 +1663,11 @@ export const useTable = <T>({
             return;
         }
 
-        // TODO メッセージの多言語対応
         const rows = selection.map((s) => s.row);
         const min = Math.min(...rows);
         const max = Math.max(...rows);
-        const message = `${max - min + 1}件 のデータを削除します。よろしいですか？`;
+        // ${max - min + 1}件 のデータを削除します。よろしいですか？
+        const message = formatMessage(messages, 'deleteConfirm', { count: `${max - min + 1}` });
         if (window.confirm(message)) {
             const newData = clone(data);
 
@@ -1683,7 +1686,7 @@ export const useTable = <T>({
             setData(newData);
             setFocus(false);
         }
-    }, [currentCell, data, selection]);
+    }, [currentCell, data, messages, selection]);
 
     /**
      * 選択セルを削除する

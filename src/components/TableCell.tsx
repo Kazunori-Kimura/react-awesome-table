@@ -7,6 +7,7 @@ import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './
 type PropsBase<T> = Cell<T> & CellProps;
 
 interface TableCellProps<T> extends PropsBase<T> {
+    className?: string;
     column: ColumnDefinition<T>;
     row: Cell<T>[];
     location: CellLocation;
@@ -68,6 +69,7 @@ const useStyles = makeStyles({
     inner: {
         display: 'flex',
         alignItems: 'center',
+        width: '100%',
     },
     spacer: {
         flex: 1,
@@ -83,9 +85,13 @@ const useStyles = makeStyles({
             outline: 0,
         },
     },
+    numeric: {
+        justifyContent: 'flex-end',
+    },
 });
 
 function TableCell<T>({
+    className,
     column,
     location,
     row,
@@ -108,7 +114,7 @@ function TableCell<T>({
 
     return (
         <td
-            className={classnames(classes.cell, {
+            className={classnames(classes.cell, className, {
                 [classes.current]: current,
                 [classes.edit]: editing,
                 [classes.readOnly]: readOnly && !selected,
@@ -152,7 +158,11 @@ function TableCell<T>({
                         )}
                     </>
                 ) : (
-                    <div className={classes.inner}>
+                    <div
+                        className={classnames(classes.inner, {
+                            [classes.numeric]: column.valueType === 'numeric',
+                        })}
+                    >
                         {/* 通常モード */}
                         <span>{value}</span>
                         {column.dataList && (

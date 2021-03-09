@@ -1,3 +1,4 @@
+import { MessageDefinitions } from './messages';
 import { Cell, CellLocation, ColumnDefinition, ValidatorResult } from './types';
 /**
  * セルの入力値チェック
@@ -6,4 +7,4 @@ import { Cell, CellLocation, ColumnDefinition, ValidatorResult } from './types';
  * @param location
  * @param cells
  */
-export declare function validateCell<T>(column: ColumnDefinition<T>, value: string, location: CellLocation, cells: Cell<T>[][]): ValidatorResult;
+export declare function validateCell<T>(column: ColumnDefinition<T>, value: string, location: CellLocation, cells: Cell<T>[][], messages?: MessageDefinitions): ValidatorResult;

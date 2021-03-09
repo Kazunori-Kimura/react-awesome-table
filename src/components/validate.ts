@@ -1,3 +1,4 @@
+import { defaultMessages, formatMessage, MessageDefinitions } from './messages';
 import {
     Cell,
     CellLocation,
@@ -8,28 +9,32 @@ import {
 } from './types';
 
 // 必須チェック
-const requiredValidator = (value: string): ValidatorResult => {
+const requiredValidator = (value: string, messages: MessageDefinitions): ValidatorResult => {
     if (value.length === 0) {
-        return [false, '必須項目です'];
+        return [false, formatMessage(messages, 'validate.required')];
     }
     return [true];
 };
 
 // 数値チェック
-const numericValidator = (value: string): ValidatorResult => {
+const numericValidator = (value: string, messages: MessageDefinitions): ValidatorResult => {
     const v = parseFloat(value);
     if (isNaN(v) || v.toString() !== value) {
-        return [false, '数値で入力してください'];
+        return [false, formatMessage(messages, 'validate.numeric')];
     }
     return [true];
 };
 
 // リストチェック
-const listValidator = (value: string, list: DataListType): ValidatorResult => {
+const listValidator = (
+    value: string,
+    list: DataListType,
+    messages: MessageDefinitions
+): ValidatorResult => {
     const values = list.map((item) => item.value);
     const names = list.map((item) => item.name);
     if (!values.includes(value)) {
-        return [false, `${names.join(',')}のいずれかを指定してください`];
+        return [false, formatMessage(messages, 'validate.datalist', { list: names.join(',') })];
     }
     return [true];
 };
@@ -45,36 +50,37 @@ export function validateCell<T>(
     column: ColumnDefinition<T>,
     value: string,
     location: CellLocation,
-    cells: Cell<T>[][]
+    cells: Cell<T>[][],
+    messages: MessageDefinitions = defaultMessages
 ): ValidatorResult {
     let isValid = true;
-    const messages: string[] = [];
+    const invalidMessages: string[] = [];
     const { validator, valueType, required, dataList, isPermittedExceptList } = column;
 
     // 数値の場合
     if (valueType === 'numeric' && value.length > 0) {
-        const [valid, message] = numericValidator(value);
+        const [valid, message] = numericValidator(value, messages);
         isValid = isValid && valid;
         if (message) {
-            messages.push(message);
+            invalidMessages.push(message);
         }
     }
 
     // 必須チェック
     if (required) {
-        const [valid, message] = requiredValidator(value);
+        const [valid, message] = requiredValidator(value, messages);
         isValid = isValid && valid;
         if (message) {
-            messages.push(message);
+            invalidMessages.push(message);
         }
     }
 
     // リストチェック
     if (dataList && !isPermittedExceptList && value.length > 0) {
-        const [valid, message] = listValidator(value, dataList);
+        const [valid, message] = listValidator(value, dataList, messages);
         isValid = isValid && valid;
         if (message) {
-            messages.push(message);
+            invalidMessages.push(message);
         }
     }
 
@@ -91,11 +97,12 @@ export function validateCell<T>(
             const [valid, message] = v(value, location, cells);
             isValid = isValid && valid;
             if (message) {
-                messages.push(message);
+                invalidMessages.push(message);
             }
         });
     }
 
-    const message: string | undefined = messages.length > 0 ? messages.join('\n') : undefined;
+    const message: string | undefined =
+        invalidMessages.length > 0 ? invalidMessages.join('\n') : undefined;
     return [isValid, message];
 }

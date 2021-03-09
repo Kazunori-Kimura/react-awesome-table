@@ -1,10 +1,13 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { MouseEvent } from 'react';
+import React, { useMemo } from 'react';
+import ColumnHeader from './ColumnHeader';
+import Header from './Header';
 import { useTable } from './hook';
-import SortButton from './SortButton';
+import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
+import Pagination from './Pagination';
 import TableCell from './TableCell';
-import { CellLocation, TableProps } from './types';
+import { CellLocation, PaginationProps, TableProps } from './types';
 
 const useStyles = makeStyles({
     root: {
@@ -64,13 +67,26 @@ const useStyles = makeStyles({
 });
 
 function Table<T>({
+    classes = {},
+    messages: msgs = {},
     data,
     columns,
     getRowKey,
     onChange,
     options,
+    renderHeader,
+    renderColumnHeader: CustomColumnHeader,
+    renderPagination,
 }: TableProps<T>): React.ReactElement {
-    const classes = useStyles();
+    const baseClasses = useStyles();
+
+    const messages: MessageDefinitions = useMemo(() => {
+        return {
+            ...defaultMessages,
+            ...msgs,
+        };
+    }, [msgs]);
+
     const {
         page,
         pageItems,
@@ -99,138 +115,182 @@ function Table<T>({
         onChange,
         rowsPerPage: 10,
         rowsPerPageOptions: [10, 30, 100],
+        messages,
         options,
     });
 
-    const handleClickPageFirst = (event: MouseEvent) => {
-        onChangePage(event, 0);
-    };
-    const handleClickPagePrev = (event: MouseEvent) => {
-        onChangePage(event, page - 1);
-    };
-    const handleClickPageNext = (event: MouseEvent) => {
-        onChangePage(event, page + 1);
-    };
-    const handleClickPageLast = (event: MouseEvent) => {
-        onChangePage(event, lastPage);
-    };
+    const paginationProps: PaginationProps<T> = useMemo(() => {
+        return {
+            page,
+            pageItems,
+            total,
+            lastPage,
+            hasPrev,
+            hasNext,
+            rowsPerPage,
+            rowsPerPageOptions,
+            onChangePage,
+            onChangeRowsPerPage,
+        };
+    }, [
+        hasNext,
+        hasPrev,
+        lastPage,
+        onChangePage,
+        onChangeRowsPerPage,
+        page,
+        pageItems,
+        rowsPerPage,
+        rowsPerPageOptions,
+        total,
+    ]);
 
     return (
-        <div className={classes.root}>
-            <div className={classes.header}>
-                <button onClick={onInsertRow}>Add Row</button>
-                <button onClick={onDeleteRows}>Delete Rows</button>
-            </div>
-            <div className={classes.container}>
-                <table className={classes.table}>
-                    <thead>
-                        <tr className={classes.headerRow}>
-                            <th
-                                className={classnames(classes.headerCell, classes.rowHeaderCell)}
-                                onClick={onSelectAll}
-                            />
-                            {columns.map((column, index) => {
-                                if (column.hidden) {
-                                    return undefined;
-                                }
+        <div className={classnames(baseClasses.root, classes.root)}>
+            <MessageContext.Provider value={messages}>
+                {/* ヘッダー */}
+                {renderHeader ? (
+                    renderHeader({
+                        className: classes.header,
+                        onDeleteRows,
+                        onInsertRow,
+                        ...paginationProps,
+                    })
+                ) : (
+                    <Header
+                        className={classes.header}
+                        onDeleteRows={onDeleteRows}
+                        onInsertRow={onInsertRow}
+                        {...paginationProps}
+                    />
+                )}
+                <div className={classnames(baseClasses.container, classes.container)}>
+                    <table className={classnames(baseClasses.table, classes.table)}>
+                        <thead>
+                            <tr className={classnames(baseClasses.headerRow, classes.headerRow)}>
+                                <th
+                                    className={classnames(
+                                        baseClasses.headerCell,
+                                        baseClasses.rowHeaderCell,
+                                        classes.headerCell
+                                    )}
+                                    onClick={onSelectAll}
+                                />
+                                {columns.map((column, index) => {
+                                    if (column.hidden) {
+                                        return undefined;
+                                    }
 
-                                const key = `awesome-table-header-${column.name}-${index}`;
-                                const sortProps = getSortProps(column.name);
-                                const filterProps = getFilterProps(column.name);
-                                return (
-                                    <th className={classes.headerCell} key={key}>
-                                        {column.displayName ?? column.name}
-                                        {sortProps.sortable && <SortButton {...sortProps} />}
-                                        {filterProps.filtable && (
-                                            <>
-                                                <br />
-                                                <input type="text" {...filterProps} />
-                                            </>
-                                        )}
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                    </thead>
-                    <tbody ref={tbodyRef}>
-                        {pageItems.map((row, rowIndex) => {
-                            const rowKey = row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
-                            return (
-                                <tr className={classes.row} key={rowKey}>
-                                    <th
-                                        className={classnames(
-                                            classes.headerCell,
-                                            classes.rowHeaderCell
-                                        )}
-                                        {...getRowHeaderCellProps(rowIndex)}
-                                    />
-                                    {row.map((cell, colIndex) => {
-                                        const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
-                                        const column = columns.find(
-                                            (c) => c.name === cell.entityName
-                                        );
-                                        const cellProps = getCellProps(cell, rowIndex, colIndex);
-                                        const location: CellLocation = {
-                                            row: rowIndex,
-                                            column: colIndex,
-                                        };
+                                    const key = `awesome-table-header-${column.name}-${index}`;
+                                    const sortProps = getSortProps(column.name);
+                                    const filterProps = getFilterProps(column.name);
 
+                                    if (CustomColumnHeader) {
                                         return (
-                                            <TableCell
+                                            <CustomColumnHeader
                                                 key={key}
+                                                className={classnames(
+                                                    baseClasses.headerCell,
+                                                    classes.headerCell
+                                                )}
                                                 column={column}
-                                                row={row}
-                                                location={location}
-                                                {...cell}
-                                                {...cellProps}
-                                                editorProps={getEditorProps()}
+                                                sort={sortProps}
+                                                filter={filterProps}
                                             />
                                         );
-                                    })}
-                                </tr>
-                            );
-                        })}
-                        {/* empty rows */}
-                        {emptyRows > 0 &&
-                            [...Array(emptyRows)].map((_, index) => (
-                                <tr
-                                    className={classes.row}
-                                    key={`awesome-table-body-empty-rows-${index}`}
-                                >
-                                    <td className={classes.cell} colSpan={columns.length + 1}>
-                                        &nbsp;
-                                    </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
-            </div>
-            <div className={classes.footer}>
-                <button disabled={!hasPrev} onClick={handleClickPageFirst}>
-                    first
-                </button>
-                <button disabled={!hasPrev} onClick={handleClickPagePrev}>
-                    prev
-                </button>
-                <button disabled={!hasNext} onClick={handleClickPageNext}>
-                    next
-                </button>
-                <button disabled={!hasNext} onClick={handleClickPageLast}>
-                    last
-                </button>
-                <select value={rowsPerPage} onChange={onChangeRowsPerPage}>
-                    {rowsPerPageOptions.map((value) => (
-                        <option key={`rows-per-page-options-${value}`} value={value}>
-                            {value}
-                        </option>
-                    ))}
-                </select>
-                <span>
-                    {1 + page * rowsPerPage} - {Math.min(page * rowsPerPage + rowsPerPage, total)} /{' '}
-                    {total}
-                </span>
-                <span>page: {page + 1}</span>
-            </div>
+                                    }
+
+                                    return (
+                                        <ColumnHeader
+                                            key={key}
+                                            className={classnames(
+                                                baseClasses.headerCell,
+                                                classes.headerCell
+                                            )}
+                                            column={column}
+                                            sort={sortProps}
+                                            filter={filterProps}
+                                        />
+                                    );
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody ref={tbodyRef} className={classes.tbody}>
+                            {pageItems.map((row, rowIndex) => {
+                                const rowKey =
+                                    row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
+                                return (
+                                    <tr
+                                        className={classnames(baseClasses.row, classes.row)}
+                                        key={rowKey}
+                                    >
+                                        <th
+                                            className={classnames(
+                                                baseClasses.headerCell,
+                                                baseClasses.rowHeaderCell,
+                                                classes.rowHeader
+                                            )}
+                                            {...getRowHeaderCellProps(rowIndex)}
+                                        />
+                                        {row.map((cell, colIndex) => {
+                                            const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                            const column = columns.find(
+                                                (c) => c.name === cell.entityName
+                                            );
+                                            const cellProps = getCellProps(
+                                                cell,
+                                                rowIndex,
+                                                colIndex
+                                            );
+                                            const location: CellLocation = {
+                                                row: rowIndex,
+                                                column: colIndex,
+                                            };
+
+                                            return (
+                                                <TableCell
+                                                    key={key}
+                                                    className={classes.cell}
+                                                    column={column}
+                                                    row={row}
+                                                    location={location}
+                                                    {...cell}
+                                                    {...cellProps}
+                                                    editorProps={getEditorProps()}
+                                                />
+                                            );
+                                        })}
+                                    </tr>
+                                );
+                            })}
+                            {/* empty rows */}
+                            {emptyRows > 0 &&
+                                [...Array(emptyRows)].map((_, index) => (
+                                    <tr
+                                        className={baseClasses.row}
+                                        key={`awesome-table-body-empty-rows-${index}`}
+                                    >
+                                        <td
+                                            className={classnames(baseClasses.cell, classes.cell)}
+                                            colSpan={columns.length + 1}
+                                        >
+                                            &nbsp;
+                                        </td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
+                </div>
+                {/* ページング */}
+                {renderPagination ? (
+                    renderPagination({
+                        className: classes.pagination,
+                        ...paginationProps,
+                    })
+                ) : (
+                    <Pagination className={classes.pagination} {...paginationProps} />
+                )}
+            </MessageContext.Provider>
         </div>
     );
 }
