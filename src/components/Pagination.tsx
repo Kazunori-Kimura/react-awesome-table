@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { MouseEvent } from 'react';
+import React, { MouseEvent, useContext } from 'react';
+import { formatMessage, MessageContext } from './messages';
 import { PaginationProps } from './types';
 
 const useStyles = makeStyles({
@@ -22,6 +23,7 @@ function Pagination<T>({
     onChangeRowsPerPage,
 }: PaginationProps<T>): React.ReactElement {
     const classes = useStyles();
+    const messages = useContext(MessageContext);
 
     const handleClickPageFirst = (event: MouseEvent) => {
         onChangePage(event, 0);
@@ -39,16 +41,16 @@ function Pagination<T>({
     return (
         <div className={classnames(classes.root, className)}>
             <button disabled={!hasPrev} onClick={handleClickPageFirst}>
-                first
+                {formatMessage(messages, 'pagination.first')}
             </button>
             <button disabled={!hasPrev} onClick={handleClickPagePrev}>
-                prev
+                {formatMessage(messages, 'pagination.prev')}
             </button>
             <button disabled={!hasNext} onClick={handleClickPageNext}>
-                next
+                {formatMessage(messages, 'pagination.next')}
             </button>
             <button disabled={!hasNext} onClick={handleClickPageLast}>
-                last
+                {formatMessage(messages, 'pagination.last')}
             </button>
             <select value={rowsPerPage} onChange={onChangeRowsPerPage}>
                 {rowsPerPageOptions.map((value) => (

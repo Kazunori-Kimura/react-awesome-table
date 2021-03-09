@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React from 'react';
+import React, { useContext } from 'react';
+import { formatMessage, MessageContext } from './messages';
 import { SortProps } from './types';
 
 const useStyles = makeStyles({
@@ -14,6 +15,7 @@ const useStyles = makeStyles({
 
 const SortButton: React.FC<SortProps> = ({ order, onClick }) => {
     const classes = useStyles();
+    const messages = useContext(MessageContext);
     return (
         <button
             className={classnames({
@@ -22,7 +24,7 @@ const SortButton: React.FC<SortProps> = ({ order, onClick }) => {
             })}
             onClick={onClick}
         >
-            {order ?? 'asc'}
+            {formatMessage(messages, order ?? 'asc')}
         </button>
     );
 };

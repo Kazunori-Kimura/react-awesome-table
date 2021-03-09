@@ -1,6 +1,7 @@
 import { ClassNameMap } from '@material-ui/styles';
 import { KeyHandler } from 'hotkeys-js';
 import React, { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
+import { MessageDefinitions } from './messages';
 
 export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export type TableData<T> = Cell<T>[][];
@@ -239,6 +240,7 @@ export interface TableHookParameters<T> {
     rowsPerPageOptions?: Readonly<number[]>;
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
+    messages?: MessageDefinitions;
     options?: TableOptions;
 }
 
@@ -286,6 +288,7 @@ export type TableCssClasses = Partial<ClassNameMap<TableCssClassNames>>;
  */
 export interface TableProps<T> {
     classes?: TableCssClasses;
+    messages?: MessageDefinitions;
     data: T[];
     columns: ColumnDefinition<T>[];
     getRowKey: GenerateRowKeyFunction<T>;

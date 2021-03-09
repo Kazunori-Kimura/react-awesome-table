@@ -5,9 +5,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- メッセージの多言語対応
-
 ### Fixes
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
@@ -18,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 列ヘッダーの外部コンポーネント利用
 - ページング部分の外部コンポーネント利用
 - クラスを外部から受け取る
+- メッセージの多言語対応
 
 ### Fixes
 - column の ValueType が numeric なら右詰めとする

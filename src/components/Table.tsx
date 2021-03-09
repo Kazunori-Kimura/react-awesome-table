@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import ColumnHeader from './ColumnHeader';
 import Header from './Header';
 import { useTable } from './hook';
+import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
 import Pagination from './Pagination';
 import TableCell from './TableCell';
 import { CellLocation, PaginationProps, TableProps } from './types';
@@ -67,6 +68,7 @@ const useStyles = makeStyles({
 
 function Table<T>({
     classes = {},
+    messages: msgs = {},
     data,
     columns,
     getRowKey,
@@ -77,6 +79,14 @@ function Table<T>({
     renderPagination,
 }: TableProps<T>): React.ReactElement {
     const baseClasses = useStyles();
+
+    const messages: MessageDefinitions = useMemo(() => {
+        return {
+            ...defaultMessages,
+            ...msgs,
+        };
+    }, [msgs]);
+
     const {
         page,
         pageItems,
@@ -105,6 +115,7 @@ function Table<T>({
         onChange,
         rowsPerPage: 10,
         rowsPerPageOptions: [10, 30, 100],
+        messages,
         options,
     });
 
@@ -136,46 +147,61 @@ function Table<T>({
 
     return (
         <div className={classnames(baseClasses.root, classes.root)}>
-            {/* ヘッダー */}
-            {renderHeader ? (
-                renderHeader({
-                    className: classes.header,
-                    onDeleteRows,
-                    onInsertRow,
-                    ...paginationProps,
-                })
-            ) : (
-                <Header
-                    className={classes.header}
-                    onDeleteRows={onDeleteRows}
-                    onInsertRow={onInsertRow}
-                    {...paginationProps}
-                />
-            )}
-            <div className={classnames(baseClasses.container, classes.container)}>
-                <table className={classnames(baseClasses.table, classes.table)}>
-                    <thead>
-                        <tr className={classnames(baseClasses.headerRow, classes.headerRow)}>
-                            <th
-                                className={classnames(
-                                    baseClasses.headerCell,
-                                    baseClasses.rowHeaderCell,
-                                    classes.headerCell
-                                )}
-                                onClick={onSelectAll}
-                            />
-                            {columns.map((column, index) => {
-                                if (column.hidden) {
-                                    return undefined;
-                                }
+            <MessageContext.Provider value={messages}>
+                {/* ヘッダー */}
+                {renderHeader ? (
+                    renderHeader({
+                        className: classes.header,
+                        onDeleteRows,
+                        onInsertRow,
+                        ...paginationProps,
+                    })
+                ) : (
+                    <Header
+                        className={classes.header}
+                        onDeleteRows={onDeleteRows}
+                        onInsertRow={onInsertRow}
+                        {...paginationProps}
+                    />
+                )}
+                <div className={classnames(baseClasses.container, classes.container)}>
+                    <table className={classnames(baseClasses.table, classes.table)}>
+                        <thead>
+                            <tr className={classnames(baseClasses.headerRow, classes.headerRow)}>
+                                <th
+                                    className={classnames(
+                                        baseClasses.headerCell,
+                                        baseClasses.rowHeaderCell,
+                                        classes.headerCell
+                                    )}
+                                    onClick={onSelectAll}
+                                />
+                                {columns.map((column, index) => {
+                                    if (column.hidden) {
+                                        return undefined;
+                                    }
 
-                                const key = `awesome-table-header-${column.name}-${index}`;
-                                const sortProps = getSortProps(column.name);
-                                const filterProps = getFilterProps(column.name);
+                                    const key = `awesome-table-header-${column.name}-${index}`;
+                                    const sortProps = getSortProps(column.name);
+                                    const filterProps = getFilterProps(column.name);
 
-                                if (CustomColumnHeader) {
+                                    if (CustomColumnHeader) {
+                                        return (
+                                            <CustomColumnHeader
+                                                key={key}
+                                                className={classnames(
+                                                    baseClasses.headerCell,
+                                                    classes.headerCell
+                                                )}
+                                                column={column}
+                                                sort={sortProps}
+                                                filter={filterProps}
+                                            />
+                                        );
+                                    }
+
                                     return (
-                                        <CustomColumnHeader
+                                        <ColumnHeader
                                             key={key}
                                             className={classnames(
                                                 baseClasses.headerCell,
@@ -186,93 +212,85 @@ function Table<T>({
                                             filter={filterProps}
                                         />
                                     );
-                                }
-
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody ref={tbodyRef} className={classes.tbody}>
+                            {pageItems.map((row, rowIndex) => {
+                                const rowKey =
+                                    row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
                                 return (
-                                    <ColumnHeader
-                                        key={key}
-                                        className={classnames(
-                                            baseClasses.headerCell,
-                                            classes.headerCell
-                                        )}
-                                        column={column}
-                                        sort={sortProps}
-                                        filter={filterProps}
-                                    />
+                                    <tr
+                                        className={classnames(baseClasses.row, classes.row)}
+                                        key={rowKey}
+                                    >
+                                        <th
+                                            className={classnames(
+                                                baseClasses.headerCell,
+                                                baseClasses.rowHeaderCell,
+                                                classes.rowHeader
+                                            )}
+                                            {...getRowHeaderCellProps(rowIndex)}
+                                        />
+                                        {row.map((cell, colIndex) => {
+                                            const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                            const column = columns.find(
+                                                (c) => c.name === cell.entityName
+                                            );
+                                            const cellProps = getCellProps(
+                                                cell,
+                                                rowIndex,
+                                                colIndex
+                                            );
+                                            const location: CellLocation = {
+                                                row: rowIndex,
+                                                column: colIndex,
+                                            };
+
+                                            return (
+                                                <TableCell
+                                                    key={key}
+                                                    className={classes.cell}
+                                                    column={column}
+                                                    row={row}
+                                                    location={location}
+                                                    {...cell}
+                                                    {...cellProps}
+                                                    editorProps={getEditorProps()}
+                                                />
+                                            );
+                                        })}
+                                    </tr>
                                 );
                             })}
-                        </tr>
-                    </thead>
-                    <tbody ref={tbodyRef} className={classes.tbody}>
-                        {pageItems.map((row, rowIndex) => {
-                            const rowKey = row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
-                            return (
-                                <tr
-                                    className={classnames(baseClasses.row, classes.row)}
-                                    key={rowKey}
-                                >
-                                    <th
-                                        className={classnames(
-                                            baseClasses.headerCell,
-                                            baseClasses.rowHeaderCell,
-                                            classes.rowHeader
-                                        )}
-                                        {...getRowHeaderCellProps(rowIndex)}
-                                    />
-                                    {row.map((cell, colIndex) => {
-                                        const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
-                                        const column = columns.find(
-                                            (c) => c.name === cell.entityName
-                                        );
-                                        const cellProps = getCellProps(cell, rowIndex, colIndex);
-                                        const location: CellLocation = {
-                                            row: rowIndex,
-                                            column: colIndex,
-                                        };
-
-                                        return (
-                                            <TableCell
-                                                key={key}
-                                                className={classes.cell}
-                                                column={column}
-                                                row={row}
-                                                location={location}
-                                                {...cell}
-                                                {...cellProps}
-                                                editorProps={getEditorProps()}
-                                            />
-                                        );
-                                    })}
-                                </tr>
-                            );
-                        })}
-                        {/* empty rows */}
-                        {emptyRows > 0 &&
-                            [...Array(emptyRows)].map((_, index) => (
-                                <tr
-                                    className={baseClasses.row}
-                                    key={`awesome-table-body-empty-rows-${index}`}
-                                >
-                                    <td
-                                        className={classnames(baseClasses.cell, classes.cell)}
-                                        colSpan={columns.length + 1}
+                            {/* empty rows */}
+                            {emptyRows > 0 &&
+                                [...Array(emptyRows)].map((_, index) => (
+                                    <tr
+                                        className={baseClasses.row}
+                                        key={`awesome-table-body-empty-rows-${index}`}
                                     >
-                                        &nbsp;
-                                    </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
-            </div>
-            {/* ページング */}
-            {renderPagination ? (
-                renderPagination({
-                    className: classes.pagination,
-                    ...paginationProps,
-                })
-            ) : (
-                <Pagination className={classes.pagination} {...paginationProps} />
-            )}
+                                        <td
+                                            className={classnames(baseClasses.cell, classes.cell)}
+                                            colSpan={columns.length + 1}
+                                        >
+                                            &nbsp;
+                                        </td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
+                </div>
+                {/* ページング */}
+                {renderPagination ? (
+                    renderPagination({
+                        className: classes.pagination,
+                        ...paginationProps,
+                    })
+                ) : (
+                    <Pagination className={classes.pagination} {...paginationProps} />
+                )}
+            </MessageContext.Provider>
         </div>
     );
 }
