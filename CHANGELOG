@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
 
-## [0.0.2] - 2021-03-09
+## [0.1.0] - 2021-03-09
 ### Added
 - ヘッダー部分の外部コンポーネント利用
 - 列ヘッダーの外部コンポーネント利用
