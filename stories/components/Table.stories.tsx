@@ -1,7 +1,16 @@
+import { makeStyles } from '@material-ui/styles';
 import { Meta } from '@storybook/react/types-6-0';
-import React, { useMemo } from 'react';
+import React, { MouseEvent, useMemo } from 'react';
+import SortButton from '../../src/components/SortButton';
 import Table from '../../src/components/Table';
-import { Cell, CellRenderProps, ColumnDefinition } from '../../src/components/types';
+import {
+    Cell,
+    CellRenderProps,
+    ColumnDefinition,
+    ColumnHeaderProps,
+    HeaderProps,
+    PaginationProps,
+} from '../../src/components/types';
 
 export default {
     title: 'components/Table',
@@ -244,4 +253,113 @@ const columns3: ColumnDefinition<Point3D>[] = [
 // カスタムコンポーネントサンプル
 export const CustomCell: React.VFC<Record<string, never>> = () => (
     <Table<Point3D> data={points} columns={columns3} getRowKey={getRowKey2} />
+);
+
+// ====== カスタムヘッダー、フッター ======
+const useStyles = makeStyles({
+    root: {
+        display: 'flex',
+    },
+    spacer: {
+        flex: 1,
+    },
+});
+
+function Header<T>({ onInsertRow, onDeleteRows }: HeaderProps<T>): React.ReactElement {
+    const classes = useStyles();
+    return (
+        <div className={classes.root}>
+            <p className={classes.spacer}>テスト</p>
+            <button onClick={onInsertRow}>追加</button>
+            <button onClick={onDeleteRows}>削除</button>
+        </div>
+    );
+}
+
+function Pagination<T>({
+    page,
+    total,
+    lastPage,
+    hasPrev,
+    hasNext,
+    rowsPerPage,
+    rowsPerPageOptions,
+    onChangePage,
+    onChangeRowsPerPage,
+}: PaginationProps<T>): React.ReactElement {
+    const classes = useStyles();
+
+    const handleClickPageFirst = (event: MouseEvent) => {
+        onChangePage(event, 0);
+    };
+    const handleClickPagePrev = (event: MouseEvent) => {
+        onChangePage(event, page - 1);
+    };
+    const handleClickPageNext = (event: MouseEvent) => {
+        onChangePage(event, page + 1);
+    };
+    const handleClickPageLast = (event: MouseEvent) => {
+        onChangePage(event, lastPage);
+    };
+
+    return (
+        <div className={classes.root}>
+            <button disabled={!hasPrev} onClick={handleClickPageFirst}>
+                ⏪
+            </button>
+            <button disabled={!hasPrev} onClick={handleClickPagePrev}>
+                ◀
+            </button>
+            <button disabled={!hasNext} onClick={handleClickPageNext}>
+                ▶
+            </button>
+            <button disabled={!hasNext} onClick={handleClickPageLast}>
+                ⏩
+            </button>
+            <select value={rowsPerPage} onChange={onChangeRowsPerPage}>
+                {rowsPerPageOptions.map((value) => (
+                    <option key={`rows-per-page-options-${value}`} value={value}>
+                        {value}
+                    </option>
+                ))}
+            </select>
+            <span>
+                {1 + page * rowsPerPage} - {Math.min(page * rowsPerPage + rowsPerPage, total)} /{' '}
+                {total}
+            </span>
+            <span>page: {page + 1}</span>
+        </div>
+    );
+}
+
+function ColumnHeader<T>({
+    className,
+    column,
+    sort,
+    filter,
+}: ColumnHeaderProps<T>): React.ReactElement {
+    const classes = useStyles();
+    return (
+        <th className={className}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    {column.displayName ?? column.name}
+                    <div className={classes.spacer} />
+                    {sort.sortable && <SortButton {...sort} />}
+                </div>
+                {filter.filtable && <input type="text" {...filter} />}
+            </div>
+        </th>
+    );
+}
+
+export const CustomHeader: React.VFC<Record<string, never>> = () => (
+    <Table<Point2D>
+        data={data}
+        columns={columns}
+        getRowKey={getRowKey}
+        renderColumnHeader={ColumnHeader}
+        renderHeader={Header}
+        renderPagination={Pagination}
+    />
 );

@@ -1,10 +1,12 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { MouseEvent } from 'react';
+import React, { useMemo } from 'react';
+import ColumnHeader from './ColumnHeader';
+import Header from './Header';
 import { useTable } from './hook';
-import SortButton from './SortButton';
+import Pagination from './Pagination';
 import TableCell from './TableCell';
-import { CellLocation, TableProps } from './types';
+import { CellLocation, PaginationProps, TableProps } from './types';
 
 const useStyles = makeStyles({
     root: {
@@ -69,6 +71,9 @@ function Table<T>({
     getRowKey,
     onChange,
     options,
+    renderHeader,
+    renderColumnHeader: CustomColumnHeader,
+    renderPagination,
 }: TableProps<T>): React.ReactElement {
     const classes = useStyles();
     const {
@@ -102,25 +107,48 @@ function Table<T>({
         options,
     });
 
-    const handleClickPageFirst = (event: MouseEvent) => {
-        onChangePage(event, 0);
-    };
-    const handleClickPagePrev = (event: MouseEvent) => {
-        onChangePage(event, page - 1);
-    };
-    const handleClickPageNext = (event: MouseEvent) => {
-        onChangePage(event, page + 1);
-    };
-    const handleClickPageLast = (event: MouseEvent) => {
-        onChangePage(event, lastPage);
-    };
+    const paginationProps: PaginationProps<T> = useMemo(() => {
+        return {
+            page,
+            pageItems,
+            total,
+            lastPage,
+            hasPrev,
+            hasNext,
+            rowsPerPage,
+            rowsPerPageOptions,
+            onChangePage,
+            onChangeRowsPerPage,
+        };
+    }, [
+        hasNext,
+        hasPrev,
+        lastPage,
+        onChangePage,
+        onChangeRowsPerPage,
+        page,
+        pageItems,
+        rowsPerPage,
+        rowsPerPageOptions,
+        total,
+    ]);
 
     return (
         <div className={classes.root}>
-            <div className={classes.header}>
-                <button onClick={onInsertRow}>Add Row</button>
-                <button onClick={onDeleteRows}>Delete Rows</button>
-            </div>
+            {/* ヘッダー */}
+            {renderHeader ? (
+                renderHeader({
+                    onDeleteRows,
+                    onInsertRow,
+                    ...paginationProps,
+                })
+            ) : (
+                <Header
+                    onDeleteRows={onDeleteRows}
+                    onInsertRow={onInsertRow}
+                    {...paginationProps}
+                />
+            )}
             <div className={classes.container}>
                 <table className={classes.table}>
                     <thead>
@@ -137,17 +165,27 @@ function Table<T>({
                                 const key = `awesome-table-header-${column.name}-${index}`;
                                 const sortProps = getSortProps(column.name);
                                 const filterProps = getFilterProps(column.name);
+
+                                if (CustomColumnHeader) {
+                                    return (
+                                        <CustomColumnHeader
+                                            key={key}
+                                            className={classes.headerCell}
+                                            column={column}
+                                            sort={sortProps}
+                                            filter={filterProps}
+                                        />
+                                    );
+                                }
+
                                 return (
-                                    <th className={classes.headerCell} key={key}>
-                                        {column.displayName ?? column.name}
-                                        {sortProps.sortable && <SortButton {...sortProps} />}
-                                        {filterProps.filtable && (
-                                            <>
-                                                <br />
-                                                <input type="text" {...filterProps} />
-                                            </>
-                                        )}
-                                    </th>
+                                    <ColumnHeader
+                                        key={key}
+                                        className={classes.headerCell}
+                                        column={column}
+                                        sort={sortProps}
+                                        filter={filterProps}
+                                    />
                                 );
                             })}
                         </tr>
@@ -205,32 +243,12 @@ function Table<T>({
                     </tbody>
                 </table>
             </div>
-            <div className={classes.footer}>
-                <button disabled={!hasPrev} onClick={handleClickPageFirst}>
-                    first
-                </button>
-                <button disabled={!hasPrev} onClick={handleClickPagePrev}>
-                    prev
-                </button>
-                <button disabled={!hasNext} onClick={handleClickPageNext}>
-                    next
-                </button>
-                <button disabled={!hasNext} onClick={handleClickPageLast}>
-                    last
-                </button>
-                <select value={rowsPerPage} onChange={onChangeRowsPerPage}>
-                    {rowsPerPageOptions.map((value) => (
-                        <option key={`rows-per-page-options-${value}`} value={value}>
-                            {value}
-                        </option>
-                    ))}
-                </select>
-                <span>
-                    {1 + page * rowsPerPage} - {Math.min(page * rowsPerPage + rowsPerPage, total)} /{' '}
-                    {total}
-                </span>
-                <span>page: {page + 1}</span>
-            </div>
+            {/* ページング */}
+            {renderPagination ? (
+                renderPagination(paginationProps)
+            ) : (
+                <Pagination {...paginationProps} />
+            )}
         </div>
     );
 }

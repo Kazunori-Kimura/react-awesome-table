@@ -1,5 +1,5 @@
 import { KeyHandler } from 'hotkeys-js';
-import { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
+import React, { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
 
 export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export type TableData<T> = Cell<T>[][];
@@ -274,4 +274,41 @@ export interface TableProps<T> {
     getRowKey: GenerateRowKeyFunction<T>;
     onChange?: (data: Partial<T>[]) => void;
     options?: TableOptions;
+    renderHeader?: (props: HeaderProps<T>) => React.ReactElement | null;
+    renderColumnHeader?: (props: ColumnHeaderProps<T>) => React.ReactElement;
+    renderPagination?: (props: PaginationProps<T>) => React.ReactElement | null;
+}
+
+/**
+ * ページングのprops
+ */
+export interface PaginationProps<T> {
+    page: number;
+    pageItems: Cell<T>[][];
+    total: number;
+    lastPage: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+    rowsPerPage: Readonly<number>;
+    rowsPerPageOptions?: Readonly<number[]>;
+    onChangePage: (event: unknown, page: number) => void;
+    onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
+}
+
+/**
+ * ヘッダーの props
+ */
+export interface HeaderProps<T> extends PaginationProps<T> {
+    onDeleteRows: VoidFunction;
+    onInsertRow: VoidFunction;
+}
+
+/**
+ * 列ヘッダーの props
+ */
+export interface ColumnHeaderProps<T> {
+    className?: string;
+    column: ColumnDefinition<T>;
+    sort: SortProps;
+    filter: FilterProps;
 }
