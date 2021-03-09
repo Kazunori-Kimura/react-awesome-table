@@ -1,3 +1,4 @@
+import { ClassNameMap } from '@material-ui/styles';
 import { KeyHandler } from 'hotkeys-js';
 import React, { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
 
@@ -265,10 +266,26 @@ export interface TableHookReturns<T> {
     getEditorProps: () => EditorProps;
 }
 
+export type TableCssClassNames =
+    | 'root'
+    | 'header'
+    | 'container'
+    | 'table'
+    | 'headerRow'
+    | 'headerCell'
+    | 'tbody'
+    | 'row'
+    | 'rowHeader'
+    | 'cell'
+    | 'pagination';
+
+export type TableCssClasses = Partial<ClassNameMap<TableCssClassNames>>;
+
 /**
  * テーブルのProps
  */
 export interface TableProps<T> {
+    classes?: TableCssClasses;
     data: T[];
     columns: ColumnDefinition<T>[];
     getRowKey: GenerateRowKeyFunction<T>;
@@ -283,6 +300,7 @@ export interface TableProps<T> {
  * ページングのprops
  */
 export interface PaginationProps<T> {
+    className?: string;
     page: number;
     pageItems: Cell<T>[][];
     total: number;

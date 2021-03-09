@@ -1,4 +1,5 @@
 import { makeStyles } from '@material-ui/styles';
+import classnames from 'classnames';
 import React, { MouseEvent } from 'react';
 import { PaginationProps } from './types';
 
@@ -9,6 +10,7 @@ const useStyles = makeStyles({
 });
 
 function Pagination<T>({
+    className,
     page,
     total,
     lastPage,
@@ -35,7 +37,7 @@ function Pagination<T>({
     };
 
     return (
-        <div className={classes.root}>
+        <div className={classnames(classes.root, className)}>
             <button disabled={!hasPrev} onClick={handleClickPageFirst}>
                 first
             </button>

@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - メッセージの多言語対応
-- クラスを外部から受け取る
 
 ### Fixes
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
@@ -18,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ヘッダー部分の外部コンポーネント利用
 - 列ヘッダーの外部コンポーネント利用
 - ページング部分の外部コンポーネント利用
+- クラスを外部から受け取る
 
 ### Fixes
 - column の ValueType が numeric なら右詰めとする

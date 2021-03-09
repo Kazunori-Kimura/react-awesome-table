@@ -66,6 +66,7 @@ const useStyles = makeStyles({
 });
 
 function Table<T>({
+    classes = {},
     data,
     columns,
     getRowKey,
@@ -75,7 +76,7 @@ function Table<T>({
     renderColumnHeader: CustomColumnHeader,
     renderPagination,
 }: TableProps<T>): React.ReactElement {
-    const classes = useStyles();
+    const baseClasses = useStyles();
     const {
         page,
         pageItems,
@@ -134,27 +135,33 @@ function Table<T>({
     ]);
 
     return (
-        <div className={classes.root}>
+        <div className={classnames(baseClasses.root, classes.root)}>
             {/* ヘッダー */}
             {renderHeader ? (
                 renderHeader({
+                    className: classes.header,
                     onDeleteRows,
                     onInsertRow,
                     ...paginationProps,
                 })
             ) : (
                 <Header
+                    className={classes.header}
                     onDeleteRows={onDeleteRows}
                     onInsertRow={onInsertRow}
                     {...paginationProps}
                 />
             )}
-            <div className={classes.container}>
-                <table className={classes.table}>
+            <div className={classnames(baseClasses.container, classes.container)}>
+                <table className={classnames(baseClasses.table, classes.table)}>
                     <thead>
-                        <tr className={classes.headerRow}>
+                        <tr className={classnames(baseClasses.headerRow, classes.headerRow)}>
                             <th
-                                className={classnames(classes.headerCell, classes.rowHeaderCell)}
+                                className={classnames(
+                                    baseClasses.headerCell,
+                                    baseClasses.rowHeaderCell,
+                                    classes.headerCell
+                                )}
                                 onClick={onSelectAll}
                             />
                             {columns.map((column, index) => {
@@ -170,7 +177,10 @@ function Table<T>({
                                     return (
                                         <CustomColumnHeader
                                             key={key}
-                                            className={classes.headerCell}
+                                            className={classnames(
+                                                baseClasses.headerCell,
+                                                classes.headerCell
+                                            )}
                                             column={column}
                                             sort={sortProps}
                                             filter={filterProps}
@@ -181,7 +191,10 @@ function Table<T>({
                                 return (
                                     <ColumnHeader
                                         key={key}
-                                        className={classes.headerCell}
+                                        className={classnames(
+                                            baseClasses.headerCell,
+                                            classes.headerCell
+                                        )}
                                         column={column}
                                         sort={sortProps}
                                         filter={filterProps}
@@ -190,15 +203,19 @@ function Table<T>({
                             })}
                         </tr>
                     </thead>
-                    <tbody ref={tbodyRef}>
+                    <tbody ref={tbodyRef} className={classes.tbody}>
                         {pageItems.map((row, rowIndex) => {
                             const rowKey = row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
                             return (
-                                <tr className={classes.row} key={rowKey}>
+                                <tr
+                                    className={classnames(baseClasses.row, classes.row)}
+                                    key={rowKey}
+                                >
                                     <th
                                         className={classnames(
-                                            classes.headerCell,
-                                            classes.rowHeaderCell
+                                            baseClasses.headerCell,
+                                            baseClasses.rowHeaderCell,
+                                            classes.rowHeader
                                         )}
                                         {...getRowHeaderCellProps(rowIndex)}
                                     />
@@ -216,6 +233,7 @@ function Table<T>({
                                         return (
                                             <TableCell
                                                 key={key}
+                                                className={classes.cell}
                                                 column={column}
                                                 row={row}
                                                 location={location}
@@ -232,10 +250,13 @@ function Table<T>({
                         {emptyRows > 0 &&
                             [...Array(emptyRows)].map((_, index) => (
                                 <tr
-                                    className={classes.row}
+                                    className={baseClasses.row}
                                     key={`awesome-table-body-empty-rows-${index}`}
                                 >
-                                    <td className={classes.cell} colSpan={columns.length + 1}>
+                                    <td
+                                        className={classnames(baseClasses.cell, classes.cell)}
+                                        colSpan={columns.length + 1}
+                                    >
                                         &nbsp;
                                     </td>
                                 </tr>
@@ -245,9 +266,12 @@ function Table<T>({
             </div>
             {/* ページング */}
             {renderPagination ? (
-                renderPagination(paginationProps)
+                renderPagination({
+                    className: classes.pagination,
+                    ...paginationProps,
+                })
             ) : (
-                <Pagination {...paginationProps} />
+                <Pagination className={classes.pagination} {...paginationProps} />
             )}
         </div>
     );

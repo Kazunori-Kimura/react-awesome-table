@@ -354,13 +354,26 @@ function ColumnHeader<T>({
     );
 }
 
-export const CustomHeader: React.VFC<Record<string, never>> = () => (
-    <Table<Point2D>
-        data={data}
-        columns={columns}
-        getRowKey={getRowKey}
-        renderColumnHeader={ColumnHeader}
-        renderHeader={Header}
-        renderPagination={Pagination}
-    />
-);
+const useCustomHeaderStyles = makeStyles({
+    tbody: {
+        backgroundColor: '#ffc',
+    },
+    cell: {
+        color: '#009',
+    },
+});
+
+export const CustomHeader: React.VFC<Record<string, never>> = () => {
+    const classes = useCustomHeaderStyles();
+    return (
+        <Table<Point2D>
+            classes={classes}
+            data={data}
+            columns={columns}
+            getRowKey={getRowKey}
+            renderColumnHeader={ColumnHeader}
+            renderHeader={Header}
+            renderPagination={Pagination}
+        />
+    );
+};

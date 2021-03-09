@@ -7,6 +7,7 @@ import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './
 type PropsBase<T> = Cell<T> & CellProps;
 
 interface TableCellProps<T> extends PropsBase<T> {
+    className?: string;
     column: ColumnDefinition<T>;
     row: Cell<T>[];
     location: CellLocation;
@@ -90,6 +91,7 @@ const useStyles = makeStyles({
 });
 
 function TableCell<T>({
+    className,
     column,
     location,
     row,
@@ -112,7 +114,7 @@ function TableCell<T>({
 
     return (
         <td
-            className={classnames(classes.cell, {
+            className={classnames(classes.cell, className, {
                 [classes.current]: current,
                 [classes.edit]: editing,
                 [classes.readOnly]: readOnly && !selected,
