@@ -116,6 +116,7 @@ export interface ColumnDefinition<T> {
     required?: boolean;
     dataList?: DataListType;
     isPermittedExceptList?: boolean;
+    width?: number;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 
