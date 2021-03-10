@@ -203,7 +203,7 @@ function TableCell<T>({
                         {/* 通常モード */}
                         <span>
                             {column.dataList
-                                ? column.dataList.find((item) => item.value === value).name
+                                ? column.dataList.find((item) => item.value === value)?.name ?? ''
                                 : value}
                         </span>
                         {column.dataList && (

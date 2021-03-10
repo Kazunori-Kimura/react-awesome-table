@@ -21,6 +21,7 @@ const useStyles = makeStyles({
     root: (props: StyleProps) => ({
         boxShadow: '0px 0px 5px 3px rgba(10,10,10,0.2)',
         width: 'max-content',
+        minHeight: '0.5rem',
         maxHeight: '8rem',
         maxWidth: 400,
         boxSizing: 'border-box',
