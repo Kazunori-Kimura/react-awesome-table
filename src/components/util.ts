@@ -181,12 +181,11 @@ export const parseEntity = <T>(
     sourceData: Partial<T> = {}
 ): Partial<T> => {
     let entity: Partial<T> = clone(sourceData);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value: any = undefined;
 
     columns.forEach((column) => {
         const cell = row.find((c) => c.entityName === column.name);
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let value: any = undefined;
         // セットされている値を取得
         if (cell?.value) {
             value = cell.value;
