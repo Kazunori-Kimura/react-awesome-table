@@ -153,7 +153,7 @@ export interface SortProps {
  * フィルタ テキストボックスの props
  */
 export interface FilterProps {
-    filtable: boolean;
+    filterable: boolean;
     name: string;
     value: string;
     onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -220,14 +220,14 @@ export interface TableOptions {
     /**
      * フィルタリング可否
      */
-    filtable?: boolean;
+    filterable?: boolean;
 }
 
 export const defaultTableOptions: TableOptions = {
     pressEnterOnLastRow: 'insert',
     navigateCellFromRowEdge: 'prevOrNextRow',
     sortable: true,
-    filtable: true,
+    filterable: true,
 };
 
 /**

@@ -21,12 +21,12 @@ function ColumnHeader<T>({
     filter,
 }: ColumnHeaderProps<T>): React.ReactElement {
     const classes = useStyles({ width: column.width });
-    const { filtable, ...filterProps } = filter;
+    const { filterable, ...filterProps } = filter;
     return (
         <th className={classnames(className, classes.root)}>
             {column.displayName ?? column.name}
             {sort.sortable && <SortButton {...sort} />}
-            {filtable && (
+            {filterable && (
                 <>
                     <br />
                     <input type="text" {...filterProps} />

@@ -1163,7 +1163,7 @@ export const useTable = <T>({
      */
     const onChangeFilter = useCallback(
         (event: ChangeEvent<HTMLInputElement>) => {
-            if (!settings.filtable) {
+            if (!settings.filterable) {
                 return;
             }
 
@@ -1176,7 +1176,7 @@ export const useTable = <T>({
             // カレントセル、選択状態をクリアする
             clearSelectionAndCurrentCell();
         },
-        [clearSelectionAndCurrentCell, settings.filtable]
+        [clearSelectionAndCurrentCell, settings.filterable]
     );
 
     /**
@@ -1185,12 +1185,12 @@ export const useTable = <T>({
      */
     const getFilterProps = useCallback(
         (name: keyof T): FilterProps => ({
-            filtable: settings.filtable,
+            filterable: settings.filterable,
             name: `${name}`,
             value: filter ? filter[`${name}`] ?? '' : '',
             onChange: onChangeFilter,
         }),
-        [filter, onChangeFilter, settings.filtable]
+        [filter, onChangeFilter, settings.filterable]
     );
 
     /**

@@ -92,7 +92,7 @@ export const Sample: React.VFC<Record<string, never>> = () => (
         columns={columns}
         getRowKey={getRowKey}
         onChange={onChange}
-        options={{ sortable: false, filtable: false }}
+        options={{ sortable: false, filterable: false }}
     />
 );
 
@@ -341,7 +341,7 @@ function ColumnHeader<T>({
     filter,
 }: ColumnHeaderProps<T>): React.ReactElement {
     const classes = useStyles();
-    const { filtable, ...filterProps } = filter;
+    const { filterable, ...filterProps } = filter;
     return (
         <th className={className}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -350,7 +350,7 @@ function ColumnHeader<T>({
                     <div className={classes.spacer} />
                     {sort.sortable && <SortButton {...sort} />}
                 </div>
-                {filtable && <input type="text" {...filterProps} />}
+                {filterable && <input type="text" {...filterProps} />}
             </div>
         </th>
     );
