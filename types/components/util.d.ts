@@ -39,9 +39,18 @@ export declare const clearSelection: <T>(cells: Cell<T>[][], selectedCells: Cell
  * CellLocation[] を CellRange に変換
  * @param locations
  */
-export declare const convertRange: (locations: CellLocation[]) => CellRange;
+export declare const convertRange: (locations: CellLocation[]) => CellRange | undefined;
 export declare function selectRange<T>(cells: TableData<T>, range: CellRange): CellLocation[];
 export declare function selectRange<T>(cells: TableData<T>, cell1: CellLocation, cell2: CellLocation): CellLocation[];
+/**
+ * 行を元に entity を生成
+ * @param row
+ * @param columns
+ * @param rowIndex
+ * @param cells
+ * @param sourceData
+ */
+export declare const parseEntity: <T>(row: Cell<T>[], columns: ColumnDefinition<T>[], rowIndex: number, cells: Cell<T>[][], sourceData?: Partial<T>) => Partial<T>;
 /**
  * テーブルを元に entity の配列を生成
  * @param data
