@@ -5,9 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- 選択行のデータを取得する: `selectedRange`
+- 各列の幅を指定できるようにする
+
 ### Fixes
+- ValueType 未指定時にソートが効かない
+- ソート時にカレントセルが残ってしまい、複数カレントセルが表示される
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+
+## [0.2.0] - 2021-03-11
+### Added
+- CellRenderProps に Entity を追加する
+- CellRenderProps でセルの値をセットする方法を提供する: `onChange(value)`
 
 ## [0.1.0] - 2021-03-09
 ### Added

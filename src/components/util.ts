@@ -170,7 +170,7 @@ export function selectRange<T>(
  * @param cells
  * @param sourceData
  */
-const parseEntity = <T>(
+export const parseEntity = <T>(
     row: Cell<T>[],
     columns: ColumnDefinition<T>[],
     rowIndex: number,

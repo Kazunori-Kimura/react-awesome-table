@@ -92,6 +92,8 @@ export interface CellRenderProps<T> {
     location: CellLocation;
     row: Cell<T>[];
     column: ColumnDefinition<T>;
+    entity: Partial<T>;
+    onChange: (value: string) => void;
 }
 
 export type ValueType = 'string' | 'numeric';
@@ -244,10 +246,19 @@ export interface TableHookParameters<T> {
     options?: TableOptions;
 }
 
+/**
+ * セルの値を更新する関数
+ */
+export type ChangeCellValueFunction = (location: CellLocation, value: string) => void;
+
+/**
+ * カスタムフックの戻り値
+ */
 export interface TableHookReturns<T> {
     emptyRows: number;
     page: number;
     pageItems: Cell<T>[][];
+    allItems: Cell<T>[][];
     total: number;
     lastPage: number;
     hasPrev: boolean;
@@ -255,6 +266,7 @@ export interface TableHookReturns<T> {
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
     tbodyRef: RefObject<HTMLTableSectionElement>;
+    onChangeCellValue: ChangeCellValueFunction;
     onChangePage: (event: unknown, page: number) => void;
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
     onDeleteRows: VoidFunction;

@@ -90,6 +90,7 @@ function Table<T>({
     const {
         page,
         pageItems,
+        allItems,
         total,
         emptyRows,
         lastPage,
@@ -98,6 +99,7 @@ function Table<T>({
         rowsPerPage,
         rowsPerPageOptions,
         tbodyRef,
+        onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,
         onDeleteRows,
@@ -243,16 +245,21 @@ function Table<T>({
                                                 colIndex
                                             );
                                             const location: CellLocation = {
-                                                row: rowIndex,
+                                                row: rowIndex + page * rowsPerPage,
                                                 column: colIndex,
                                             };
 
                                             return (
-                                                <TableCell
+                                                <TableCell<T>
                                                     key={key}
                                                     className={classes.cell}
                                                     column={column}
+                                                    columns={columns}
+                                                    data={data}
                                                     row={row}
+                                                    cells={allItems}
+                                                    getRowKey={getRowKey}
+                                                    onChangeCellValue={onChangeCellValue}
                                                     location={location}
                                                     {...cell}
                                                     {...cellProps}

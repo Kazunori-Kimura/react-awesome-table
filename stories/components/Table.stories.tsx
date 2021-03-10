@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import { Meta } from '@storybook/react/types-6-0';
-import React, { MouseEvent, useMemo } from 'react';
+import React, { MouseEvent } from 'react';
 import SortButton from '../../src/components/SortButton';
 import Table from '../../src/components/Table';
 import {
@@ -193,23 +193,22 @@ export const ColumnDef: React.VFC<Record<string, never>> = () => (
 
 // ====== カスタムコンポーネントサンプル ======
 
-const Button: React.FC<CellRenderProps<Point3D>> = ({ location, row }) => {
-    const cell = row[location.column];
-
-    // rowKeyをもとに元の要素を取得する
-    const entity = useMemo(() => {
-        return points.find((p) => getRowKey2(p, location.row) === cell.rowKey);
-    }, [cell.rowKey, location.row]);
-
+const Button: React.FC<CellRenderProps<Point3D>> = ({ cell, entity, onChange }) => {
     const handleClick = () => {
-        let message = '該当のデータが見つからなかったよ';
-        if (entity) {
-            message = `${entity.id}: ${entity.name}`;
-        }
-        alert(message);
+        const value = prompt('新しい名前', cell.value);
+        onChange(value);
     };
 
-    return <button onClick={handleClick}>{cell.value}</button>;
+    const handleClick2 = () => {
+        alert(JSON.stringify(entity, null, 4));
+    };
+
+    return (
+        <>
+            <button onClick={handleClick}>{cell.value}</button>
+            <button onClick={handleClick2}>Show Entity</button>
+        </>
+    );
 };
 
 // 列定義

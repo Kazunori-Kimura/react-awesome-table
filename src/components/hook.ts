@@ -1695,10 +1695,29 @@ export const useTable = <T>({
         deleteRows();
     }, [deleteRows]);
 
+    /**
+     * locationを指定して値を更新
+     */
+    const onChangeCellValue = useCallback(
+        (location: CellLocation, value: string) => {
+            debug('onChangeCellValue: ', location, value);
+            const cells = clone(data);
+            if (setCellValue(value, location, cells)) {
+                handleChange(cells);
+                // 履歴更新
+                pushUndoList(cells);
+                // 更新確定
+                setData(cells);
+            }
+        },
+        [data, handleChange, pushUndoList, setCellValue]
+    );
+
     return {
         emptyRows,
         page: currentPage,
         pageItems,
+        allItems: data,
         total: filteredData.length,
         lastPage: last,
         hasPrev: currentPage !== 0,
@@ -1706,6 +1725,7 @@ export const useTable = <T>({
         rowsPerPage: perPage,
         rowsPerPageOptions,
         tbodyRef,
+        onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,
         onDeleteRows,
