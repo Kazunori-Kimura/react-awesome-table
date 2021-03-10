@@ -1632,7 +1632,7 @@ export const useTable = <T>({
      */
     const insertRow = useCallback(
         (rowIndex?: number) => {
-            const insertRowNumber = rowIndex + 1 ?? data.length;
+            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data.length;
             const newData = clone(data);
             const newRow = makeNewRow(insertRowNumber, newData);
 
@@ -1657,12 +1657,16 @@ export const useTable = <T>({
             newData[location.row][location.column].current = true;
             newData[location.row][location.column].selected = true;
 
+            // 挿入行のページを取得
+            const newPage = getPageNumberFromRowIndex(location.row);
+
             setCurrentCell(location);
             setSelection([location]);
             setData(newData);
             setFocus(true);
+            setPage(newPage);
         },
-        [currentCell, data, makeNewRow, selection]
+        [currentCell, data, getPageNumberFromRowIndex, makeNewRow, selection]
     );
 
     /**
