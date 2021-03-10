@@ -201,7 +201,11 @@ function TableCell<T>({
                         })}
                     >
                         {/* 通常モード */}
-                        <span>{value}</span>
+                        <span>
+                            {column.dataList
+                                ? column.dataList.find((item) => item.value === value).name
+                                : value}
+                        </span>
                         {column.dataList && (
                             <>
                                 <div className={classes.spacer} />

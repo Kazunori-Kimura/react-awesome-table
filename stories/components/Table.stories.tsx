@@ -106,8 +106,14 @@ export const Sample: React.VFC<Record<string, never>> = () => (
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
 
-const Colors = ['Red', 'Green', 'Blue'] as const;
+const Colors = ['#f00', '#0f0', '#00f'] as const;
 type Color = typeof Colors[number];
+const ColorNames: Record<Color, string> = {
+    '#f00': 'Red',
+    '#0f0': 'Green',
+    '#00f': 'Blue',
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 // const isColor = (item: any): item is Color => {
 //     return Colors.includes(item);
@@ -187,7 +193,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
     {
         name: 'color',
         getValue: (item) => `${item.color}`,
-        dataList: Colors.map((c) => ({ name: c, value: c })),
+        dataList: Colors.map((c) => ({ name: ColorNames[c], value: c })),
     },
 ];
 
@@ -258,7 +264,7 @@ const columns3: ColumnDefinition<Point3D>[] = [
     {
         name: 'color',
         getValue: (item) => `${item.color}`,
-        dataList: Colors.map((c) => ({ name: c, value: c })),
+        dataList: Colors.map((c) => ({ name: ColorNames[c], value: c })),
     },
 ];
 

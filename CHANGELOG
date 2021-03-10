@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - emptyRow の下線が変
 - build/stories/components/Table.stories.d.ts をパッケージ対象から外したい
 
+## [0.2.3] - 2021-03-11
+### Fixed
+- dataList から選択後、cell.value が dataList の name になってしまう
+- 導入元プロジェクトで Material-UI を使用しているとクラス名がバッティングする問題を修正
+
 ## [0.2.2] - 2021-03-11
 ### Fixed
 - parseEntity の変数初期化ミスを修正
