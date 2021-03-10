@@ -273,8 +273,8 @@ export const compareValue = (
     valueType: ValueType,
     order: SortOrder
 ): number => {
-    const aValue = valueType === 'string' ? a : parseFloat(a);
-    const bValue = valueType === 'string' ? b : parseFloat(b);
+    const aValue = valueType === 'numeric' ? parseFloat(a) : a;
+    const bValue = valueType === 'numeric' ? parseFloat(b) : b;
 
     if (aValue > bValue) {
         if (order === 'asc') {

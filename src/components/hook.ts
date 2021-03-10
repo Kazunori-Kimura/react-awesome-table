@@ -1202,11 +1202,17 @@ export const useTable = <T>({
                     order: order === 'desc' ? 'asc' : 'desc',
                 });
 
-                // 2. ソート順を新しいヤツから順に適用する
                 const newData = clone(data);
+                // 選択の解除
+                clearSelection(newData, selection);
+                // カレントセルの解除
+                if (currentCell) {
+                    newData[currentCell.row][currentCell.column].current = false;
+                }
+
+                // 2. ソート順を新しいヤツから順に適用する
                 newData.sort((a, b) => {
                     for (const { name, order } of newSort) {
-                        // TODO column から数値か文字列かを判定して比較する
                         const column = columns.find((c) => c.name === name);
                         const aValue = a.find((e) => e.entityName === column.name).value;
                         const bValue = b.find((e) => e.entityName === column.name).value;
@@ -1217,12 +1223,12 @@ export const useTable = <T>({
 
                 // 3. stateの更新
                 setSort(newSort);
-
-                clearSelection(newData, selection);
                 setData(newData);
+                setSelection([]);
+                setCurrentCell(undefined);
             };
         },
-        [columns, data, selection, settings.sortable, sort]
+        [columns, currentCell, data, selection, settings.sortable, sort]
     );
 
     /**
