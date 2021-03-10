@@ -5,9 +5,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Fixes
+### Added
+
+### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+
+## [0.2.0] - 2021-03-11
+### Added
+- CellRenderProps に Entity を追加する
+- CellRenderProps でセルの値をセットする方法を提供する: `onChange(value)`
+- 選択行のデータを取得する: `selectedRange`
+- 各列の幅を指定できるようにする
+- 列ごとにソート可否・フィルタ可否を設定できるようにする
+
+### Fixed
+- ValueType 未指定時にソートが効かない
+- ソート時にカレントセルが残ってしまい、複数カレントセルが表示される
+- 未選択状態で追加ボタンをクリックすると `Uncaught TypeError: Cannot read property '0' of undefined`
 
 ## [0.1.0] - 2021-03-09
 ### Added
@@ -17,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - クラスを外部から受け取る
 - メッセージの多言語対応
 
-### Fixes
+### Fixed
 - column の ValueType が numeric なら右詰めとする
 
 ## [0.0.1] - 2021-03-08

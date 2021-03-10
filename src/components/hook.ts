@@ -148,6 +148,13 @@ export const useTable = <T>({
     }, [columnLength, currentPage, rowsPerPage]);
 
     /**
+     * 選択範囲
+     */
+    const selectedRange: CellRange | undefined = useMemo(() => {
+        return convertRange(selection);
+    }, [selection]);
+
+    /**
      * 当該イベントが tbody の範囲内で発生しているかどうかを判定
      * @param event
      */
@@ -670,6 +677,10 @@ export const useTable = <T>({
         (direction: Direction, cells: TableData<T>): [boolean, TableData<T>, CellLocation[]] => {
             // 現在の選択範囲
             const range = convertRange(selection);
+            if (!range) {
+                return [false, cells, selection];
+            }
+
             switch (direction) {
                 case 'up':
                     range.start.row -= 1;
@@ -1152,7 +1163,7 @@ export const useTable = <T>({
      */
     const onChangeFilter = useCallback(
         (event: ChangeEvent<HTMLInputElement>) => {
-            if (!settings.filtable) {
+            if (!settings.filterable) {
                 return;
             }
 
@@ -1165,7 +1176,7 @@ export const useTable = <T>({
             // カレントセル、選択状態をクリアする
             clearSelectionAndCurrentCell();
         },
-        [clearSelectionAndCurrentCell, settings.filtable]
+        [clearSelectionAndCurrentCell, settings.filterable]
     );
 
     /**
@@ -1173,13 +1184,16 @@ export const useTable = <T>({
      * @param name
      */
     const getFilterProps = useCallback(
-        (name: keyof T): FilterProps => ({
-            filtable: settings.filtable,
-            name: `${name}`,
-            value: filter ? filter[`${name}`] ?? '' : '',
-            onChange: onChangeFilter,
-        }),
-        [filter, onChangeFilter, settings.filtable]
+        (name: keyof T): FilterProps => {
+            const column = columns.find((c) => c.name === name);
+            return {
+                filterable: settings.filterable && (column.filterable ?? true),
+                name: `${name}`,
+                value: filter ? filter[`${name}`] ?? '' : '',
+                onChange: onChangeFilter,
+            };
+        },
+        [columns, filter, onChangeFilter, settings.filterable]
     );
 
     /**
@@ -1202,11 +1216,17 @@ export const useTable = <T>({
                     order: order === 'desc' ? 'asc' : 'desc',
                 });
 
-                // 2. ソート順を新しいヤツから順に適用する
                 const newData = clone(data);
+                // 選択の解除
+                clearSelection(newData, selection);
+                // カレントセルの解除
+                if (currentCell) {
+                    newData[currentCell.row][currentCell.column].current = false;
+                }
+
+                // 2. ソート順を新しいヤツから順に適用する
                 newData.sort((a, b) => {
                     for (const { name, order } of newSort) {
-                        // TODO column から数値か文字列かを判定して比較する
                         const column = columns.find((c) => c.name === name);
                         const aValue = a.find((e) => e.entityName === column.name).value;
                         const bValue = b.find((e) => e.entityName === column.name).value;
@@ -1217,12 +1237,12 @@ export const useTable = <T>({
 
                 // 3. stateの更新
                 setSort(newSort);
-
-                clearSelection(newData, selection);
                 setData(newData);
+                setSelection([]);
+                setCurrentCell(undefined);
             };
         },
-        [columns, data, selection, settings.sortable, sort]
+        [columns, currentCell, data, selection, settings.sortable, sort]
     );
 
     /**
@@ -1230,12 +1250,15 @@ export const useTable = <T>({
      * @param name
      */
     const getSortProps = useCallback(
-        (name: keyof T): SortProps => ({
-            sortable: settings.sortable,
-            order: sort.find((e) => e.name === `${name}`)?.order,
-            onClick: getSortButtonClickEventHandler(name),
-        }),
-        [getSortButtonClickEventHandler, settings.sortable, sort]
+        (name: keyof T): SortProps => {
+            const column = columns.find((c) => c.name === name);
+            return {
+                sortable: settings.sortable && (column.sortable ?? true),
+                order: sort.find((e) => e.name === `${name}`)?.order,
+                onClick: getSortButtonClickEventHandler(name),
+            };
+        },
+        [columns, getSortButtonClickEventHandler, settings.sortable, sort]
     );
 
     /**
@@ -1615,7 +1638,7 @@ export const useTable = <T>({
      */
     const insertRow = useCallback(
         (rowIndex?: number) => {
-            const insertRowNumber = rowIndex + 1 ?? data.length;
+            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data.length;
             const newData = clone(data);
             const newRow = makeNewRow(insertRowNumber, newData);
 
@@ -1640,12 +1663,16 @@ export const useTable = <T>({
             newData[location.row][location.column].current = true;
             newData[location.row][location.column].selected = true;
 
+            // 挿入行のページを取得
+            const newPage = getPageNumberFromRowIndex(location.row);
+
             setCurrentCell(location);
             setSelection([location]);
             setData(newData);
             setFocus(true);
+            setPage(newPage);
         },
-        [currentCell, data, makeNewRow, selection]
+        [currentCell, data, getPageNumberFromRowIndex, makeNewRow, selection]
     );
 
     /**
@@ -1695,17 +1722,38 @@ export const useTable = <T>({
         deleteRows();
     }, [deleteRows]);
 
+    /**
+     * locationを指定して値を更新
+     */
+    const onChangeCellValue = useCallback(
+        (location: CellLocation, value: string) => {
+            debug('onChangeCellValue: ', location, value);
+            const cells = clone(data);
+            if (setCellValue(value, location, cells)) {
+                handleChange(cells);
+                // 履歴更新
+                pushUndoList(cells);
+                // 更新確定
+                setData(cells);
+            }
+        },
+        [data, handleChange, pushUndoList, setCellValue]
+    );
+
     return {
         emptyRows,
         page: currentPage,
         pageItems,
+        allItems: data,
         total: filteredData.length,
         lastPage: last,
         hasPrev: currentPage !== 0,
         hasNext: currentPage !== last,
         rowsPerPage: perPage,
         rowsPerPageOptions,
+        selectedRange,
         tbodyRef,
+        onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,
         onDeleteRows,

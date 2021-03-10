@@ -90,6 +90,7 @@ function Table<T>({
     const {
         page,
         pageItems,
+        allItems,
         total,
         emptyRows,
         lastPage,
@@ -97,7 +98,9 @@ function Table<T>({
         hasNext,
         rowsPerPage,
         rowsPerPageOptions,
+        selectedRange,
         tbodyRef,
+        onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,
         onDeleteRows,
@@ -152,6 +155,7 @@ function Table<T>({
                 {renderHeader ? (
                     renderHeader({
                         className: classes.header,
+                        selectedRange,
                         onDeleteRows,
                         onInsertRow,
                         ...paginationProps,
@@ -159,6 +163,7 @@ function Table<T>({
                 ) : (
                     <Header
                         className={classes.header}
+                        selectedRange={selectedRange}
                         onDeleteRows={onDeleteRows}
                         onInsertRow={onInsertRow}
                         {...paginationProps}
@@ -243,16 +248,21 @@ function Table<T>({
                                                 colIndex
                                             );
                                             const location: CellLocation = {
-                                                row: rowIndex,
+                                                row: rowIndex + page * rowsPerPage,
                                                 column: colIndex,
                                             };
 
                                             return (
-                                                <TableCell
+                                                <TableCell<T>
                                                     key={key}
                                                     className={classes.cell}
                                                     column={column}
+                                                    columns={columns}
+                                                    data={data}
                                                     row={row}
+                                                    cells={allItems}
+                                                    getRowKey={getRowKey}
+                                                    onChangeCellValue={onChangeCellValue}
                                                     location={location}
                                                     {...cell}
                                                     {...cellProps}

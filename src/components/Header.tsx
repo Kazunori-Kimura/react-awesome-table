@@ -10,14 +10,21 @@ const useStyles = makeStyles({
     },
 });
 
-function Header<T>({ className, onInsertRow, onDeleteRows }: HeaderProps<T>): React.ReactElement {
+function Header<T>({
+    className,
+    selectedRange,
+    onInsertRow,
+    onDeleteRows,
+}: HeaderProps<T>): React.ReactElement {
     const classes = useStyles();
     const messages = useContext(MessageContext);
 
     return (
         <div className={classnames(classes.root, className)}>
             <button onClick={onInsertRow}>{formatMessage(messages, 'addRow')}</button>
-            <button onClick={onDeleteRows}>{formatMessage(messages, 'deleteRows')}</button>
+            <button disabled={!selectedRange} onClick={onDeleteRows}>
+                {formatMessage(messages, 'deleteRows')}
+            </button>
         </div>
     );
 }

@@ -99,7 +99,10 @@ export const clearSelection = <T>(
  * CellLocation[] を CellRange に変換
  * @param locations
  */
-export const convertRange = (locations: CellLocation[]): CellRange => {
+export const convertRange = (locations: CellLocation[]): CellRange | undefined => {
+    if (locations.length === 0) {
+        return;
+    }
     const list = clone(locations).sort(compareLocation);
     const start: CellLocation = clone(list[0]);
     const end: CellLocation = clone(list[list.length - 1]);
@@ -170,7 +173,7 @@ export function selectRange<T>(
  * @param cells
  * @param sourceData
  */
-const parseEntity = <T>(
+export const parseEntity = <T>(
     row: Cell<T>[],
     columns: ColumnDefinition<T>[],
     rowIndex: number,
@@ -273,8 +276,8 @@ export const compareValue = (
     valueType: ValueType,
     order: SortOrder
 ): number => {
-    const aValue = valueType === 'string' ? a : parseFloat(a);
-    const bValue = valueType === 'string' ? b : parseFloat(b);
+    const aValue = valueType === 'numeric' ? parseFloat(a) : a;
+    const bValue = valueType === 'numeric' ? parseFloat(b) : b;
 
     if (aValue > bValue) {
         if (order === 'asc') {

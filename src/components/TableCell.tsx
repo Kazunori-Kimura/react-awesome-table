@@ -1,17 +1,31 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import DropdownList from './DropdownList';
-import { Cell, CellLocation, CellProps, ColumnDefinition, EditorProps } from './types';
+import {
+    Cell,
+    CellLocation,
+    CellProps,
+    ChangeCellValueFunction,
+    ColumnDefinition,
+    EditorProps,
+    GenerateRowKeyFunction,
+} from './types';
+import { parseEntity } from './util';
 
 type PropsBase<T> = Cell<T> & CellProps;
 
 interface TableCellProps<T> extends PropsBase<T> {
     className?: string;
     column: ColumnDefinition<T>;
+    columns: ColumnDefinition<T>[];
     row: Cell<T>[];
+    cells: Cell<T>[][];
+    data: T[];
     location: CellLocation;
     editorProps: EditorProps;
+    getRowKey: GenerateRowKeyFunction<T>;
+    onChangeCellValue: ChangeCellValueFunction;
 }
 
 const useStyles = makeStyles({
@@ -93,8 +107,11 @@ const useStyles = makeStyles({
 function TableCell<T>({
     className,
     column,
+    columns,
     location,
     row,
+    cells,
+    data,
     rowKey,
     current = false,
     editing = false,
@@ -104,6 +121,8 @@ function TableCell<T>({
     selected = false,
     value,
     editorProps,
+    getRowKey,
+    onChangeCellValue,
     onDoubleClick,
     onKeyDown,
     onMouseDown,
@@ -111,6 +130,22 @@ function TableCell<T>({
     onMouseUp,
 }: TableCellProps<T>): React.ReactElement {
     const classes = useStyles();
+
+    const entity: Partial<T> = useMemo(() => {
+        // data から元データを取得する
+        const source: Partial<T> = data.find((e, i) => rowKey === getRowKey(e, i));
+        return parseEntity(row, columns, location.row, cells, source);
+    }, [cells, columns, data, getRowKey, location.row, row, rowKey]);
+
+    /**
+     * カスタムコンポーネントで値が更新された
+     */
+    const onChange = useCallback(
+        (value: string) => {
+            onChangeCellValue(location, value);
+        },
+        [location, onChangeCellValue]
+    );
 
     return (
         <td
@@ -133,6 +168,8 @@ function TableCell<T>({
                     location,
                     row,
                     column,
+                    entity,
+                    onChange,
                 })}
             {/* 通常のコンポーネント */}
             {!Boolean(column.render) &&

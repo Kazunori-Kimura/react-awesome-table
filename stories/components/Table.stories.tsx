@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import { Meta } from '@storybook/react/types-6-0';
-import React, { MouseEvent, useMemo } from 'react';
+import React, { MouseEvent } from 'react';
 import SortButton from '../../src/components/SortButton';
 import Table from '../../src/components/Table';
 import {
@@ -57,16 +57,19 @@ const columns: ColumnDefinition<Point2D>[] = [
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
         required: true,
+        width: 180,
     },
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
         valueType: 'numeric',
+        width: 100,
     },
     {
         name: 'y',
         getValue: (item) => `${item.y}`,
         valueType: 'numeric',
+        width: 100,
     },
 ];
 
@@ -89,7 +92,7 @@ export const Sample: React.VFC<Record<string, never>> = () => (
         columns={columns}
         getRowKey={getRowKey}
         onChange={onChange}
-        options={{ sortable: false, filtable: false }}
+        options={{ sortable: false, filterable: false }}
     />
 );
 
@@ -153,6 +156,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
         required: true,
+        sortable: false,
     },
     {
         name: 'x',
@@ -160,6 +164,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         valueType: 'numeric',
         readOnly: true,
         defaultValue: '0',
+        filterable: false,
     },
     {
         name: 'y',
@@ -193,23 +198,22 @@ export const ColumnDef: React.VFC<Record<string, never>> = () => (
 
 // ====== カスタムコンポーネントサンプル ======
 
-const Button: React.FC<CellRenderProps<Point3D>> = ({ location, row }) => {
-    const cell = row[location.column];
-
-    // rowKeyをもとに元の要素を取得する
-    const entity = useMemo(() => {
-        return points.find((p) => getRowKey2(p, location.row) === cell.rowKey);
-    }, [cell.rowKey, location.row]);
-
+const Button: React.FC<CellRenderProps<Point3D>> = ({ cell, entity, onChange }) => {
     const handleClick = () => {
-        let message = '該当のデータが見つからなかったよ';
-        if (entity) {
-            message = `${entity.id}: ${entity.name}`;
-        }
-        alert(message);
+        const value = prompt('新しい名前', cell.value);
+        onChange(value);
     };
 
-    return <button onClick={handleClick}>{cell.value}</button>;
+    const handleClick2 = () => {
+        alert(JSON.stringify(entity, null, 4));
+    };
+
+    return (
+        <>
+            <button onClick={handleClick}>{cell.value}</button>
+            <button onClick={handleClick2}>Show Entity</button>
+        </>
+    );
 };
 
 // 列定義
@@ -339,7 +343,7 @@ function ColumnHeader<T>({
     filter,
 }: ColumnHeaderProps<T>): React.ReactElement {
     const classes = useStyles();
-    const { filtable, ...filterProps } = filter;
+    const { filterable, ...filterProps } = filter;
     return (
         <th className={className}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -348,7 +352,7 @@ function ColumnHeader<T>({
                     <div className={classes.spacer} />
                     {sort.sortable && <SortButton {...sort} />}
                 </div>
-                {filtable && <input type="text" {...filterProps} />}
+                {filterable && <input type="text" {...filterProps} />}
             </div>
         </th>
     );
