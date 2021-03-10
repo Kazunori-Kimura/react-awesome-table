@@ -205,21 +205,26 @@ export const parseEntity = <T>(
             // 列定義された方法で value を変換
             if (column.parseValue) {
                 const tmp = column.parseValue(value);
-                value = tmp[column.name];
-            } else if (column.valueType === 'numeric') {
-                const v = parseFloat(value);
-                if (!isNaN(v)) {
-                    value = v;
-                } else {
-                    value = undefined;
+                entity = {
+                    ...entity,
+                    ...tmp,
+                };
+            } else {
+                if (column.valueType === 'numeric') {
+                    const v = parseFloat(value);
+                    if (!isNaN(v)) {
+                        value = v;
+                    } else {
+                        value = undefined;
+                    }
                 }
-            }
 
-            // value をセット
-            entity = {
-                ...entity,
-                [column.name]: value,
-            };
+                // value をセット
+                entity = {
+                    ...entity,
+                    [column.name]: value,
+                };
+            }
         }
     });
 

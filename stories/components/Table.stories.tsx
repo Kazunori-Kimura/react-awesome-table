@@ -29,6 +29,7 @@ interface Point2D {
     name: string;
     x: number;
     y: number;
+    size?: number;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 // const isPoint2D = (item: any): item is Point2D => {
@@ -62,6 +63,13 @@ const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'x',
         getValue: (item) => `${item.x}`,
+        parseValue: (value) => {
+            const v = parseFloat(value);
+            return {
+                x: v,
+                size: v * 2,
+            };
+        },
         valueType: 'numeric',
         width: 100,
     },
