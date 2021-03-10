@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+- build/stories/components/Table.stories.d.ts をパッケージ対象から外したい
 
 ## [0.2.0] - 2021-03-11
 ### Added
