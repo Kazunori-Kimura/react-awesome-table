@@ -63,6 +63,8 @@ export interface CellRenderProps<T> {
     location: CellLocation;
     row: Cell<T>[];
     column: ColumnDefinition<T>;
+    entity: Partial<T>;
+    onChange: (value: string) => void;
 }
 export declare type ValueType = 'string' | 'numeric';
 export declare type DataListType = Readonly<{
@@ -85,6 +87,9 @@ export interface ColumnDefinition<T> {
     required?: boolean;
     dataList?: DataListType;
     isPermittedExceptList?: boolean;
+    width?: number;
+    sortable?: boolean;
+    filterable?: boolean;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 /**
@@ -116,7 +121,7 @@ export interface SortProps {
  * フィルタ テキストボックスの props
  */
 export interface FilterProps {
-    filtable: boolean;
+    filterable: boolean;
     name: string;
     value: string;
     onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -179,7 +184,7 @@ export interface TableOptions {
     /**
      * フィルタリング可否
      */
-    filtable?: boolean;
+    filterable?: boolean;
 }
 export declare const defaultTableOptions: TableOptions;
 /**
@@ -197,17 +202,27 @@ export interface TableHookParameters<T> {
     messages?: MessageDefinitions;
     options?: TableOptions;
 }
+/**
+ * セルの値を更新する関数
+ */
+export declare type ChangeCellValueFunction = (location: CellLocation, value: string) => void;
+/**
+ * カスタムフックの戻り値
+ */
 export interface TableHookReturns<T> {
     emptyRows: number;
     page: number;
     pageItems: Cell<T>[][];
+    allItems: Cell<T>[][];
     total: number;
     lastPage: number;
     hasPrev: boolean;
     hasNext: boolean;
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
+    selectedRange?: CellRange;
     tbodyRef: RefObject<HTMLTableSectionElement>;
+    onChangeCellValue: ChangeCellValueFunction;
     onChangePage: (event: unknown, page: number) => void;
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
     onDeleteRows: VoidFunction;
@@ -257,6 +272,7 @@ export interface PaginationProps<T> {
  * ヘッダーの props
  */
 export interface HeaderProps<T> extends PaginationProps<T> {
+    selectedRange?: CellRange;
     onDeleteRows: VoidFunction;
     onInsertRow: VoidFunction;
 }
