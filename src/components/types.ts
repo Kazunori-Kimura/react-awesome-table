@@ -265,6 +265,7 @@ export interface TableHookReturns<T> {
     hasNext: boolean;
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
+    selectedRange?: CellRange;
     tbodyRef: RefObject<HTMLTableSectionElement>;
     onChangeCellValue: ChangeCellValueFunction;
     onChangePage: (event: unknown, page: number) => void;
@@ -332,6 +333,7 @@ export interface PaginationProps<T> {
  * ヘッダーの props
  */
 export interface HeaderProps<T> extends PaginationProps<T> {
+    selectedRange?: CellRange;
     onDeleteRows: VoidFunction;
     onInsertRow: VoidFunction;
 }

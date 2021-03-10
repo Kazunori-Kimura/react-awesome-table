@@ -6,17 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- 選択行のデータを取得する: `selectedRange`
 - 各列の幅を指定できるようにする
+- 列ごとにソート可否・フィルタ可否を設定できるようにする
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+- 未選択状態で追加ボタンをクリックすると `Uncaught TypeError: Cannot read property '0' of undefined`
 
 ## [0.2.0] - 2021-03-11
 ### Added
 - CellRenderProps に Entity を追加する
 - CellRenderProps でセルの値をセットする方法を提供する: `onChange(value)`
+- 選択行のデータを取得する: `selectedRange`
 
 ### Fixed
 - ValueType 未指定時にソートが効かない

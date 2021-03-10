@@ -148,6 +148,13 @@ export const useTable = <T>({
     }, [columnLength, currentPage, rowsPerPage]);
 
     /**
+     * 選択範囲
+     */
+    const selectedRange: CellRange | undefined = useMemo(() => {
+        return convertRange(selection);
+    }, [selection]);
+
+    /**
      * 当該イベントが tbody の範囲内で発生しているかどうかを判定
      * @param event
      */
@@ -670,6 +677,10 @@ export const useTable = <T>({
         (direction: Direction, cells: TableData<T>): [boolean, TableData<T>, CellLocation[]] => {
             // 現在の選択範囲
             const range = convertRange(selection);
+            if (!range) {
+                return [false, cells, selection];
+            }
+
             switch (direction) {
                 case 'up':
                     range.start.row -= 1;
@@ -1730,6 +1741,7 @@ export const useTable = <T>({
         hasNext: currentPage !== last,
         rowsPerPage: perPage,
         rowsPerPageOptions,
+        selectedRange,
         tbodyRef,
         onChangeCellValue,
         onChangePage,

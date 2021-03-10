@@ -99,7 +99,10 @@ export const clearSelection = <T>(
  * CellLocation[] を CellRange に変換
  * @param locations
  */
-export const convertRange = (locations: CellLocation[]): CellRange => {
+export const convertRange = (locations: CellLocation[]): CellRange | undefined => {
+    if (locations.length === 0) {
+        return;
+    }
     const list = clone(locations).sort(compareLocation);
     const start: CellLocation = clone(list[0]);
     const end: CellLocation = clone(list[list.length - 1]);

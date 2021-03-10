@@ -98,6 +98,7 @@ function Table<T>({
         hasNext,
         rowsPerPage,
         rowsPerPageOptions,
+        selectedRange,
         tbodyRef,
         onChangeCellValue,
         onChangePage,
@@ -154,6 +155,7 @@ function Table<T>({
                 {renderHeader ? (
                     renderHeader({
                         className: classes.header,
+                        selectedRange,
                         onDeleteRows,
                         onInsertRow,
                         ...paginationProps,
@@ -161,6 +163,7 @@ function Table<T>({
                 ) : (
                     <Header
                         className={classes.header}
+                        selectedRange={selectedRange}
                         onDeleteRows={onDeleteRows}
                         onInsertRow={onInsertRow}
                         {...paginationProps}
