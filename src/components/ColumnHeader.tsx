@@ -11,6 +11,7 @@ interface ColumnHeaderStyleProps {
 const useStyles = makeStyles({
     root: (props: ColumnHeaderStyleProps) => ({
         width: props.width ?? 'auto',
+        verticalAlign: 'top',
     }),
 });
 

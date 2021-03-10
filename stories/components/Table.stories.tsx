@@ -156,6 +156,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
         required: true,
+        sortable: false,
     },
     {
         name: 'x',
@@ -163,6 +164,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         valueType: 'numeric',
         readOnly: true,
         defaultValue: '0',
+        filterable: false,
     },
     {
         name: 'y',

@@ -1184,13 +1184,16 @@ export const useTable = <T>({
      * @param name
      */
     const getFilterProps = useCallback(
-        (name: keyof T): FilterProps => ({
-            filterable: settings.filterable,
-            name: `${name}`,
-            value: filter ? filter[`${name}`] ?? '' : '',
-            onChange: onChangeFilter,
-        }),
-        [filter, onChangeFilter, settings.filterable]
+        (name: keyof T): FilterProps => {
+            const column = columns.find((c) => c.name === name);
+            return {
+                filterable: settings.filterable && (column.filterable ?? true),
+                name: `${name}`,
+                value: filter ? filter[`${name}`] ?? '' : '',
+                onChange: onChangeFilter,
+            };
+        },
+        [columns, filter, onChangeFilter, settings.filterable]
     );
 
     /**
@@ -1247,12 +1250,15 @@ export const useTable = <T>({
      * @param name
      */
     const getSortProps = useCallback(
-        (name: keyof T): SortProps => ({
-            sortable: settings.sortable,
-            order: sort.find((e) => e.name === `${name}`)?.order,
-            onClick: getSortButtonClickEventHandler(name),
-        }),
-        [getSortButtonClickEventHandler, settings.sortable, sort]
+        (name: keyof T): SortProps => {
+            const column = columns.find((c) => c.name === name);
+            return {
+                sortable: settings.sortable && (column.sortable ?? true),
+                order: sort.find((e) => e.name === `${name}`)?.order,
+                onClick: getSortButtonClickEventHandler(name),
+            };
+        },
+        [columns, getSortButtonClickEventHandler, settings.sortable, sort]
     );
 
     /**
