@@ -299,3 +299,28 @@ export const compareValue = (
 
     return 0;
 };
+
+export interface Rect {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
+
+export interface Point {
+    pageX: number;
+    pageY: number;
+}
+
+/**
+ * クリックされた point が要素の範囲内かどうかを判定する
+ * @param rect
+ * @param point
+ */
+export const isWithinRect = (
+    { top, left, width, height }: Rect,
+    { pageX, pageY }: Point
+): boolean => {
+    debug('isWithinRect: ', { top, left, width, height }, { pageX, pageY });
+    return top <= pageY && top + height >= pageY && left <= pageX && left + width >= pageX;
+};

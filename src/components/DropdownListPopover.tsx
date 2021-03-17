@@ -1,12 +1,14 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import React, { KeyboardEvent, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { CellLocation, DataListType, EditorProps } from './types';
+import { isWithinRect } from './util';
 
 interface DropdownListPopoverProps extends EditorProps {
     location: CellLocation;
     position: StyleProps;
     items: DataListType;
+    parent: RefObject<HTMLDivElement>;
 }
 
 export interface StyleProps {
@@ -22,17 +24,22 @@ const useStyles = makeStyles({
         boxShadow: '0px 0px 5px 3px rgba(10,10,10,0.2)',
         width: 'max-content',
         minHeight: '0.5rem',
-        maxHeight: '8rem',
+        maxHeight: '30vh',
         maxWidth: 400,
         boxSizing: 'border-box',
         zIndex: 10,
         backgroundColor: '#fff',
         display: 'flex',
         flexDirection: 'column',
+        overflowY: 'auto',
         outline: 0,
         position: 'absolute',
         ...props,
     }),
+    list: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
     item: {
         padding: '0.3rem',
         width: '100%',
@@ -53,6 +60,7 @@ const useStyles = makeStyles({
 
 const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
     location,
+    parent,
     position,
     value,
     items,
@@ -64,16 +72,19 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
 
     const [activeIndex, setActive] = useState(-1);
 
-    const triggerChange = (selectedValue?: string) => {
-        if (typeof selectedValue === 'string' && value !== selectedValue) {
-            // 更新の確定
-            commit(selectedValue);
-            return;
-        }
+    const triggerChange = useCallback(
+        (selectedValue?: string) => {
+            if (typeof selectedValue === 'string' && value !== selectedValue) {
+                // 更新の確定
+                commit(selectedValue);
+                return;
+            }
 
-        // 更新をキャンセル
-        cancel();
-    };
+            // 更新をキャンセル
+            cancel();
+        },
+        [cancel, commit, value]
+    );
 
     /**
      * 項目をクリック
@@ -121,30 +132,59 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
         }
     };
 
+    /**
+     * リストの外側をクリックされたら編集をキャンセルする
+     */
+    const handleClickOutside = useCallback(
+        (event: globalThis.MouseEvent) => {
+            if (ref.current && parent.current) {
+                const { left, top, width, height } = ref.current.getBoundingClientRect();
+                const { pageX, pageY } = event;
+
+                const insideSelf = isWithinRect({ left, top, width, height }, { pageX, pageY });
+                const parentRect = parent.current.getBoundingClientRect();
+                const insideParent = isWithinRect(parentRect, { pageX, pageY });
+
+                if (!(insideSelf || insideParent)) {
+                    // 編集をキャンセル
+                    triggerChange();
+                }
+            }
+        },
+        [parent, triggerChange]
+    );
+
     useEffect(() => {
         if (ref.current) {
             ref.current.focus();
         }
-    }, []);
+        document.addEventListener('click', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [handleClickOutside]);
 
     return (
         <div className={classes.root} ref={ref} tabIndex={0} onKeyDown={handleKeyDown}>
-            {items.map((item, index) => {
-                const key = `${location.row}_${location.column}_${item.value}`;
-                return (
-                    <button
-                        key={key}
-                        className={classnames({
-                            [classes.active]: activeIndex === index,
-                            [classes.item]: true,
-                        })}
-                        onMouseOver={() => setActive(index)}
-                        onClick={handleClick(index)}
-                    >
-                        {item.name}
-                    </button>
-                );
-            })}
+            <div className={classes.list}>
+                {items.map((item, index) => {
+                    const key = `${location.row}_${location.column}_${item.value}`;
+                    return (
+                        <button
+                            key={key}
+                            className={classnames({
+                                [classes.active]: activeIndex === index,
+                                [classes.item]: true,
+                            })}
+                            onMouseOver={() => setActive(index)}
+                            onClick={handleClick(index)}
+                        >
+                            {item.name}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 };

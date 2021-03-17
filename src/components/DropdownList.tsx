@@ -69,6 +69,7 @@ const DropdownList: React.FC<DropdownListProps> = ({
         <div ref={ref} className={classnames(classes.root, className)}>
             <span>{dataList.find((item) => item.value === value)?.name ?? ''}</span>
             <DropdownListPopover
+                parent={ref}
                 position={position}
                 location={location}
                 value={value}
