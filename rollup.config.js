@@ -10,15 +10,22 @@ const config = {
         {
             file: packageJson.main,
             format: 'cjs',
-            sourcemap: true,
+            sourcemap: false,
         },
         {
             file: packageJson.module,
             format: 'esm',
-            sourcemap: true,
+            sourcemap: false,
         },
     ],
-    plugins: [peerDepsExternal(), resolve(), commonjs(), typescript()],
+    plugins: [
+        peerDepsExternal(),
+        resolve(),
+        commonjs(),
+        typescript({
+            tsconfig: 'tsconfig.build.json',
+        }),
+    ],
 };
 
 export default config;

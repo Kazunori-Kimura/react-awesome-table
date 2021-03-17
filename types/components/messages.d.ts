@@ -12,6 +12,7 @@ export declare const defaultMessages: {
     'pagination.last': string;
     asc: string;
     desc: string;
+    filter: string;
     'validate.required': string;
     'validate.numeric': string;
     'validate.datalist': ({ list }: {
@@ -19,7 +20,7 @@ export declare const defaultMessages: {
     }) => string;
 };
 export declare type MessageDefinitions = Partial<Record<keyof typeof defaultMessages, string | MessageFunction>>;
-export declare const MessageContext: React.Context<Partial<Record<"desc" | "addRow" | "deleteRows" | "deleteConfirm" | "pagination.first" | "pagination.prev" | "pagination.next" | "pagination.last" | "asc" | "validate.required" | "validate.numeric" | "validate.datalist", string | MessageFunction>>>;
+export declare const MessageContext: React.Context<Partial<Record<"desc" | "filter" | "addRow" | "deleteRows" | "deleteConfirm" | "pagination.first" | "pagination.prev" | "pagination.next" | "pagination.last" | "asc" | "validate.required" | "validate.numeric" | "validate.datalist", string | MessageFunction>>>;
 /**
  * メッセージ変換
  * @param messages

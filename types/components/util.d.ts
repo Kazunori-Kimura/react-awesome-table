@@ -68,3 +68,19 @@ export declare const parse: <T>(data: T[], cells: Cell<T>[][], columns: ColumnDe
  * @returns
  */
 export declare const compareValue: (a: string, b: string, valueType: ValueType, order: SortOrder) => number;
+export interface Rect {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
+export interface Point {
+    pageX: number;
+    pageY: number;
+}
+/**
+ * クリックされた point が要素の範囲内かどうかを判定する
+ * @param rect
+ * @param point
+ */
+export declare const isWithinRect: ({ top, left, width, height }: Rect, { pageX, pageY }: Point) => boolean;

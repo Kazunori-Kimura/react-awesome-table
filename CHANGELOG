@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
-- build/stories/components/Table.stories.d.ts をパッケージ対象から外したい
-- *.map.js を生成しないようにする
 
 ## [0.2.5] - 2021-03-17
 ### Changed
@@ -21,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - dataList の overflowY が適用されていない問題を修正
 - データ件数が 0 の場合に次ページが存在する (hasNext = true となる) 不具合を修正
+- build/stories/components/Table.stories.d.ts をパッケージ対象から外す
+- *.map.js を生成しない
 
 ## [0.2.4] - 2021-03-11
 ### Fixed
