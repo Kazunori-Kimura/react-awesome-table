@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { DefaultCellWidth } from './consts';
+import { CellSize } from './consts';
 import DropdownList from './DropdownList';
 import {
     Cell,
@@ -43,10 +43,12 @@ const useStyles = makeStyles({
         borderRightWidth: 1,
         borderRightStyle: 'solid',
         borderRightColor: '#ccc',
-        padding: '0.3rem',
+        paddingLeft: '0.3rem',
+        paddingRight: '0.3rem',
+        minHeight: CellSize.MinHeight,
         // テキストを選択状態にしない
         userSelect: 'none',
-        width: props.width ?? DefaultCellWidth,
+        width: props.width ?? CellSize.DefaultWidth,
         boxSizing: 'border-box',
     }),
     current: {
@@ -92,11 +94,12 @@ const useStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         width: '100%',
+        minHeight: CellSize.MinHeight,
     },
     label: (props: StyleProps) => ({
         width: props.isDropdown
-            ? `calc(${props.width ?? DefaultCellWidth}px - 1.6rem)`
-            : `calc(${props.width ?? DefaultCellWidth}px - 0.6rem)`,
+            ? `calc(${props.width ?? CellSize.DefaultWidth}px - 1.6rem)`
+            : `calc(${props.width ?? CellSize.DefaultWidth}px - 0.6rem)`,
         boxSizing: 'border-box',
         overflow: 'hidden',
         whiteSpace: 'nowrap',
@@ -147,7 +150,9 @@ function TableCell<T>({
     onMouseUp,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
+    const [cellRect, setCellRect] = useState<DOMRect>();
     const classes = useStyles({ width: column.width, isDropdown: Boolean(column.dataList) });
+    const cellRef = useRef<HTMLTableCellElement>(null);
     const labelRef = useRef<HTMLDivElement>(null);
 
     const entity: Partial<T> = useMemo(() => {
@@ -176,6 +181,10 @@ function TableCell<T>({
     );
 
     useLayoutEffect(() => {
+        if (cellRef.current) {
+            setCellRect(cellRef.current.getBoundingClientRect());
+        }
+
         if (labelRef.current) {
             // 省略時は offsetWidth と scrollWidth の値が異なる
             const { offsetWidth, scrollWidth } = labelRef.current;
@@ -187,6 +196,7 @@ function TableCell<T>({
 
     return (
         <td
+            ref={cellRef}
             className={classnames(classes.cell, className, {
                 [classes.current]: current,
                 [classes.edit]: editing,
@@ -219,6 +229,8 @@ function TableCell<T>({
                                 className={classes.editor}
                                 location={location}
                                 dataList={column.dataList}
+                                width={column.width}
+                                parent={cellRect}
                                 {...editorProps}
                             />
                         ) : (
