@@ -3,3 +3,5 @@ export enum MouseButton {
     Center,
     Second,
 }
+
+export const DefaultCellWidth = 120;

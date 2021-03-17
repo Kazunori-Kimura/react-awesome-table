@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { DefaultCellWidth } from './consts';
 import DropdownList from './DropdownList';
 import {
     Cell,
@@ -28,8 +29,13 @@ interface TableCellProps<T> extends PropsBase<T> {
     onChangeCellValue: ChangeCellValueFunction;
 }
 
+interface StyleProps {
+    width?: number;
+    isDropdown: boolean;
+}
+
 const useStyles = makeStyles({
-    cell: {
+    cell: (props: StyleProps) => ({
         position: 'relative',
         borderBottomWidth: 1,
         borderBottomStyle: 'solid',
@@ -40,7 +46,9 @@ const useStyles = makeStyles({
         padding: '0.3rem',
         // テキストを選択状態にしない
         userSelect: 'none',
-    },
+        width: props.width ?? DefaultCellWidth,
+        boxSizing: 'border-box',
+    }),
     current: {
         // カレントセルの枠線
         boxShadow: '0px 0px 1px 2px #0096ff inset',
@@ -85,6 +93,15 @@ const useStyles = makeStyles({
         alignItems: 'center',
         width: '100%',
     },
+    label: (props: StyleProps) => ({
+        width: props.isDropdown
+            ? `calc(${props.width ?? DefaultCellWidth}px - 1.6rem)`
+            : `calc(${props.width ?? DefaultCellWidth}px - 0.6rem)`,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+    }),
     spacer: {
         flex: 1,
     },
@@ -100,7 +117,7 @@ const useStyles = makeStyles({
         },
     },
     numeric: {
-        justifyContent: 'flex-end',
+        textAlign: 'right',
     },
 });
 
@@ -129,13 +146,24 @@ function TableCell<T>({
     onMouseOver,
     onMouseUp,
 }: TableCellProps<T>): React.ReactElement {
-    const classes = useStyles();
+    const [titleText, setTitleText] = useState<string>();
+    const classes = useStyles({ width: column.width, isDropdown: Boolean(column.dataList) });
+    const labelRef = useRef<HTMLDivElement>(null);
 
     const entity: Partial<T> = useMemo(() => {
         // data から元データを取得する
         const source: Partial<T> = data.find((e, i) => rowKey === getRowKey(e, i));
         return parseEntity(row, columns, location.row, cells, source);
     }, [cells, columns, data, getRowKey, location.row, row, rowKey]);
+
+    /**
+     * 表示する文字列
+     */
+    const displayValue = useMemo(() => {
+        return column.dataList
+            ? column.dataList.find((item) => item.value === value)?.name ?? ''
+            : value;
+    }, [column.dataList, value]);
 
     /**
      * カスタムコンポーネントで値が更新された
@@ -146,6 +174,16 @@ function TableCell<T>({
         },
         [location, onChangeCellValue]
     );
+
+    useLayoutEffect(() => {
+        if (labelRef.current) {
+            // 省略時は offsetWidth と scrollWidth の値が異なる
+            const { offsetWidth, scrollWidth } = labelRef.current;
+            if (offsetWidth !== scrollWidth) {
+                setTitleText(displayValue);
+            }
+        }
+    }, [displayValue]);
 
     return (
         <td
@@ -195,17 +233,17 @@ function TableCell<T>({
                         )}
                     </>
                 ) : (
-                    <div
-                        className={classnames(classes.inner, {
-                            [classes.numeric]: column.valueType === 'numeric',
-                        })}
-                    >
+                    <div className={classes.inner}>
                         {/* 通常モード */}
-                        <span>
-                            {column.dataList
-                                ? column.dataList.find((item) => item.value === value)?.name ?? ''
-                                : value}
-                        </span>
+                        <div
+                            ref={labelRef}
+                            className={classnames(classes.label, {
+                                [classes.numeric]: column.valueType === 'numeric',
+                            })}
+                            title={titleText}
+                        >
+                            {displayValue}
+                        </div>
                         {column.dataList && (
                             <>
                                 <div className={classes.spacer} />

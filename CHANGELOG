@@ -8,15 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- 内容がセル幅を超える場合、ellipsis する
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
 - build/stories/components/Table.stories.d.ts をパッケージ対象から外したい
 - *.map.js を生成しないようにする
 
 ## [0.2.5] - 2021-03-17
-### Added
+### Changed
 - dataList 表示時にリスト外をクリックされたら編集をキャンセルしてリストを閉じる
+- 内容がセル幅を超える場合、ellipsis する
+
 ### Fixed
 - dataList の overflowY が適用されていない問題を修正
 - データ件数が 0 の場合に次ページが存在する (hasNext = true となる) 不具合を修正
