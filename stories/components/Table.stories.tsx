@@ -115,6 +115,7 @@ const Colors = [
     '#c0c0c0',
     '#d3d3d3',
     '#ffffff',
+    '#c71585',
 ] as const;
 type Color = typeof Colors[number];
 const ColorNames: Record<Color, string> = {
@@ -126,6 +127,7 @@ const ColorNames: Record<Color, string> = {
     '#c0c0c0': 'Silver',
     '#d3d3d3': 'LightGray',
     '#ffffff': 'White',
+    '#c71585': 'MediumVioletred',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,6 +210,7 @@ const columns2: ColumnDefinition<Point3D>[] = [
         name: 'color',
         getValue: (item) => `${item.color}`,
         dataList: Colors.map((c) => ({ name: ColorNames[c], value: c })),
+        width: 80,
     },
 ];
 

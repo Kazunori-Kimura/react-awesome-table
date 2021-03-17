@@ -9,7 +9,7 @@ import {
     useRef,
     useState,
 } from 'react';
-import { MouseButton } from './keys';
+import { MouseButton } from './consts';
 import { defaultMessages, formatMessage } from './messages';
 import {
     Cell,

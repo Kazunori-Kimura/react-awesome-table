@@ -17,6 +17,8 @@ export const defaultMessages = {
     // sort
     asc: '昇順',
     desc: '降順',
+    // フィルタ
+    filter: 'フィルタ',
     // validate
     'validate.required': '必須項目です',
     'validate.numeric': '数値で入力してください',
