@@ -8,9 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- データ件数が 0 の場合の PaginationProps が変 (次ページが存在するように見える)
+- 内容がセル幅を超える場合、ellipsis する
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
 - build/stories/components/Table.stories.d.ts をパッケージ対象から外したい
+- *.map.js を生成しないようにする
+
+## [0.2.5] - 2021-03-17
+### Fixed
+- dataList の overflowY が適用されていない問題を修正
+- dataList 表示時に リスト外をクリックされたらキャンセルする
 
 ## [0.2.4] - 2021-03-11
 ### Fixed

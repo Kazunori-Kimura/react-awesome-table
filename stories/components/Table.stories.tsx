@@ -106,12 +106,26 @@ export const Sample: React.VFC<Record<string, never>> = () => (
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
 
-const Colors = ['#f00', '#0f0', '#00f'] as const;
+const Colors = [
+    '#f00',
+    '#0f0',
+    '#00f',
+    '#000000',
+    '#808080',
+    '#c0c0c0',
+    '#d3d3d3',
+    '#ffffff',
+] as const;
 type Color = typeof Colors[number];
 const ColorNames: Record<Color, string> = {
     '#f00': 'Red',
     '#0f0': 'Green',
     '#00f': 'Blue',
+    '#000000': 'Black',
+    '#808080': 'Gray',
+    '#c0c0c0': 'Silver',
+    '#d3d3d3': 'LightGray',
+    '#ffffff': 'White',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
