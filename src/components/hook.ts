@@ -1138,6 +1138,9 @@ export const useTable = <T>({
      * 最終ページ番号
      */
     const last = useMemo(() => {
+        if (data.length === 0) {
+            return 0;
+        }
         return Math.ceil(data.length / perPage) - 1;
     }, [data.length, perPage]);
 
