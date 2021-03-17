@@ -307,9 +307,14 @@ export interface Rect {
     height: number;
 }
 
-export interface Point {
+interface Point {
     pageX: number;
     pageY: number;
+}
+
+interface Scroll {
+    scrollX: number;
+    scrollY: number;
 }
 
 /**
@@ -319,8 +324,14 @@ export interface Point {
  */
 export const isWithinRect = (
     { top, left, width, height }: Rect,
-    { pageX, pageY }: Point
+    { pageX, pageY }: Point,
+    { scrollX, scrollY }: Scroll = { scrollX: 0, scrollY: 0 }
 ): boolean => {
-    debug('isWithinRect: ', { top, left, width, height }, { pageX, pageY });
-    return top <= pageY && top + height >= pageY && left <= pageX && left + width >= pageX;
+    debug('isWithinRect: ', { top, left, width, height }, { pageX, pageY }, { scrollX, scrollY });
+    return (
+        top + scrollY <= pageY &&
+        top + scrollY + height >= pageY &&
+        left + scrollX <= pageX &&
+        left + scrollX + width >= pageX
+    );
 };

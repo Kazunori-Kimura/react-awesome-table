@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { KeyboardEvent, RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import React, { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { Popover } from './consts';
 import { CellLocation, DataListType, EditorProps } from './types';
 import { isWithinRect } from './util';
 
@@ -8,15 +9,15 @@ interface DropdownListPopoverProps extends EditorProps {
     location: CellLocation;
     position: StyleProps;
     items: DataListType;
-    parent: RefObject<HTMLDivElement>;
+    parent?: DOMRect;
 }
 
 export interface StyleProps {
     minWidth?: number;
     top?: number;
     bottom?: number;
-    left?: number;
-    right?: number;
+    left?: number | string;
+    right?: number | string;
 }
 
 const useStyles = makeStyles({
@@ -24,8 +25,8 @@ const useStyles = makeStyles({
         boxShadow: '0px 0px 5px 3px rgba(10,10,10,0.2)',
         width: 'max-content',
         minHeight: '0.5rem',
-        maxHeight: '30vh',
-        maxWidth: 400,
+        maxHeight: Popover.MaxHeight,
+        maxWidth: Popover.MaxWidth,
         boxSizing: 'border-box',
         zIndex: 10,
         backgroundColor: '#fff',
@@ -137,13 +138,17 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
      */
     const handleClickOutside = useCallback(
         (event: globalThis.MouseEvent) => {
-            if (ref.current && parent.current) {
+            if (ref.current && parent) {
+                const { scrollX, scrollY } = window;
                 const { left, top, width, height } = ref.current.getBoundingClientRect();
                 const { pageX, pageY } = event;
 
-                const insideSelf = isWithinRect({ left, top, width, height }, { pageX, pageY });
-                const parentRect = parent.current.getBoundingClientRect();
-                const insideParent = isWithinRect(parentRect, { pageX, pageY });
+                const insideSelf = isWithinRect(
+                    { left, top, width, height },
+                    { pageX, pageY },
+                    { scrollX, scrollY }
+                );
+                const insideParent = isWithinRect(parent, { pageX, pageY }, { scrollX, scrollY });
 
                 if (!(insideSelf || insideParent)) {
                     // 編集をキャンセル

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+- props.data に渡された JSON 配列を onChange で更新するとカレントセルが吹っ飛ぶ（？）
+
+## [0.2.6] - 2021-03-18
+### Fixed
+- ドロップダウンリストを展開するとセル幅が指定サイズを超えて拡張される
+- 追加行のドロップダウンリストの表示位置がズレる
+- Table をスクロールするとドロップダウンリストが表示されない
 
 ## [0.2.5] - 2021-03-17
 ### Changed

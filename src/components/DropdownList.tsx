@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { CellSize } from './consts';
 import DropdownListPopover, { StyleProps } from './DropdownListPopover';
 import { CellLocation, DataListType, EditorProps } from './types';
 
@@ -8,12 +9,30 @@ interface DropdownListProps extends EditorProps {
     className?: string;
     location: CellLocation;
     dataList: DataListType;
+    width?: number;
+    parent?: DOMRect;
+}
+
+interface DropdownStyleProps {
+    width?: number;
+    height?: number;
 }
 
 const useStyles = makeStyles({
-    root: {
+    root: ({ height }: DropdownStyleProps) => ({
         position: 'relative',
-    },
+        height: height - 1, // parent.height は borderWidth を含んでいる
+        boxSizing: 'border-box',
+        display: 'flex',
+        alignItems: 'center',
+    }),
+    label: ({ width }: DropdownStyleProps) => ({
+        width: `calc(${width ?? CellSize.DefaultWidth}px - 0.6rem)`,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+    }),
 });
 
 const DropdownList: React.FC<DropdownListProps> = ({
@@ -21,61 +40,57 @@ const DropdownList: React.FC<DropdownListProps> = ({
     value,
     location,
     dataList,
+    width,
+    parent,
     ...props
 }) => {
-    const classes = useStyles();
-    const ref = useRef<HTMLDivElement>();
+    const classes = useStyles({ width, height: parent.height });
+    const labelRef = useRef<HTMLDivElement>();
 
     const [position, setPosition] = useState<StyleProps>({ top: 0, left: 0 });
 
+    /**
+     * Popoverの表示位置
+     */
     const setPopoverPosition = useCallback(() => {
-        if (ref.current) {
-            const { width, height, top, right, bottom } = ref.current.getBoundingClientRect();
-            const { height: screenHeight } = window.screen;
+        if (parent) {
+            const { width, height } = parent;
 
-            const POPOVER_WIDTH = 400;
-            const POPOVER_HEIGHT = 200;
-
-            const hd = screenHeight - bottom - POPOVER_HEIGHT;
-            const wd = right - POPOVER_WIDTH;
             const p: StyleProps = {
                 minWidth: width,
+                top: height,
+                right: '-0.3rem',
             };
 
-            if (hd < 30 && top > POPOVER_HEIGHT) {
-                // 上に表示
-                p.bottom = height * -1;
+            // 左端のセルについては左を基点に表示
+            if (location.column === 0) {
+                p.left = '-0.3rem';
             } else {
-                // 下に表示
-                p.top = height + 3;
-            }
-            if (wd > 30) {
-                // 右を基点に表示
-                p.right = 0;
-            } else {
-                // 左を基点に表示
-                p.left = 0;
+                p.right = '-0.3rem';
             }
 
+            console.log('popover position: ', p);
             setPosition(p);
         }
-    }, []);
+    }, [location.column, parent]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         setPopoverPosition();
     }, [setPopoverPosition]);
 
     return (
-        <div ref={ref} className={classnames(classes.root, className)}>
-            <span>{dataList.find((item) => item.value === value)?.name ?? ''}</span>
+        <div className={classnames(classes.root)}>
             <DropdownListPopover
-                parent={ref}
+                parent={parent}
                 position={position}
                 location={location}
                 value={value}
                 items={dataList}
                 {...props}
             />
+            <div ref={labelRef} className={classes.label}>
+                {dataList.find((item) => item.value === value)?.name ?? ''}
+            </div>
         </div>
     );
 };

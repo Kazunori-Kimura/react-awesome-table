@@ -157,7 +157,7 @@ interface Point3D {
 //     );
 // };
 
-// 1000件生成
+// 999件生成
 const points: Point3D[] = [...Array(999)].map((_, index) => {
     const id = `p_${index}`;
     const name = `point_${index + 1}`;

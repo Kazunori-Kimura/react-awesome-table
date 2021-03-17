@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useContext } from 'react';
-import { DefaultCellWidth } from './consts';
+import { CellSize } from './consts';
 import { formatMessage, MessageContext } from './messages';
 import SortButton from './SortButton';
 import { ColumnHeaderProps } from './types';
@@ -12,7 +12,7 @@ interface ColumnHeaderStyleProps {
 
 const useStyles = makeStyles({
     root: (props: ColumnHeaderStyleProps) => ({
-        width: props.width ?? DefaultCellWidth,
+        width: props.width ?? CellSize.DefaultWidth,
         boxSizing: 'border-box',
         verticalAlign: 'top',
     }),
