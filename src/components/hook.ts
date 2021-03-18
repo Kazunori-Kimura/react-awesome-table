@@ -810,8 +810,10 @@ export const useTable = <T>({
             if (!focus) {
                 return;
             }
+
             const { key } = hotkeysEvent;
             debug('handleTabKeyDown: ', key);
+
             // カーソル移動
             keyDownTabEnter(key);
             // デフォルトの挙動をキャンセル
@@ -1570,6 +1572,11 @@ export const useTable = <T>({
      */
     const handleEditorKeyDown = useCallback(
         (event: KeyboardEvent) => {
+            // IME変換中は無視
+            if (event.nativeEvent.isComposing) {
+                return;
+            }
+
             const keys: string[] = [];
             let action: EditorKeyDownAction = undefined;
             if (event.shiftKey) {
