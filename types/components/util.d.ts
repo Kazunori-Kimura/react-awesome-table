@@ -16,6 +16,20 @@ export declare function clone<T>(org: T): T;
  */
 export declare function compareLocation(a: CellLocation, b: CellLocation): -1 | 0 | 1;
 /**
+ * CellLocation が一致するか？
+ * @param a
+ * @param b
+ * @returns
+ */
+export declare function equalsLocation(a: CellLocation, b?: CellLocation): boolean;
+/**
+ * CellLocation が配列に含まれるか？
+ * @param location
+ * @param locations
+ * @returns
+ */
+export declare function includesLocation(location: CellLocation, locations?: CellLocation[]): boolean;
+/**
  * range が parent の範囲内かどうか
  * @param parent
  * @param range
@@ -34,7 +48,7 @@ export declare function withinCell(range: CellRange, cell: CellLocation): boolea
  * @param cells
  * @param selectedCells
  */
-export declare const clearSelection: <T>(cells: Cell<T>[][], selectedCells: CellLocation[]) => Cell<T>[][];
+export declare const clearSelection: <T>(cells: Cell<T>[][], selectedCells?: CellLocation[]) => Cell<T>[][];
 /**
  * CellLocation[] を CellRange に変換
  * @param locations
@@ -74,13 +88,18 @@ export interface Rect {
     width: number;
     height: number;
 }
-export interface Point {
+interface Point {
     pageX: number;
     pageY: number;
+}
+interface Scroll {
+    scrollX: number;
+    scrollY: number;
 }
 /**
  * クリックされた point が要素の範囲内かどうかを判定する
  * @param rect
  * @param point
  */
-export declare const isWithinRect: ({ top, left, width, height }: Rect, { pageX, pageY }: Point) => boolean;
+export declare const isWithinRect: ({ top, left, width, height }: Rect, { pageX, pageY }: Point, { scrollX, scrollY }?: Scroll) => boolean;
+export {};

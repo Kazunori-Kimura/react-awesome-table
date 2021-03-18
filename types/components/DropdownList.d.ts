@@ -4,6 +4,8 @@ interface DropdownListProps extends EditorProps {
     className?: string;
     location: CellLocation;
     dataList: DataListType;
+    width?: number;
+    parent?: DOMRect;
 }
 declare const DropdownList: React.FC<DropdownListProps>;
 export default DropdownList;
