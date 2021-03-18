@@ -79,7 +79,7 @@ const useStyles = makeStyles({
 });
 
 const UpdateDataSample: React.FC = () => {
-    const [cards, setCards] = useState<SupportCard[]>([]);
+    const [cards, setCards] = useState<SupportCard[]>(initialCards);
     const classes = useStyles();
 
     const getRowKey: GenerateRowKeyFunction<SupportCard> = (item, _, cells) => {
