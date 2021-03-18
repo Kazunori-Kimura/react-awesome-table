@@ -11,6 +11,7 @@ import {
     HeaderProps,
     PaginationProps,
 } from '../../src/components/types';
+import UpdateDataSample from './examples/UpdateData';
 
 export default {
     title: 'components/Table',
@@ -411,4 +412,8 @@ export const CustomHeader: React.VFC<Record<string, never>> = () => {
             renderPagination={Pagination}
         />
     );
+};
+
+export const UpdateSample: React.VFC<Record<string, never>> = () => {
+    return <UpdateDataSample />;
 };

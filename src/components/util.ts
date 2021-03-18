@@ -51,6 +51,29 @@ export function compareLocation(a: CellLocation, b: CellLocation): -1 | 0 | 1 {
 }
 
 /**
+ * CellLocation が一致するか？
+ * @param a
+ * @param b
+ * @returns
+ */
+export function equalsLocation(a: CellLocation, b?: CellLocation): boolean {
+    if (b) {
+        return a.row === b.row && a.column === b.column;
+    }
+    return false;
+}
+
+/**
+ * CellLocation が配列に含まれるか？
+ * @param location
+ * @param locations
+ * @returns
+ */
+export function includesLocation(location: CellLocation, locations: CellLocation[] = []): boolean {
+    return locations.some((item) => item.row === location.row && item.column === location.column);
+}
+
+/**
  * range が parent の範囲内かどうか
  * @param parent
  * @param range
@@ -87,7 +110,7 @@ export function withinCell(range: CellRange, cell: CellLocation): boolean {
  */
 export const clearSelection = <T>(
     cells: Cell<T>[][],
-    selectedCells: CellLocation[]
+    selectedCells: CellLocation[] = []
 ): Cell<T>[][] => {
     selectedCells.forEach(({ row, column }) => {
         cells[row][column].selected = false;

@@ -38,6 +38,8 @@ import {
     compareValue,
     convertRange,
     debug,
+    equalsLocation,
+    includesLocation,
     parse,
     selectRange,
     withinCell,
@@ -1128,6 +1130,22 @@ export const useTable = <T>({
     );
 
     /**
+     * カレントセルと選択セルの反映
+     */
+    const displayItems = useMemo(() => {
+        return pageItems.map((row, rowIndex) => {
+            return row.map((cell, columnIndex) => {
+                const location: CellLocation = { row: rowIndex, column: columnIndex };
+                return {
+                    ...cell,
+                    current: equalsLocation(location, currentCell),
+                    selected: includesLocation(location, selection),
+                };
+            });
+        });
+    }, [currentCell, pageItems, selection]);
+
+    /**
      * 最終ページの空行数
      */
     const emptyRows = useMemo(() => {
@@ -1746,7 +1764,7 @@ export const useTable = <T>({
     return {
         emptyRows,
         page: currentPage,
-        pageItems,
+        pageItems: displayItems,
         allItems: data,
         total: filteredData.length,
         lastPage: last,
