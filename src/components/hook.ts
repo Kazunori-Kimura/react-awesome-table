@@ -96,6 +96,35 @@ export const useTable = <T>({
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();
 
+    /**
+     * undo履歴に追加する
+     */
+    const pushUndoList = useCallback(
+        (cells: TableData<T>) => {
+            // 最新の履歴と登録データを比較して、履歴追加が必要か判定
+            if (undo.length > 0) {
+                const j1 = JSON.stringify(cells);
+                const j2 = JSON.stringify(undo[undoIndex]);
+                if (j1 === j2) {
+                    return;
+                }
+            }
+
+            const temp = clone(cells);
+            const index = undoIndex + 1;
+            // カレントのundo履歴以降の履歴データを削除
+            const history = clone(undo).slice(0, index);
+            // 履歴追加
+            history.push(temp);
+            debug('undo list: ', history);
+
+            // state更新
+            setUndo(history);
+            setUndoIndex(index);
+        },
+        [undo, undoIndex]
+    );
+
     // 初期化処理
     useEffect(() => {
         const newData: TableData<T> = items.map((item, index) => {
@@ -109,9 +138,20 @@ export const useTable = <T>({
                     cellType: getCellComponentType(column),
                 }));
         });
+
         setData(newData);
-        setUndo([newData]);
-        setUndoIndex(0);
+
+        let updateUndo = false;
+        setUndo((state) => {
+            if (state.length === 0) {
+                updateUndo = true;
+                return [newData];
+            }
+            return state;
+        });
+        if (updateUndo) {
+            setUndoIndex(0);
+        }
     }, [columns, getRowKey, items]);
 
     /**
@@ -284,30 +324,6 @@ export const useTable = <T>({
             }
         },
         [columns, getRowKey, items, onChange]
-    );
-
-    /**
-     * undo履歴に追加する
-     */
-    const pushUndoList = useCallback(
-        (cells: TableData<T>) => {
-            // セルの選択状態、カレントセルの指定をクリアする
-            let temp = clone(cells);
-            temp = clearSelection(temp, selection);
-            if (currentCell) {
-                temp[currentCell.row][currentCell.column].current = false;
-            }
-
-            // 履歴追加
-            const index = undoIndex + 1;
-            const history = clone(undo).slice(0, index);
-            history.push(temp);
-
-            // state更新
-            setUndo(history);
-            setUndoIndex(index);
-        },
-        [currentCell, selection, undo, undoIndex]
     );
 
     /**
@@ -597,17 +613,6 @@ export const useTable = <T>({
                     return cells;
                 }
 
-                // 選択をクリア
-                clearSelection(cells, selection);
-                // 現在のカレントをクリア
-                cells[currentCell.row][currentCell.column].current = false;
-
-                // 選択、カレントを更新
-                const cell = cells[newCurrent.row][newCurrent.column];
-                cell.current = true;
-                cell.selected = true;
-                const newSelection: CellLocation[] = [newCurrent];
-
                 // 行数からページ番号を割り出して
                 // 前/次ページに移動した場合はページ番号を更新
                 const newPage = getPageNumberFromRowIndex(newCurrent.row);
@@ -616,7 +621,7 @@ export const useTable = <T>({
                 }
 
                 // state更新
-                setSelection(newSelection);
+                setSelection([newCurrent]);
                 setCurrentCell(newCurrent);
 
                 return cells;
@@ -626,10 +631,9 @@ export const useTable = <T>({
             columnLength,
             currentCell,
             currentPage,
-            data.length,
+            data?.length,
             getPageNumberFromRowIndex,
             makeNewRow,
-            selection,
             settings.navigateCellFromRowEdge,
             settings.pressEnterOnLastRow,
         ]
@@ -647,7 +651,7 @@ export const useTable = <T>({
             const { key } = hotkeysEvent;
             debug('handleArrowKeyDown: ', key);
 
-            let cells = clone(data);
+            let cells = clone(data ?? []);
             switch (key) {
                 case 'left':
                     cells = navigateCursor(0, -1, cells);
@@ -771,7 +775,7 @@ export const useTable = <T>({
      */
     const keyDownTabEnter = useCallback(
         (key: string) => {
-            let cells = clone(data);
+            let cells = clone(data ?? []);
             if (editCell) {
                 // DropdownのPopover表示中はカーソル移動しない
                 const cell = cells[editCell.location.row][editCell.location.column];
@@ -861,30 +865,15 @@ export const useTable = <T>({
 
             if (index !== undoIndex && index > -1) {
                 const history = clone(undo[index]);
-                const newSelection: CellLocation[] = [];
-
-                // カレントセルを選択状態とする
-                if (currentCell) {
-                    if (history.length - 1 > currentCell.row) {
-                        history[currentCell.row][currentCell.column].current = true;
-                        history[currentCell.row][currentCell.column].selected = true;
-                        newSelection.push(currentCell);
-                    } else {
-                        // 該当セルが存在しない
-                        setCurrentCell(undefined);
-                    }
-                }
 
                 setData(history);
                 setUndoIndex(index);
-                // 選択解除
-                setSelection(newSelection);
 
                 // onChangeを呼び出す
                 handleChange(history);
             }
         },
-        [currentCell, handleChange, undo, undoIndex]
+        [handleChange, undo, undoIndex]
     );
 
     /**
@@ -939,8 +928,6 @@ export const useTable = <T>({
             if (editCell) {
                 commitEditing(cells);
             }
-            // 現在の選択を解除
-            clearSelection(cells, selection);
             // 範囲選択
             const newSelection = selectRange(cells, range);
 
@@ -950,17 +937,12 @@ export const useTable = <T>({
                 if (withinCell(range, currentCell)) {
                     // カレントセルが選択範囲内なら更新不要
                     needUpdateCurrent = false;
-                } else {
-                    // 現在のカレントセルをクリア
-                    cells[currentCell.row][currentCell.column].current = false;
-                    cells[currentCell.row][currentCell.column].selected = false;
                 }
             }
 
             if (needUpdateCurrent) {
                 // 選択範囲の先頭をカレントセルとする
                 const newCurrent = clone(range.start);
-                cells[newCurrent.row][newCurrent.column].current = true;
                 setCurrentCell(newCurrent);
             }
 
@@ -968,7 +950,7 @@ export const useTable = <T>({
             setSelection(newSelection);
             setData(cells);
         },
-        [commitEditing, currentCell, currentPageRange, data, editCell, selection]
+        [commitEditing, currentCell, currentPageRange, data, editCell]
     );
 
     /**
@@ -1105,7 +1087,7 @@ export const useTable = <T>({
      */
     const filteredData = useMemo(
         () =>
-            data.filter((row) => {
+            data?.filter((row) => {
                 if (filter) {
                     return columns.every((column) => {
                         const filterText = filter[`${column.name}`];
@@ -1119,7 +1101,7 @@ export const useTable = <T>({
                     });
                 }
                 return true;
-            }),
+            }) ?? [],
         [columns, data, filter]
     );
 
@@ -1151,18 +1133,18 @@ export const useTable = <T>({
      * 最終ページの空行数
      */
     const emptyRows = useMemo(() => {
-        return perPage - Math.min(perPage, data.length - currentPage * perPage);
-    }, [data.length, currentPage, perPage]);
+        return perPage - Math.min(perPage, (data?.length ?? 0) - currentPage * perPage);
+    }, [data?.length, currentPage, perPage]);
 
     /**
      * 最終ページ番号
      */
     const last = useMemo(() => {
-        if (data.length === 0) {
+        if (typeof data === 'undefined' || data.length === 0) {
             return 0;
         }
         return Math.ceil(data.length / perPage) - 1;
-    }, [data.length, perPage]);
+    }, [data, perPage]);
 
     /**
      * 選択状態、カレントセルをクリア
@@ -1310,10 +1292,7 @@ export const useTable = <T>({
                 commitEditing(newData);
             }
 
-            // 選択状態を解除
-            clearSelection(newData, selection);
             const newSelection: CellLocation[] = [];
-
             if (currentCell && event.shiftKey) {
                 // シフトキーを押しながらセルクリック -> 範囲選択
                 // カレントセルは変更しない
@@ -1322,21 +1301,13 @@ export const useTable = <T>({
             } else {
                 // 単一選択
                 newSelection.push(location);
-                newData[row][colIndex].current = true;
-                newData[row][colIndex].selected = true;
-
-                // 前のカレントセルを解除
-                if (currentCell) {
-                    newData[currentCell.row][currentCell.column].current = false;
-                }
-
                 setCurrentCell(location);
             }
 
             setData(newData);
             setSelection(newSelection);
         },
-        [commitEditing, currentCell, currentPage, data, editCell, perPage, selection]
+        [commitEditing, currentCell, currentPage, data, editCell, perPage]
     );
 
     /**
@@ -1666,20 +1637,15 @@ export const useTable = <T>({
      */
     const insertRow = useCallback(
         (rowIndex?: number) => {
-            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data.length;
-            const newData = clone(data);
+            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data?.length ?? 0;
+            const newData = clone(data ?? []);
             const newRow = makeNewRow(insertRowNumber, newData);
 
-            // 選択状態の解除
-            clearSelection(newData, selection);
-            if (currentCell) {
-                // カレントセルのクリア
-                newData[currentCell.row][currentCell.column].current = false;
-            }
-
             if (typeof rowIndex === 'number') {
+                // 行番号指定時は挿入
                 newData.splice(insertRowNumber, 0, newRow);
             } else {
+                // 未指定時は追加
                 newData.push(newRow);
             }
 
@@ -1688,8 +1654,6 @@ export const useTable = <T>({
                 row: insertRowNumber,
                 column: 0,
             };
-            newData[location.row][location.column].current = true;
-            newData[location.row][location.column].selected = true;
 
             // 挿入行のページを取得
             const newPage = getPageNumberFromRowIndex(location.row);
@@ -1699,8 +1663,10 @@ export const useTable = <T>({
             setData(newData);
             setFocus(true);
             setPage(newPage);
+
+            pushUndoList(newData);
         },
-        [currentCell, data, getPageNumberFromRowIndex, makeNewRow, selection]
+        [data, getPageNumberFromRowIndex, makeNewRow, pushUndoList]
     );
 
     /**
