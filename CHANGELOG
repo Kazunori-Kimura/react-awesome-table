@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - emptyRow の下線が変
 - props が更新されると undo履歴が消える
 - displayItems で current, selected をセットしているので、個別に設定している箇所は不要では？
+- データが 0 件の状態で Enter を押下すると例外が発生する
 
 ## [0.2.6] - 2021-03-18
 ### Fixed

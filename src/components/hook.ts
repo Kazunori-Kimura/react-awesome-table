@@ -626,7 +626,7 @@ export const useTable = <T>({
             columnLength,
             currentCell,
             currentPage,
-            data.length,
+            data?.length,
             getPageNumberFromRowIndex,
             makeNewRow,
             selection,
@@ -647,7 +647,7 @@ export const useTable = <T>({
             const { key } = hotkeysEvent;
             debug('handleArrowKeyDown: ', key);
 
-            let cells = clone(data);
+            let cells = clone(data ?? []);
             switch (key) {
                 case 'left':
                     cells = navigateCursor(0, -1, cells);
@@ -771,7 +771,7 @@ export const useTable = <T>({
      */
     const keyDownTabEnter = useCallback(
         (key: string) => {
-            let cells = clone(data);
+            let cells = clone(data ?? []);
             if (editCell) {
                 // DropdownのPopover表示中はカーソル移動しない
                 const cell = cells[editCell.location.row][editCell.location.column];
@@ -1105,7 +1105,7 @@ export const useTable = <T>({
      */
     const filteredData = useMemo(
         () =>
-            data.filter((row) => {
+            data?.filter((row) => {
                 if (filter) {
                     return columns.every((column) => {
                         const filterText = filter[`${column.name}`];
@@ -1119,7 +1119,7 @@ export const useTable = <T>({
                     });
                 }
                 return true;
-            }),
+            }) ?? [],
         [columns, data, filter]
     );
 
@@ -1151,18 +1151,18 @@ export const useTable = <T>({
      * 最終ページの空行数
      */
     const emptyRows = useMemo(() => {
-        return perPage - Math.min(perPage, data.length - currentPage * perPage);
-    }, [data.length, currentPage, perPage]);
+        return perPage - Math.min(perPage, (data?.length ?? 0) - currentPage * perPage);
+    }, [data?.length, currentPage, perPage]);
 
     /**
      * 最終ページ番号
      */
     const last = useMemo(() => {
-        if (data.length === 0) {
+        if (typeof data === 'undefined' || data.length === 0) {
             return 0;
         }
         return Math.ceil(data.length / perPage) - 1;
-    }, [data.length, perPage]);
+    }, [data, perPage]);
 
     /**
      * 選択状態、カレントセルをクリア
@@ -1666,8 +1666,8 @@ export const useTable = <T>({
      */
     const insertRow = useCallback(
         (rowIndex?: number) => {
-            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data.length;
-            const newData = clone(data);
+            const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data?.length ?? 0;
+            const newData = clone(data ?? []);
             const newRow = makeNewRow(insertRowNumber, newData);
 
             // 選択状態の解除
