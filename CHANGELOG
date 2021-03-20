@@ -6,10 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- ドロップダウンリストのフィルタ機能
+- 範囲選択して Delete or Backspace で選択セルの値を削除
+
+### Changed
+- ドロップダウンリストで Tab 押下で下の要素を選択、最下行であれば上に戻る
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+
+## [0.2.8] - 2021-03-20
+### Fixed
+- ペースト時に行追加されたセルに値がセットできない不具合の修正
+- 行削除後に onChange がよばれない不具合の修正
 
 ## [0.2.7] - 2021-03-18
 ### Fixed

@@ -141,17 +141,13 @@ export const useTable = <T>({
 
         setData(newData);
 
-        let updateUndo = false;
         setUndo((state) => {
             if (state.length === 0) {
-                updateUndo = true;
+                setUndoIndex(0);
                 return [newData];
             }
             return state;
         });
-        if (updateUndo) {
-            setUndoIndex(0);
-        }
     }, [columns, getRowKey, items]);
 
     /**
@@ -473,7 +469,7 @@ export const useTable = <T>({
                 debug(pasteItems);
 
                 const newData = clone(data);
-                let changed = true;
+                let changed = false;
 
                 for (let i = 0; i < pasteItems.length; i++) {
                     const row = currentCell.row + i;
@@ -481,6 +477,7 @@ export const useTable = <T>({
                         // 新規行を追加
                         const newRow = makeNewRow(row, newData);
                         newData.push(newRow);
+                        changed = true;
                     }
 
                     for (let j = 0; j < pasteItems[i].length; j++) {
@@ -493,7 +490,9 @@ export const useTable = <T>({
                         // 貼り付け処理
                         const value = pasteItems[i][j];
                         const location: CellLocation = { row, column };
-                        changed = changed && setCellValue(value, location, newData);
+                        if (setCellValue(value, location, newData)) {
+                            changed = true;
+                        }
                     }
                 }
 
@@ -1687,8 +1686,9 @@ export const useTable = <T>({
         const rows = selection.map((s) => s.row);
         const min = Math.min(...rows);
         const max = Math.max(...rows);
+        const count = max - min + 1;
         // ${max - min + 1}件 のデータを削除します。よろしいですか？
-        const message = formatMessage(messages, 'deleteConfirm', { count: `${max - min + 1}` });
+        const message = formatMessage(messages, 'deleteConfirm', { count: `${count}` });
         if (window.confirm(message)) {
             const newData = clone(data);
 
@@ -1700,14 +1700,17 @@ export const useTable = <T>({
             }
 
             // 削除
-            newData.splice(min, max - min + 1);
+            newData.splice(min, count);
 
             setCurrentCell(undefined);
             setSelection([]);
             setData(newData);
             setFocus(false);
+
+            handleChange(newData);
+            pushUndoList(newData);
         }
-    }, [currentCell, data, messages, selection]);
+    }, [currentCell, data, handleChange, messages, pushUndoList, selection]);
 
     /**
      * 選択セルを削除する
