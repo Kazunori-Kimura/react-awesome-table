@@ -141,17 +141,13 @@ export const useTable = <T>({
 
         setData(newData);
 
-        let updateUndo = false;
         setUndo((state) => {
             if (state.length === 0) {
-                updateUndo = true;
+                setUndoIndex(0);
                 return [newData];
             }
             return state;
         });
-        if (updateUndo) {
-            setUndoIndex(0);
-        }
     }, [columns, getRowKey, items]);
 
     /**
@@ -1690,8 +1686,9 @@ export const useTable = <T>({
         const rows = selection.map((s) => s.row);
         const min = Math.min(...rows);
         const max = Math.max(...rows);
+        const count = max - min + 1;
         // ${max - min + 1}件 のデータを削除します。よろしいですか？
-        const message = formatMessage(messages, 'deleteConfirm', { count: `${max - min + 1}` });
+        const message = formatMessage(messages, 'deleteConfirm', { count: `${count}` });
         if (window.confirm(message)) {
             const newData = clone(data);
 
@@ -1703,14 +1700,17 @@ export const useTable = <T>({
             }
 
             // 削除
-            newData.splice(min, max - min + 1);
+            newData.splice(min, count);
 
             setCurrentCell(undefined);
             setSelection([]);
             setData(newData);
             setFocus(false);
+
+            handleChange(newData);
+            pushUndoList(newData);
         }
-    }, [currentCell, data, messages, selection]);
+    }, [currentCell, data, handleChange, messages, pushUndoList, selection]);
 
     /**
      * 選択セルを削除する

@@ -15,11 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
-- 行削除後に onChange を呼んでいない
 
 ## [0.2.8] - 2021-03-20
 ### Fixed
-- ペースト時に行追加された際にセルに値がセットできていない
+- ペースト時に行追加されたセルに値がセットできない不具合の修正
+- 行削除後に onChange がよばれない不具合の修正
 
 ## [0.2.7] - 2021-03-18
 ### Fixed
