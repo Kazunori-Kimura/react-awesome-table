@@ -473,7 +473,7 @@ export const useTable = <T>({
                 debug(pasteItems);
 
                 const newData = clone(data);
-                let changed = true;
+                let changed = false;
 
                 for (let i = 0; i < pasteItems.length; i++) {
                     const row = currentCell.row + i;
@@ -481,6 +481,7 @@ export const useTable = <T>({
                         // 新規行を追加
                         const newRow = makeNewRow(row, newData);
                         newData.push(newRow);
+                        changed = true;
                     }
 
                     for (let j = 0; j < pasteItems[i].length; j++) {
@@ -493,7 +494,9 @@ export const useTable = <T>({
                         // 貼り付け処理
                         const value = pasteItems[i][j];
                         const location: CellLocation = { row, column };
-                        changed = changed && setCellValue(value, location, newData);
+                        if (setCellValue(value, location, newData)) {
+                            changed = true;
+                        }
                     }
                 }
 
