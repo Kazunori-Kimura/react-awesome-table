@@ -190,7 +190,7 @@ export declare const defaultTableOptions: TableOptions;
 /**
  * 行をユニークにする関数
  */
-export declare type GenerateRowKeyFunction<T> = (item: T, index: number, cells?: Cell<T>[][]) => string;
+export declare type GenerateRowKeyFunction<T> = (item: T | null | undefined, index: number, cells?: Cell<T>[][]) => string;
 export interface TableHookParameters<T> {
     items: T[];
     columns: ColumnDefinition<T>[];
