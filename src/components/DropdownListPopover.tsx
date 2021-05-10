@@ -1,6 +1,15 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+    ChangeEvent,
+    KeyboardEvent,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { Popover } from './consts';
 import { CellLocation, DataListType, EditorProps } from './types';
 import { isWithinRect } from './util';
@@ -24,22 +33,42 @@ const useStyles = makeStyles({
     root: (props: StyleProps) => ({
         boxShadow: '0px 0px 5px 3px rgba(10,10,10,0.2)',
         width: 'max-content',
-        minHeight: '0.5rem',
-        maxHeight: Popover.MaxHeight,
         maxWidth: Popover.MaxWidth,
         boxSizing: 'border-box',
         zIndex: 10,
         backgroundColor: '#fff',
         display: 'flex',
         flexDirection: 'column',
-        overflowY: 'auto',
         outline: 0,
+        // 位置
         position: 'absolute',
         ...props,
     }),
+    filter: {
+        display: 'flex',
+        padding: 3,
+    },
+    filterInput: {
+        flex: 1,
+    },
+    filterClear: {
+        marginRight: -4,
+        backgroundColor: 'inherit',
+        border: 'none',
+        outline: 0,
+        '&:focus': {
+            border: 'none',
+            boxShadow: 'none',
+            outline: 0,
+        },
+    },
     list: {
         display: 'flex',
         flexDirection: 'column',
+        boxSizing: 'border-box',
+        minHeight: '0.5rem',
+        maxHeight: Popover.MaxHeight,
+        overflowY: 'auto',
     },
     item: {
         padding: '0.3rem',
@@ -70,9 +99,23 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
 }) => {
     const classes = useStyles(position);
     const ref = useRef<HTMLDivElement>();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const [activeIndex, setActive] = useState(-1);
+    // フィルタ
+    const [filter, setFilter] = useState('');
 
+    // フィルタされた項目
+    const filteredItems = useMemo(() => {
+        if (filter === '') {
+            return items;
+        }
+        return items.filter(({ name }) => name.includes(filter));
+    }, [filter, items]);
+
+    /**
+     * 値の更新 / 更新のキャンセル
+     */
     const triggerChange = useCallback(
         (selectedValue?: string) => {
             if (typeof selectedValue === 'string' && value !== selectedValue) {
@@ -91,47 +134,123 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
      * 項目をクリック
      * @param index
      */
-    const handleClick = (index: number): VoidFunction => {
-        const item = items[index];
-        return () => {
-            triggerChange(item.value);
-        };
-    };
+    const handleClick = useCallback(
+        (index: number): VoidFunction => {
+            const item = filteredItems[index];
+            return () => {
+                triggerChange(item.value);
+            };
+        },
+        [filteredItems, triggerChange]
+    );
+
+    /**
+     * 前の要素を選択
+     */
+    const navigatePrev = useCallback(() => {
+        setActive((current) => {
+            if (current === 0) {
+                return 0;
+            }
+            return current - 1;
+        });
+    }, []);
+
+    /**
+     * 次の要素を選択
+     */
+    const navigateNext = useCallback(() => {
+        setActive((current) => {
+            if (current === filteredItems.length - 1) {
+                return current;
+            }
+            return current + 1;
+        });
+    }, [filteredItems.length]);
 
     /**
      * キーボード操作
      * @param event
      */
-    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-        const { key } = event;
-        // ArrowUp, ArrowDown で選択
-        // Space, Enter で確定
-        // Escape でキャンセル
-        switch (key) {
-            case 'ArrowUp':
-                setActive(activeIndex === 0 ? 0 : activeIndex - 1);
-                break;
-            case 'ArrowDown':
-                setActive(activeIndex === items.length - 1 ? items.length - 1 : activeIndex + 1);
-                break;
-            case ' ':
-                if (activeIndex >= 0) {
-                    triggerChange(items[activeIndex].value);
-                }
-                break;
-            case 'Enter':
-                if (activeIndex >= 0) {
-                    triggerChange(items[activeIndex].value);
-                }
-                break;
-            case 'Escape':
-                triggerChange();
-                break;
-            case 'Esc':
-                triggerChange();
-                break;
+    const handleKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLInputElement>) => {
+            const { key, shiftKey } = event;
+            let isPreventDefault = false;
+            console.log(`onKeyDown: ${shiftKey ? 'Shift+' : ''}${key}`);
+
+            // ArrowUp, ArrowDown, Tab で選択
+            // Space, Enter で確定
+            // Escape でキャンセル
+            switch (key) {
+                case 'ArrowUp':
+                    navigatePrev();
+                    isPreventDefault = true;
+                    break;
+                case 'ArrowDown':
+                    navigateNext();
+                    isPreventDefault = true;
+                    break;
+                case 'Tab':
+                    if (shiftKey) {
+                        // Shift+Tab
+                        navigatePrev();
+                    } else {
+                        // Tab
+                        navigateNext();
+                    }
+                    isPreventDefault = true;
+                    break;
+                case ' ':
+                    if (activeIndex >= 0) {
+                        triggerChange(filteredItems[activeIndex].value);
+                        isPreventDefault = true;
+                    }
+                    break;
+                case 'Enter':
+                    if (activeIndex >= 0) {
+                        triggerChange(filteredItems[activeIndex].value);
+                        isPreventDefault = true;
+                    }
+                    break;
+                case 'Escape':
+                    triggerChange();
+                    isPreventDefault = true;
+                    break;
+                case 'Esc':
+                    triggerChange();
+                    isPreventDefault = true;
+                    break;
+            }
+
+            if (isPreventDefault) {
+                event.preventDefault();
+            }
+        },
+        [activeIndex, filteredItems, navigateNext, navigatePrev, triggerChange]
+    );
+
+    /**
+     * フィルタの入力
+     */
+    const handleChangeFilter = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setFilter(value);
+        // アクティブな項目をクリア
+        setActive(-1);
+    }, []);
+
+    /**
+     * フィルタのクリア
+     */
+    const handleClickClear = useCallback(() => {
+        if (inputRef.current) {
+            setFilter('');
+            // アクティブな項目をクリア
+            setActive(-1);
+            // フォーカスをフィルタに戻す
+            inputRef.current.focus();
         }
-    };
+    }, []);
 
     /**
      * リストの外側をクリックされたら編集をキャンセルする
@@ -160,20 +279,40 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
     );
 
     useEffect(() => {
-        if (ref.current) {
-            ref.current.focus();
-        }
+        // 画面全体にクリックイベントの設定
         document.addEventListener('click', handleClickOutside);
-
         return () => {
             document.removeEventListener('click', handleClickOutside);
         };
     }, [handleClickOutside]);
 
+    // 描画完了時にフィルタにフォーカスをセットする
+    useLayoutEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
+
     return (
-        <div className={classes.root} ref={ref} tabIndex={0} onKeyDown={handleKeyDown}>
+        <div className={classes.root} ref={ref} tabIndex={0}>
+            {/* フィルタ */}
+            <div className={classes.filter}>
+                <input
+                    type="text"
+                    ref={inputRef}
+                    className={classes.filterInput}
+                    name="filter"
+                    value={filter}
+                    onChange={handleChangeFilter}
+                    onKeyDown={handleKeyDown}
+                />
+                <button className={classes.filterClear} onClick={handleClickClear}>
+                    &times;
+                </button>
+            </div>
+            {/* リスト */}
             <div className={classes.list}>
-                {items.map((item, index) => {
+                {filteredItems.map((item, index) => {
                     const key = `${location.row}_${location.column}_${item.value}`;
                     return (
                         <button
