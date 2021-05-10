@@ -145,6 +145,30 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
     );
 
     /**
+     * 前の要素を選択
+     */
+    const navigatePrev = useCallback(() => {
+        setActive((current) => {
+            if (current === 0) {
+                return 0;
+            }
+            return current - 1;
+        });
+    }, []);
+
+    /**
+     * 次の要素を選択
+     */
+    const navigateNext = useCallback(() => {
+        setActive((current) => {
+            if (current === filteredItems.length - 1) {
+                return current;
+            }
+            return current + 1;
+        });
+    }, [filteredItems.length]);
+
+    /**
      * キーボード操作
      * @param event
      */
@@ -154,20 +178,26 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
             let isPreventDefault = false;
             console.log(`onKeyDown: ${shiftKey ? 'Shift+' : ''}${key}`);
 
-            // ArrowUp, ArrowDown で選択
+            // ArrowUp, ArrowDown, Tab で選択
             // Space, Enter で確定
             // Escape でキャンセル
             switch (key) {
                 case 'ArrowUp':
-                    setActive(activeIndex === 0 ? 0 : activeIndex - 1);
+                    navigatePrev();
                     isPreventDefault = true;
                     break;
                 case 'ArrowDown':
-                    setActive(
-                        activeIndex === filteredItems.length - 1
-                            ? filteredItems.length - 1
-                            : activeIndex + 1
-                    );
+                    navigateNext();
+                    isPreventDefault = true;
+                    break;
+                case 'Tab':
+                    if (shiftKey) {
+                        // Shift+Tab
+                        navigatePrev();
+                    } else {
+                        // Tab
+                        navigateNext();
+                    }
                     isPreventDefault = true;
                     break;
                 case ' ':
@@ -196,7 +226,7 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
                 event.preventDefault();
             }
         },
-        [activeIndex, filteredItems, triggerChange]
+        [activeIndex, filteredItems, navigateNext, navigatePrev, triggerChange]
     );
 
     /**
