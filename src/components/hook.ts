@@ -315,6 +315,13 @@ export const useTable = <T>({
     const handleChange = useCallback(
         (cells: TableData<T>) => {
             if (onChange) {
+                // invalid な cell があれば onChange を呼ばない
+                const invalid = cells.find((row) => row.find((cell) => cell.invalid));
+                if (invalid) {
+                    debug('handleChange: exists invalid cell(s)');
+                    return;
+                }
+
                 const newData = parse(items, cells, columns, getRowKey);
                 onChange(newData);
             }
@@ -982,6 +989,26 @@ export const useTable = <T>({
     );
 
     /**
+     * 選択範囲の値を削除する
+     */
+    const clearSelectedCells = useCallback(() => {
+        const cells = clone(data);
+        let changed = false;
+
+        selection.forEach((location) => {
+            // 値に空文字列をセット
+            const cellChanged = setCellValue('', location, cells);
+            changed = changed || cellChanged;
+        });
+
+        if (changed) {
+            setData(cells);
+            handleChange(cells);
+            pushUndoList(cells);
+        }
+    }, [data, handleChange, pushUndoList, selection, setCellValue]);
+
+    /**
      * 任意のキー押下で値をセットするとともに編集開始
      */
     const handleAnyKeyDown = useCallback(
@@ -1000,7 +1027,11 @@ export const useTable = <T>({
                 let defaultPrevent = false;
 
                 if (['delete', 'backspace', 'clear'].includes(key.toLowerCase())) {
-                    startEditing(currentCell, '');
+                    if (selection.length > 1) {
+                        clearSelectedCells();
+                    } else {
+                        startEditing(currentCell, '');
+                    }
                     defaultPrevent = true;
                 }
                 if (key.length === 1 && !metaKey && !ctrlKey) {
@@ -1013,7 +1044,7 @@ export const useTable = <T>({
                 }
             }
         },
-        [currentCell, editCell, focus, startEditing]
+        [clearSelectedCells, currentCell, editCell, focus, selection.length, startEditing]
     );
 
     /**
