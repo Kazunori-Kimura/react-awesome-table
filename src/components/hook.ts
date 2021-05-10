@@ -1136,28 +1136,25 @@ export const useTable = <T>({
     );
 
     /**
-     * 現在ページの表示データ
-     */
-    const pageItems = useMemo(
-        () => filteredData.slice(currentPage * perPage, currentPage * perPage + perPage),
-        [currentPage, filteredData, perPage]
-    );
-
-    /**
      * カレントセルと選択セルの反映
      */
     const displayItems = useMemo(() => {
-        return pageItems.map((row, rowIndex) => {
-            return row.map((cell, columnIndex) => {
-                const location: CellLocation = { row: rowIndex, column: columnIndex };
-                return {
-                    ...cell,
-                    current: equalsLocation(location, currentCell),
-                    selected: includesLocation(location, selection),
-                };
+        return filteredData
+            .slice(currentPage * perPage, currentPage * perPage + perPage)
+            .map((row, rowIndex) => {
+                return row.map((cell, columnIndex) => {
+                    const location: CellLocation = {
+                        row: rowIndex + currentPage * perPage,
+                        column: columnIndex,
+                    };
+                    return {
+                        ...cell,
+                        current: equalsLocation(location, currentCell),
+                        selected: includesLocation(location, selection),
+                    };
+                });
             });
-        });
-    }, [currentCell, pageItems, selection]);
+    }, [currentCell, currentPage, filteredData, perPage, selection]);
 
     /**
      * 最終ページの空行数
