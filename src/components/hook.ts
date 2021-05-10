@@ -138,6 +138,18 @@ export const useTable = <T>({
                     cellType: getCellComponentType(column),
                 }));
         });
+        if (newData.length === 0) {
+            const emptyRow = columns
+                .filter((c) => !(c.hidden ?? false))
+                .map((column) => ({
+                    entityName: column.name,
+                    rowKey: getRowKey(null, 0),
+                    value: '',
+                    readOnly: column.readOnly ?? false,
+                    cellType: getCellComponentType(column),
+                }));
+            newData.push(emptyRow);
+        }
 
         setData(newData);
 
