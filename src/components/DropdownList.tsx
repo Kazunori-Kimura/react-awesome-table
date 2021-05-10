@@ -69,7 +69,6 @@ const DropdownList: React.FC<DropdownListProps> = ({
                 p.right = '-0.3rem';
             }
 
-            console.log('popover position: ', p);
             setPosition(p);
         }
     }, [location.column, parent]);
