@@ -110,6 +110,7 @@ const useStyles = makeStyles({
     },
     caret: {
         marginRight: -4,
+        minHeight: CellSize.MinHeight,
         backgroundColor: 'inherit',
         border: 'none',
         outline: 0,
