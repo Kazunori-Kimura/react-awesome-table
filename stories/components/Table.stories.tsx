@@ -105,6 +105,17 @@ export const Sample: React.VFC<Record<string, never>> = () => (
     />
 );
 
+// ====== 空データのサンプル ======
+export const EmptyRow: React.VFC<Record<string, never>> = () => (
+    <Table<Point2D>
+        data={[]}
+        columns={columns}
+        getRowKey={getRowKey}
+        onChange={onChange}
+        options={{ sortable: false, filterable: false }}
+    />
+);
+
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
 
 const Colors = [

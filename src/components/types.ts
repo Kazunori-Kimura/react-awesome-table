@@ -235,7 +235,11 @@ export const defaultTableOptions: TableOptions = {
 /**
  * 行をユニークにする関数
  */
-export type GenerateRowKeyFunction<T> = (item: T, index: number, cells?: Cell<T>[][]) => string;
+export type GenerateRowKeyFunction<T> = (
+    item: T | null | undefined,
+    index: number,
+    cells?: Cell<T>[][]
+) => string;
 
 export interface TableHookParameters<T> {
     items: T[];
