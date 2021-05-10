@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - ドロップダウンリストで Tab 押下で下の要素を選択、最下行であれば上に戻る
+- ドロップダウンの▼ボタンのクリック領域を広げる
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 - emptyRow の下線が変
+- 次ページ遷移時にカーソル位置が消失する
 
 ## [0.2.8] - 2021-03-20
 ### Fixed
