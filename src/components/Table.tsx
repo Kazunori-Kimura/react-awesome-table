@@ -2,6 +2,7 @@ import { createGenerateClassName, makeStyles, StylesProvider } from '@material-u
 import classnames from 'classnames';
 import React, { useMemo } from 'react';
 import ColumnHeader from './ColumnHeader';
+import { CellSize } from './consts';
 import Header from './Header';
 import { useTable } from './hook';
 import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
@@ -34,6 +35,9 @@ const useStyles = makeStyles({
         borderLeftWidth: 1,
         borderLeftStyle: 'solid',
         borderLeftColor: '#ccc',
+        borderBottomWidth: 1,
+        borderBottomStyle: 'solid',
+        borderBottomColor: '#ccc',
     },
     headerRow: {
         //
@@ -49,9 +53,11 @@ const useStyles = makeStyles({
         padding: '0.3rem',
     },
     row: {
-        minHeight: '1.5rem',
+        boxSizing: 'border-box',
+        minHeight: CellSize.MinHeight,
     },
     rowHeaderCell: {
+        boxSizing: 'border-box',
         width: '1.4rem',
     },
     cell: {
@@ -65,6 +71,12 @@ const useStyles = makeStyles({
         padding: '0.3rem',
         // テキストを選択状態にしない
         userSelect: 'none',
+    },
+    emptyCell: {
+        boxSizing: 'border-box',
+        borderBottom: 'none',
+        // '3' は微調整の結果
+        height: CellSize.MinHeight + 3,
     },
     footer: {
         //
@@ -291,6 +303,7 @@ function Table<T>({
                                             <td
                                                 className={classnames(
                                                     baseClasses.cell,
+                                                    baseClasses.emptyCell,
                                                     classes.cell
                                                 )}
                                                 colSpan={columns.length + 1}
