@@ -251,6 +251,8 @@ export interface TableProps<T> {
     renderHeader?: (props: HeaderProps<T>) => React.ReactElement | null;
     renderColumnHeader?: (props: ColumnHeaderProps<T>) => React.ReactElement;
     renderPagination?: (props: PaginationProps<T>) => React.ReactElement | null;
+    rowsPerPage?: Readonly<number>;
+    rowsPerPageOptions?: Readonly<number[]>;
 }
 /**
  * ページングのprops
