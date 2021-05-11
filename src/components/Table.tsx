@@ -94,6 +94,7 @@ function Table<T>({
     renderHeader,
     renderColumnHeader: CustomColumnHeader,
     renderPagination,
+    ...props
 }: TableProps<T>): React.ReactElement {
     const baseClasses = useStyles();
 
@@ -133,8 +134,8 @@ function Table<T>({
         columns,
         getRowKey,
         onChange,
-        rowsPerPage: 10,
-        rowsPerPageOptions: [10, 30, 100],
+        rowsPerPage: props.rowsPerPage ?? 10,
+        rowsPerPageOptions: props.rowsPerPageOptions ?? [10, 30, 100],
         messages,
         options,
     });

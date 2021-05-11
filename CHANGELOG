@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 
+## [0.2.10] - 2021-05-11
+### Added
+- `rowsPerPage`, `rowsPerPageOption` を指定可能とする
+
 ## [0.2.9] - 2021-05-10
 ### Added
 - ドロップダウンリストのフィルタ機能 #31

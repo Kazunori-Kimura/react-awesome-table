@@ -113,6 +113,8 @@ export const EmptyRow: React.VFC<Record<string, never>> = () => (
         getRowKey={getRowKey}
         onChange={onChange}
         options={{ sortable: false, filterable: false }}
+        rowsPerPage={30}
+        rowsPerPageOptions={[30, 100, 300]}
     />
 );
 
