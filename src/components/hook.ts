@@ -39,6 +39,7 @@ import {
     convertRange,
     debug,
     equalsLocation,
+    getDefaultValue,
     includesLocation,
     parse,
     selectRange,
@@ -144,7 +145,7 @@ export const useTable = <T>({
                 .map((column) => ({
                     entityName: column.name,
                     rowKey: getRowKey(null, 0),
-                    value: '',
+                    value: getDefaultValue(0, [], column.defaultValue),
                     readOnly: column.readOnly ?? false,
                     cellType: getCellComponentType(column),
                 }));
@@ -443,14 +444,8 @@ export const useTable = <T>({
             return columns
                 .filter((c) => !(c.hidden ?? false))
                 .map((column, index) => {
-                    let value = '';
-                    if (column.defaultValue) {
-                        if (typeof column.defaultValue === 'string') {
-                            value = column.defaultValue;
-                        } else {
-                            value = column.defaultValue(row, cells);
-                        }
-                    }
+                    // 初期値
+                    const value = getDefaultValue(row, cells, column.defaultValue);
 
                     // エラーチェック
                     const [valid, message] = validateCell(
