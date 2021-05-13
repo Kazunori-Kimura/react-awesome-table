@@ -1,4 +1,4 @@
-import { Cell, CellLocation, CellRange, ColumnDefinition, GenerateRowKeyFunction, SortOrder, TableData, ValueType } from './types';
+import { Cell, CellLocation, CellRange, ColumnDefinition, DefaultValueGenerator, GenerateRowKeyFunction, SortOrder, TableData, ValueType } from './types';
 /**
  * デバッグログ
  * @param args
@@ -56,6 +56,14 @@ export declare const clearSelection: <T>(cells: Cell<T>[][], selectedCells?: Cel
 export declare const convertRange: (locations: CellLocation[]) => CellRange | undefined;
 export declare function selectRange<T>(cells: TableData<T>, range: CellRange): CellLocation[];
 export declare function selectRange<T>(cells: TableData<T>, cell1: CellLocation, cell2: CellLocation): CellLocation[];
+/**
+ * 列定義の defaultValue から初期値を取得する
+ * @param defaultValue
+ * @param rowIndex
+ * @param cells
+ * @returns
+ */
+export declare function getDefaultValue<T>(rowIndex: number, cells: Cell<T>[][], defaultValue?: string | DefaultValueGenerator<T>): string;
 /**
  * 行を元に entity を生成
  * @param row
