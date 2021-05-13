@@ -72,6 +72,10 @@ export declare type DataListType = Readonly<{
     value: string;
 }[]>;
 /**
+ * デフォルト値の生成メソッド
+ */
+export declare type DefaultValueGenerator<T> = (row: number, cells: Cell<T>[][]) => string;
+/**
  * 列定義
  */
 export interface ColumnDefinition<T> {
@@ -81,7 +85,7 @@ export interface ColumnDefinition<T> {
     getValue: (item: T) => string;
     parseValue?: (value: string) => Partial<T>;
     validator?: ValidatorFunction<T> | ValidatorFunction<T>[];
-    defaultValue?: string | ((row: number, cells: Cell<T>[][]) => string);
+    defaultValue?: string | DefaultValueGenerator<T>;
     hidden?: boolean;
     readOnly?: boolean;
     required?: boolean;

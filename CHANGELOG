@@ -8,9 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
+
+## [0.2.11] - 2021-05-13
+### Fixed
+- EmptyRow で defaultValue が反映されていない #42
 
 ## [0.2.10] - 2021-05-11
 ### Added

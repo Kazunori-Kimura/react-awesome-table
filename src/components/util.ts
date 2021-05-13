@@ -3,6 +3,7 @@ import {
     CellLocation,
     CellRange,
     ColumnDefinition,
+    DefaultValueGenerator,
     GenerateRowKeyFunction,
     isCellRange,
     SortOrder,
@@ -189,6 +190,28 @@ export function selectRange<T>(
 }
 
 /**
+ * 列定義の defaultValue から初期値を取得する
+ * @param defaultValue
+ * @param rowIndex
+ * @param cells
+ * @returns
+ */
+export function getDefaultValue<T>(
+    rowIndex: number,
+    cells: Cell<T>[][],
+    defaultValue?: string | DefaultValueGenerator<T>
+): string {
+    if (defaultValue) {
+        if (typeof defaultValue === 'string') {
+            return defaultValue;
+        } else {
+            return defaultValue(rowIndex, cells);
+        }
+    }
+    return '';
+}
+
+/**
  * 行を元に entity を生成
  * @param row
  * @param columns
@@ -215,11 +238,7 @@ export const parseEntity = <T>(
         } else {
             if (typeof entity[column.name] === 'undefined') {
                 // 値が取得できなければ defaultValue をセットする
-                if (typeof column.defaultValue === 'string') {
-                    value = column.defaultValue;
-                } else if (column.defaultValue) {
-                    value = column.defaultValue(rowIndex, cells);
-                }
+                value = getDefaultValue(rowIndex, cells, column.defaultValue);
             }
         }
 

@@ -79,6 +79,7 @@ const columns: ColumnDefinition<Point2D>[] = [
         getValue: (item) => `${item.y}`,
         valueType: 'numeric',
         width: 100,
+        defaultValue: '0',
     },
 ];
 
