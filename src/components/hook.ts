@@ -471,6 +471,71 @@ export const useTable = <T>({
     );
 
     /**
+     * クリップボードの複数セルデータをカレントセルを起点にペーストする
+     */
+    const pasteFromItems = useCallback(
+        (
+            pasteItems: string[][],
+            cells: TableData<T>,
+            current: CellLocation
+        ): [boolean, CellLocation[]] => {
+            let changed = false;
+            const newSelection: CellLocation[] = [];
+
+            for (let i = 0; i < pasteItems.length; i++) {
+                const row = current.row + i;
+                if (row >= cells.length) {
+                    // 新規行を追加
+                    const newRow = makeNewRow(row, cells);
+                    cells.push(newRow);
+                    changed = true;
+                }
+
+                for (let j = 0; j < pasteItems[i].length; j++) {
+                    const column = current.column + j;
+                    if (column >= cells[row].length) {
+                        // 範囲外のため貼り付けしない
+                        break;
+                    }
+
+                    // 貼り付け処理
+                    const value = pasteItems[i][j];
+                    const location: CellLocation = { row, column };
+                    if (setCellValue(value, location, cells)) {
+                        changed = true;
+                    }
+
+                    // 貼り付け範囲を選択
+                    cells[row][column].selected = true;
+                    newSelection.push(location);
+                }
+            }
+
+            return [changed, newSelection];
+        },
+        [makeNewRow, setCellValue]
+    );
+
+    /**
+     * クリップボードの値を選択範囲のすべてのセルにペーストする
+     */
+    const pasteToSelection = useCallback(
+        (pasteItem: string, cells: TableData<T>, selectedCells: CellLocation[]): boolean => {
+            let changed = false;
+
+            selectedCells.forEach((location) => {
+                if (setCellValue(pasteItem, location, cells)) {
+                    changed = true;
+                }
+                cells[location.row][location.column].selected = true;
+            });
+
+            return changed;
+        },
+        [setCellValue]
+    );
+
+    /**
      * 値のペースト
      */
     const pasteData = useCallback(
@@ -482,31 +547,29 @@ export const useTable = <T>({
                     .map((value) => value.split('\t'));
                 debug(pasteItems);
 
-                const newData = clone(data);
+                const newData = data.map((row) =>
+                    row.map((cell) => ({
+                        ...cell,
+                        selected: false,
+                    }))
+                );
                 let changed = false;
 
-                for (let i = 0; i < pasteItems.length; i++) {
-                    const row = currentCell.row + i;
-                    if (row >= newData.length) {
-                        // 新規行を追加
-                        const newRow = makeNewRow(row, newData);
-                        newData.push(newRow);
-                        changed = true;
-                    }
-
-                    for (let j = 0; j < pasteItems[i].length; j++) {
-                        const column = currentCell.column + j;
-                        if (column >= newData[row].length) {
-                            // 範囲外のため貼り付けしない
-                            break;
-                        }
-
-                        // 貼り付け処理
-                        const value = pasteItems[i][j];
-                        const location: CellLocation = { row, column };
-                        if (setCellValue(value, location, newData)) {
-                            changed = true;
-                        }
+                if (pasteItems.length === 1 && pasteItems[0].length === 1) {
+                    // 単一セルのコピー
+                    const pasteItem = pasteItems[0][0];
+                    changed = pasteToSelection(pasteItem, newData, selection);
+                } else {
+                    // 複数セルのコピー
+                    const [isChanged, newSelection] = pasteFromItems(
+                        pasteItems,
+                        newData,
+                        currentCell
+                    );
+                    changed = isChanged;
+                    // 選択範囲を更新
+                    if (changed && newSelection.length > 0) {
+                        setSelection(newSelection);
                     }
                 }
 
@@ -520,7 +583,7 @@ export const useTable = <T>({
                 }
             }
         },
-        [currentCell, data, handleChange, makeNewRow, pushUndoList, setCellValue]
+        [currentCell, data, handleChange, pasteFromItems, pasteToSelection, pushUndoList, selection]
     );
 
     /**
