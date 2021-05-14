@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
-- コピペの挙動を Excel/SpreadSheet に合わせる
+
+## [0.2.12] - 2021-05-14
+### Fixed
+- コピペの挙動を Excel/SpreadSheet に合わせる #44
 
 ## [0.2.11] - 2021-05-13
 ### Fixed

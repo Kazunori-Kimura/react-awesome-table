@@ -1,6 +1,6 @@
 {
     "name": "@kazunori-kimura/react-awesome-table",
-    "version": "0.2.11",
+    "version": "0.2.12",
     "description": "JSON配列をいい感じにテーブル表示する React Component",
     "main": "build/index.js",
     "module": "build/index.es.js",
