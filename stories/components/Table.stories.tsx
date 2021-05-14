@@ -73,6 +73,7 @@ const columns: ColumnDefinition<Point2D>[] = [
         },
         valueType: 'numeric',
         width: 100,
+        required: true,
     },
     {
         name: 'y',

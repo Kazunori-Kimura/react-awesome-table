@@ -435,32 +435,34 @@ export const useTable = <T>({
 
     // 初期化処理
     useEffect(() => {
-        const newData: TableData<T> = items.map((item, index) => {
-            return columns
-                .filter((c) => !(c.hidden ?? false))
-                .map((column) => ({
-                    entityName: column.name,
-                    rowKey: getRowKey(item, index),
-                    value: column.getValue(item),
-                    readOnly: column.readOnly ?? false,
-                    cellType: getCellComponentType(column),
-                }));
-        });
-        if (newData.length === 0) {
-            const emptyRow = makeNewRow(0, []);
-            newData.push(emptyRow);
-        }
-
-        setData(newData);
-
-        setUndo((state) => {
-            if (state.length === 0) {
-                setUndoIndex(0);
-                return [newData];
+        if (data.length === 0) {
+            const newData: TableData<T> = items.map((item, index) => {
+                return columns
+                    .filter((c) => !(c.hidden ?? false))
+                    .map((column) => ({
+                        entityName: column.name,
+                        rowKey: getRowKey(item, index),
+                        value: column.getValue(item),
+                        readOnly: column.readOnly ?? false,
+                        cellType: getCellComponentType(column),
+                    }));
+            });
+            if (newData.length === 0) {
+                const emptyRow = makeNewRow(0, newData);
+                newData.push(emptyRow);
             }
-            return state;
-        });
-    }, [columns, getRowKey, items, makeNewRow]);
+
+            setData(newData);
+
+            setUndo((state) => {
+                if (state.length === 0) {
+                    setUndoIndex(0);
+                    return [newData];
+                }
+                return state;
+            });
+        }
+    }, [columns, data.length, getRowKey, items, makeNewRow]);
 
     /**
      * クリップボードの複数セルデータをカレントセルを起点にペーストする
