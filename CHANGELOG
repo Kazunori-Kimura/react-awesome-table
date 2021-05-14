@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
 
 ### Fixed
+- データ0件時に挿入される空行において必須チェックが実行されていない #46
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 
 ## [0.2.12] - 2021-05-14

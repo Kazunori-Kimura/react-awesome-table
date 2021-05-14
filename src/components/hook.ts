@@ -126,43 +126,6 @@ export const useTable = <T>({
         [undo, undoIndex]
     );
 
-    // 初期化処理
-    useEffect(() => {
-        const newData: TableData<T> = items.map((item, index) => {
-            return columns
-                .filter((c) => !(c.hidden ?? false))
-                .map((column) => ({
-                    entityName: column.name,
-                    rowKey: getRowKey(item, index),
-                    value: column.getValue(item),
-                    readOnly: column.readOnly ?? false,
-                    cellType: getCellComponentType(column),
-                }));
-        });
-        if (newData.length === 0) {
-            const emptyRow = columns
-                .filter((c) => !(c.hidden ?? false))
-                .map((column) => ({
-                    entityName: column.name,
-                    rowKey: getRowKey(null, 0),
-                    value: getDefaultValue(0, [], column.defaultValue),
-                    readOnly: column.readOnly ?? false,
-                    cellType: getCellComponentType(column),
-                }));
-            newData.push(emptyRow);
-        }
-
-        setData(newData);
-
-        setUndo((state) => {
-            if (state.length === 0) {
-                setUndoIndex(0);
-                return [newData];
-            }
-            return state;
-        });
-    }, [columns, getRowKey, items]);
-
     /**
      * オプション設定
      */
@@ -469,6 +432,35 @@ export const useTable = <T>({
         },
         [columns, getRowKey, messages]
     );
+
+    // 初期化処理
+    useEffect(() => {
+        const newData: TableData<T> = items.map((item, index) => {
+            return columns
+                .filter((c) => !(c.hidden ?? false))
+                .map((column) => ({
+                    entityName: column.name,
+                    rowKey: getRowKey(item, index),
+                    value: column.getValue(item),
+                    readOnly: column.readOnly ?? false,
+                    cellType: getCellComponentType(column),
+                }));
+        });
+        if (newData.length === 0) {
+            const emptyRow = makeNewRow(0, []);
+            newData.push(emptyRow);
+        }
+
+        setData(newData);
+
+        setUndo((state) => {
+            if (state.length === 0) {
+                setUndoIndex(0);
+                return [newData];
+            }
+            return state;
+        });
+    }, [columns, getRowKey, items, makeNewRow]);
 
     /**
      * クリップボードの複数セルデータをカレントセルを起点にペーストする
