@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 
+## [0.2.14] - 2021-05-15
+### Fixed
+- useEffect が無限ループになる不具合を修正
+
 ## [0.2.13] - 2021-05-14
 ### Fixed
 - データ0件時に挿入される空行において必須チェックが実行されていない #46
