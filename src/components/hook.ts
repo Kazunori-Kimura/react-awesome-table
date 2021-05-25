@@ -293,15 +293,11 @@ export const useTable = <T>({
     const handleChange = useCallback(
         (cells: TableData<T>) => {
             if (onChange) {
-                // invalid な cell があれば onChange を呼ばない
-                const invalid = cells.find((row) => row.find((cell) => cell.invalid));
-                if (invalid) {
-                    debug('handleChange: exists invalid cell(s)');
-                    return;
-                }
-
+                // invalid な cell が存在する？
+                const invalid = cells.some((row) => row.some((cell) => cell.invalid));
+                // 返却データの作成
                 const newData = parse(items, cells, columns, getRowKey);
-                onChange(newData);
+                onChange(newData, invalid);
             }
         },
         [columns, getRowKey, items, onChange]
