@@ -195,6 +195,10 @@ export declare const defaultTableOptions: TableOptions;
  * 行をユニークにする関数
  */
 export declare type GenerateRowKeyFunction<T> = (item: T | null | undefined, index: number, cells?: Cell<T>[][]) => string;
+/**
+ * 更新時のコールバック関数
+ */
+export declare type ChangeEventCallback<T> = (data: Partial<T>[], invalid: boolean) => void;
 export interface TableHookParameters<T> {
     items: T[];
     columns: ColumnDefinition<T>[];
@@ -202,7 +206,7 @@ export interface TableHookParameters<T> {
     rowsPerPage: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
     getRowKey: GenerateRowKeyFunction<T>;
-    onChange?: (data: Partial<T>[]) => void;
+    onChange?: ChangeEventCallback<T>;
     messages?: MessageDefinitions;
     options?: TableOptions;
 }
@@ -250,7 +254,7 @@ export interface TableProps<T> {
     data: T[];
     columns: ColumnDefinition<T>[];
     getRowKey: GenerateRowKeyFunction<T>;
-    onChange?: (data: Partial<T>[]) => void;
+    onChange?: ChangeEventCallback<T>;
     options?: TableOptions;
     renderHeader?: (props: HeaderProps<T>) => React.ReactElement | null;
     renderColumnHeader?: (props: ColumnHeaderProps<T>) => React.ReactElement;
