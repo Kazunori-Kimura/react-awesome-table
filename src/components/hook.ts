@@ -67,6 +67,8 @@ export const useTable = <T>({
     options = defaultTableOptions,
     messages = defaultMessages,
 }: TableHookParameters<T>): TableHookReturns<T> => {
+    // props に以前渡されたデータ
+    const [prevItems, setPrevItems] = useState<string>();
     // データ全体
     const [data, setData] = useState<TableData<T>>([]);
     // 現在表示ページ
@@ -435,7 +437,10 @@ export const useTable = <T>({
 
     // 初期化処理
     useEffect(() => {
-        if (data.length === 0) {
+        const rawItems = JSON.stringify(items);
+
+        // items が更新されているか、未登録なら初期化処理を行う
+        if (typeof prevItems === 'undefined' || prevItems !== rawItems) {
             const newData: TableData<T> = items.map((item, index) => {
                 return columns
                     .filter((c) => !(c.hidden ?? false))
@@ -453,16 +458,12 @@ export const useTable = <T>({
             }
 
             setData(newData);
+            setPrevItems(rawItems);
 
-            setUndo((state) => {
-                if (state.length === 0) {
-                    setUndoIndex(0);
-                    return [newData];
-                }
-                return state;
-            });
+            // UNDO履歴の更新
+            pushUndoList(newData);
         }
-    }, [columns, data.length, getRowKey, items, makeNewRow]);
+    }, [columns, data.length, getRowKey, items, makeNewRow, prevItems, pushUndoList]);
 
     /**
      * クリップボードの複数セルデータをカレントセルを起点にペーストする
