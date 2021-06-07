@@ -44,7 +44,7 @@ interface Point2D {
 
 // 1000件生成
 const data: Point2D[] = [...Array(999)].map((_, index) => {
-    const name = `point_${index + 1}`;
+    const name = index === 0 ? '' : `point_${index + 1}`;
     return {
         name,
         x: random(),
