@@ -437,16 +437,32 @@ export const useTable = <T>({
 
         // items が更新されているか、未登録なら初期化処理を行う
         if (typeof prevItems === 'undefined' || prevItems !== rawItems) {
-            const newData: TableData<T> = items.map((item, index) => {
+            const newData: TableData<T> = items.map((item, rowIndex) => {
                 return columns
                     .filter((c) => !(c.hidden ?? false))
-                    .map((column) => ({
-                        entityName: column.name,
-                        rowKey: getRowKey(item, index),
-                        value: column.getValue(item),
-                        readOnly: column.readOnly ?? false,
-                        cellType: getCellComponentType(column),
-                    }));
+                    .map((column, colIndex) => {
+                        const location: CellLocation = { row: rowIndex, column: colIndex };
+                        const value = column.getValue(item);
+                        // 入力チェック
+                        const [valid, message] = validateCell(
+                            column,
+                            value,
+                            location,
+                            [],
+                            messages
+                        );
+
+                        const cell: Cell<T> = {
+                            entityName: column.name,
+                            rowKey: getRowKey(item, rowIndex),
+                            value,
+                            readOnly: column.readOnly ?? false,
+                            cellType: getCellComponentType(column),
+                            invalid: !valid,
+                            invalidMessage: message,
+                        };
+                        return cell;
+                    });
             });
             if (newData.length === 0) {
                 const emptyRow = makeNewRow(0, newData);
@@ -459,7 +475,7 @@ export const useTable = <T>({
             // UNDO履歴の更新
             pushUndoList(newData);
         }
-    }, [columns, data.length, getRowKey, items, makeNewRow, prevItems, pushUndoList]);
+    }, [columns, data.length, getRowKey, items, makeNewRow, messages, prevItems, pushUndoList]);
 
     /**
      * クリップボードの複数セルデータをカレントセルを起点にペーストする
