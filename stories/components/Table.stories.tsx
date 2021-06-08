@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import { Meta } from '@storybook/react/types-6-0';
-import React, { MouseEvent } from 'react';
+import React, { MouseEvent, useState } from 'react';
 import SortButton from '../../src/components/SortButton';
 import Table from '../../src/components/Table';
 import {
@@ -44,7 +44,7 @@ interface Point2D {
 
 // 1000件生成
 const data: Point2D[] = [...Array(999)].map((_, index) => {
-    const name = `point_${index + 1}`;
+    const name = index === 0 ? '' : `point_${index + 1}`;
     return {
         name,
         x: random(),
@@ -63,21 +63,14 @@ const columns: ColumnDefinition<Point2D>[] = [
     },
     {
         name: 'x',
-        getValue: (item) => `${item.x}`,
-        parseValue: (value) => {
-            const v = parseFloat(value);
-            return {
-                x: v,
-                size: v * 2,
-            };
-        },
+        getValue: (item) => `${item.x ?? ''}`,
         valueType: 'numeric',
         width: 100,
         required: true,
     },
     {
         name: 'y',
-        getValue: (item) => `${item.y}`,
+        getValue: (item) => `${item.y ?? ''}`,
         valueType: 'numeric',
         width: 100,
         defaultValue: '0',
@@ -108,17 +101,20 @@ export const Sample: React.VFC<Record<string, never>> = () => (
 );
 
 // ====== 空データのサンプル ======
-export const EmptyRow: React.VFC<Record<string, never>> = () => (
-    <Table<Point2D>
-        data={[]}
-        columns={columns}
-        getRowKey={getRowKey}
-        onChange={onChange}
-        options={{ sortable: false, filterable: false }}
-        rowsPerPage={30}
-        rowsPerPageOptions={[30, 100, 300]}
-    />
-);
+export const EmptyRow: React.VFC<Record<string, never>> = () => {
+    const [points, setPoints] = useState<Partial<Point2D>[]>([]);
+    return (
+        <Table<Partial<Point2D>>
+            data={points}
+            columns={columns}
+            getRowKey={getRowKey}
+            onChange={setPoints}
+            options={{ sortable: false, filterable: false }}
+            rowsPerPage={30}
+            rowsPerPageOptions={[30, 100, 300]}
+        />
+    );
+};
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
 
