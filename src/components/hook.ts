@@ -98,6 +98,8 @@ export const useTable = <T>({
 
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();
+    // timer
+    const timer = useRef<NodeJS.Timeout>();
 
     /**
      * undo履歴に追加する
@@ -290,7 +292,7 @@ export const useTable = <T>({
     /**
      * onChangeの呼び出し
      */
-    const handleChange = useCallback(
+    const executeChange = useCallback(
         (cells: TableData<T>) => {
             if (onChange) {
                 // invalid な cell が存在する？
@@ -301,6 +303,19 @@ export const useTable = <T>({
             }
         },
         [columns, getRowKey, items, onChange]
+    );
+
+    /**
+     * 更新処理
+     */
+    const handleChange = useCallback(
+        (cells: TableData<T>) => {
+            if (timer.current) {
+                clearTimeout(timer.current);
+            }
+            timer.current = setTimeout(() => executeChange(cells), 100);
+        },
+        [executeChange]
     );
 
     /**
