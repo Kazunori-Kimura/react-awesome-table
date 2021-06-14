@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
 
+## [0.3.2] - 2021-06-14
+### Fixed
+- Material-UI を peerDependencies に移動 #54
+
 ## [0.3.1] - 2021-06-08
 ### Fixed
 - 最下行で入力中に Enter 押下しても新規行が挿入されない不具合を修正 #51
