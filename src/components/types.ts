@@ -7,6 +7,7 @@ export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export type TableData<T> = Cell<T>[][];
 export type HistoryCommand = 'undo' | 'redo';
 export type Direction = 'up' | 'down' | 'left' | 'right';
+export type EditMode = 'normal' | 'input' | 'edit';
 
 /**
  * セル位置
@@ -170,6 +171,7 @@ export interface FilterProps {
  * セルの props
  */
 export interface CellProps {
+    mode: EditMode;
     onDoubleClick?: (event: MouseEvent) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
     onMouseDown?: (event: MouseEvent) => void;
