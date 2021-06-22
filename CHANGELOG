@@ -6,7 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- ReadOnlyフラグの追加 #57
 
 ### Changed
 - 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
@@ -19,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - 入力モード/編集モードの実装 #56
 - 入力モード時、矢印キーでセル移動する #56
+- ReadOnlyフラグの追加 #57
 
 ## [0.3.2] - 2021-06-14
 ### Fixed
