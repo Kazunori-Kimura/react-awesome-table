@@ -224,7 +224,7 @@ function TableCell<T>({
             {!Boolean(column.render) &&
                 (editing ? (
                     <>
-                        {/* 編集モード */}
+                        {/* 入力/編集モード */}
                         {column.dataList ? (
                             <DropdownList
                                 className={classes.editor}

@@ -17,6 +17,7 @@ import {
     CellRange,
     defaultTableOptions,
     Direction,
+    EditMode,
     EditorKeyDownAction,
     EditorProps,
     FilterProps,
@@ -95,6 +96,8 @@ export const useTable = <T>({
     const [undo, setUndo] = useState<TableData<T>[]>([]);
     // undo履歴の位置
     const [undoIndex, setUndoIndex] = useState(-1);
+    // 編集モード
+    const [mode, setMode] = useState<EditMode>('normal');
 
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();
@@ -322,7 +325,7 @@ export const useTable = <T>({
      * セルの編集を開始する (stateを更新します)
      */
     const startEditing = useCallback(
-        (location: CellLocation, defaultValue?: string) => {
+        (location: CellLocation, defaultValue?: string, inputMode: EditMode = 'input') => {
             if (data[location.row][location.column].readOnly) {
                 // 読み取り専用の場合は何もしない
                 return;
@@ -343,13 +346,14 @@ export const useTable = <T>({
                 value,
             });
             setData(newData);
+            setMode(inputMode);
         },
         [data]
     );
 
     /**
      * セルの編集を終了する (注意! 引数の cells を変更します)
-     * 編集中の内容は破棄されます。
+     * 編集が確定されていない場合、編集中の内容は破棄されます。
      */
     const endEditing = useCallback(
         (cells: TableData<T>): TableData<T> => {
@@ -357,6 +361,8 @@ export const useTable = <T>({
                 debug('endEditing: ', editCell.location);
                 cells[editCell.location.row][editCell.location.column].editing = false;
                 setEditCell(undefined);
+                // 通常モードにする
+                setMode('normal');
             }
             return cells;
         },
@@ -738,18 +744,32 @@ export const useTable = <T>({
     );
 
     /**
+     * キー押下によるセル移動の前処理
+     */
+    const beforeKeyDown = useCallback(
+        (cells: TableData<T>) => {
+            if (editCell) {
+                // DropdownのPopover表示中はカーソル移動しない
+                const cell = cells[editCell.location.row][editCell.location.column];
+                if (cell.cellType === 'select' && cell.editing) {
+                    return;
+                }
+                // 更新を確定する
+                return commitEditing(cells);
+            }
+            return cells;
+        },
+        [commitEditing, editCell]
+    );
+
+    /**
      * 矢印キーによるカーソル移動
      */
-    const handleArrowKeyDown = useCallback(
-        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
-            if (!focus || editCell) {
-                // フォーカスが無い、あるいは編集中の場合は何もしない
-                return;
-            }
-            const { key } = hotkeysEvent;
-            debug('handleArrowKeyDown: ', key);
-
+    const keyDownArrow = useCallback(
+        (key: string) => {
             let cells = clone(data ?? []);
+            cells = beforeKeyDown(cells);
+
             switch (key) {
                 case 'left':
                     cells = navigateCursor(0, -1, cells);
@@ -766,12 +786,27 @@ export const useTable = <T>({
             }
 
             setData(cells);
+            // TODO: カレントセルが表示されるようにスクロールしてほしい
+        },
+        [beforeKeyDown, data, navigateCursor]
+    );
+
+    /**
+     * 矢印キーによるカーソル移動
+     */
+    const handleArrowKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus || editCell) {
+                // フォーカスが無い、あるいは編集中の場合は何もしない
+                return;
+            }
+            const { key } = hotkeysEvent;
+            debug('handleArrowKeyDown: ', key);
+            keyDownArrow(key);
             // デフォルトの挙動をキャンセル
             event.preventDefault();
-
-            // TODO カレントセルが表示されるようにスクロールしてほしい
         },
-        [data, editCell, focus, navigateCursor]
+        [editCell, focus, keyDownArrow]
     );
 
     /**
@@ -829,16 +864,10 @@ export const useTable = <T>({
     /**
      * Shift+矢印キーによる選択範囲の拡張
      */
-    const handleShiftArrowKeyDown = useCallback(
-        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
-            if (!focus || editCell) {
-                // フォーカスが無い、あるいは編集中の場合は何もしない
-                return;
-            }
-            const { key } = hotkeysEvent;
-            debug('handleArrowKeyDown: ', key);
-
-            const cells = clone(data);
+    const keyDownShiftArrow = useCallback(
+        (key: string) => {
+            let cells = clone(data);
+            cells = beforeKeyDown(cells);
             let direction: Direction;
             switch (key) {
                 case 'shift+left':
@@ -860,12 +889,27 @@ export const useTable = <T>({
                 setData(newData);
                 setSelection(newSelection);
             }
+            // TODO: カレントセルが表示されるようにスクロールしてほしい
+        },
+        [beforeKeyDown, data, expandSelection]
+    );
+
+    /**
+     * Shift+矢印キーによる選択範囲の拡張
+     */
+    const handleShiftArrowKeyDown = useCallback(
+        (event: globalThis.KeyboardEvent, hotkeysEvent: HotkeysEvent) => {
+            if (!focus || editCell) {
+                // フォーカスが無い、あるいは編集中の場合は何もしない
+                return;
+            }
+            const { key } = hotkeysEvent;
+            debug('handleShiftArrowKeyDown: ', key);
+            keyDownShiftArrow(key);
             // デフォルトの挙動をキャンセル
             event.preventDefault();
-
-            // TODO カレントセルが表示されるようにスクロールしてほしい
         },
-        [data, editCell, expandSelection, focus]
+        [editCell, focus, keyDownShiftArrow]
     );
 
     /**
@@ -873,16 +917,8 @@ export const useTable = <T>({
      */
     const keyDownTabEnter = useCallback(
         (key: string) => {
-            let cells = clone(data ?? []);
-            if (editCell) {
-                // DropdownのPopover表示中はカーソル移動しない
-                const cell = cells[editCell.location.row][editCell.location.column];
-                if (cell.cellType === 'select' && cell.editing) {
-                    return;
-                }
-                // 更新を確定する
-                cells = commitEditing(cells);
-            }
+            let cells = clone(data);
+            cells = beforeKeyDown(cells);
 
             switch (key) {
                 case 'shift+tab':
@@ -901,7 +937,7 @@ export const useTable = <T>({
 
             setData(cells);
         },
-        [commitEditing, data, editCell, navigateCursor]
+        [beforeKeyDown, data, navigateCursor]
     );
 
     /**
@@ -940,7 +976,7 @@ export const useTable = <T>({
 
             // 編集開始
             if (currentCell) {
-                startEditing(currentCell);
+                startEditing(currentCell, undefined, 'edit');
                 // デフォルトの挙動をキャンセル
                 event.preventDefault();
             }
@@ -1122,11 +1158,13 @@ export const useTable = <T>({
                     if (selection.length > 1) {
                         clearSelectedCells();
                     } else {
+                        // 入力モードで編集開始
                         startEditing(currentCell, '');
                     }
                     defaultPrevent = true;
                 }
                 if (key.length === 1 && !metaKey && !ctrlKey) {
+                    // 入力モードで編集開始
                     startEditing(currentCell, key);
                     defaultPrevent = true;
                 }
@@ -1403,6 +1441,7 @@ export const useTable = <T>({
                 // 何もせず終了
                 return;
             }
+            debug('onCellClick', location);
 
             const newData = clone(data);
             // 編集中に別のセルをクリック
@@ -1434,13 +1473,14 @@ export const useTable = <T>({
      */
     const onCellDoubleClick = useCallback(
         (_: MouseEvent, rowIndex: number, colIndex: number) => {
+            // TODO: readOnly時は何もせず終了
             // 全体を通しての行番号
             const row = rowIndex + currentPage * perPage;
             // 選択セルの位置
             const location: CellLocation = { row, column: colIndex };
-
-            // 該当セルの編集開始
-            startEditing(location);
+            debug('onCellDoubleClick', location);
+            // 編集モードで該当セルの編集開始
+            startEditing(location, undefined, 'edit');
         },
         [currentPage, perPage, startEditing]
     );
@@ -1551,15 +1591,14 @@ export const useTable = <T>({
     const getCellProps = useCallback(
         (cell: Cell<T>, rowIndex: number, colIndex: number) => ({
             /**
+             * 入力モード
+             */
+            mode,
+            /**
              * セルのダブルクリック
              */
             onDoubleClick: (event: MouseEvent) => {
-                // 全体を通しての行番号
-                const row = rowIndex + currentPage * perPage;
-                // 現在セルの位置
-                const location: CellLocation = { row, column: colIndex };
-                debug('double click', location);
-
+                // ダブルクリック処理
                 onCellDoubleClick(event, rowIndex, colIndex);
             },
             /**
@@ -1568,12 +1607,6 @@ export const useTable = <T>({
              */
             onMouseDown: (event: MouseEvent) => {
                 if (event.button === MouseButton.Primary) {
-                    // 全体を通しての行番号
-                    const row = rowIndex + currentPage * perPage;
-                    // 現在セルの位置
-                    const location: CellLocation = { row, column: colIndex };
-                    debug('mouse down', location);
-
                     // クリック時の処理
                     onCellClick(event, rowIndex, colIndex);
                     // ドラッグ開始
@@ -1609,7 +1642,16 @@ export const useTable = <T>({
                 setDragging(false);
             },
         }),
-        [currentPage, dragging, editCell, onCellClick, onCellDoubleClick, onCellMouseOver, perPage]
+        [
+            currentPage,
+            dragging,
+            editCell,
+            mode,
+            onCellClick,
+            onCellDoubleClick,
+            onCellMouseOver,
+            perPage,
+        ]
     );
 
     /**
@@ -1672,6 +1714,9 @@ export const useTable = <T>({
             if (event.shiftKey) {
                 keys.push('shift');
             }
+
+            debug(`handleEditorKeyDown: ${event.key}`);
+            let isArrowKey = false;
             switch (event.key) {
                 case 'Tab':
                     keys.push('tab');
@@ -1686,9 +1731,56 @@ export const useTable = <T>({
                     break;
             }
 
+            if (mode === 'input') {
+                // 入力モード時
+                switch (event.key) {
+                    case 'ArrowLeft':
+                        isArrowKey = true;
+                        keys.push('left');
+                        action = 'commit';
+                        break;
+                    case 'ArrowRight':
+                        isArrowKey = true;
+                        keys.push('right');
+                        action = 'commit';
+                        break;
+                    case 'ArrowUp':
+                        isArrowKey = true;
+                        keys.push('up');
+                        action = 'commit';
+                        break;
+                    case 'ArrowDown':
+                        isArrowKey = true;
+                        keys.push('down');
+                        action = 'commit';
+                        break;
+                }
+            }
+
+            if (event.key === 'F2') {
+                // モードの toggle
+                setMode((state) => {
+                    if (state === 'input') {
+                        return 'edit';
+                    }
+                    if (state === 'edit') {
+                        return 'input';
+                    }
+                });
+            }
+
             if (action) {
                 if (action === 'commit') {
-                    keyDownTabEnter(keys.join('+'));
+                    const key = keys.join('+');
+                    if (isArrowKey) {
+                        if (event.shiftKey) {
+                            keyDownShiftArrow(key);
+                        } else {
+                            keyDownArrow(key);
+                        }
+                    } else {
+                        keyDownTabEnter(key);
+                    }
                 }
                 if (action === 'cancel') {
                     cancelEditing();
@@ -1696,7 +1788,7 @@ export const useTable = <T>({
                 event.preventDefault();
             }
         },
-        [cancelEditing, keyDownTabEnter]
+        [cancelEditing, keyDownArrow, keyDownShiftArrow, keyDownTabEnter, mode]
     );
 
     /**

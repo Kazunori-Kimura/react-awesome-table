@@ -6,9 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- 入力モード/編集モードの実装
+- 入力モード時、矢印キーでセル移動する
+- ReadOnlyフラグの追加
 
 ### Changed
 - 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
+- テーブルヘッダーをスクロールしないように固定する
 
 ### Fixed
 - カーソル移動時、カレントセルが表示されるようにスクロールさせたい
