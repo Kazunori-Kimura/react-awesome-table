@@ -94,6 +94,7 @@ function Table<T>({
     renderHeader,
     renderColumnHeader: CustomColumnHeader,
     renderPagination,
+    readOnly = false,
     ...props
 }: TableProps<T>): React.ReactElement {
     const baseClasses = useStyles();
@@ -138,6 +139,7 @@ function Table<T>({
         rowsPerPageOptions: props.rowsPerPageOptions ?? [10, 30, 100],
         messages,
         options,
+        readOnly,
     });
 
     const paginationProps: PaginationProps<T> = useMemo(() => {
@@ -174,6 +176,7 @@ function Table<T>({
                     {renderHeader ? (
                         renderHeader({
                             className: classes.header,
+                            readOnly,
                             selectedRange,
                             onDeleteRows,
                             onInsertRow,
@@ -182,6 +185,7 @@ function Table<T>({
                     ) : (
                         <Header
                             className={classes.header}
+                            readOnly={readOnly}
                             selectedRange={selectedRange}
                             onDeleteRows={onDeleteRows}
                             onInsertRow={onInsertRow}
