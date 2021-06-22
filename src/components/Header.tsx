@@ -12,6 +12,7 @@ const useStyles = makeStyles({
 
 function Header<T>({
     className,
+    readOnly = false,
     selectedRange,
     onInsertRow,
     onDeleteRows,
@@ -21,8 +22,10 @@ function Header<T>({
 
     return (
         <div className={classnames(classes.root, className)}>
-            <button onClick={onInsertRow}>{formatMessage(messages, 'addRow')}</button>
-            <button disabled={!selectedRange} onClick={onDeleteRows}>
+            <button disabled={readOnly} onClick={onInsertRow}>
+                {formatMessage(messages, 'addRow')}
+            </button>
+            <button disabled={readOnly || !selectedRange} onClick={onDeleteRows}>
                 {formatMessage(messages, 'deleteRows')}
             </button>
         </div>

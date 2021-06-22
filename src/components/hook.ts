@@ -67,6 +67,7 @@ export const useTable = <T>({
     rowsPerPageOptions = defaultRowsPerPageOptions,
     options = defaultTableOptions,
     messages = defaultMessages,
+    readOnly = false,
 }: TableHookParameters<T>): TableHookReturns<T> => {
     // props に以前渡されたデータ
     const [prevItems, setPrevItems] = useState<string>();
@@ -271,7 +272,7 @@ export const useTable = <T>({
             const column = columns.find((c) => c.name === cell.entityName);
             if (column) {
                 // 読み取り専用時は更新しない
-                if (cell.readOnly) {
+                if (readOnly || cell.readOnly) {
                     return false;
                 }
 
@@ -289,7 +290,7 @@ export const useTable = <T>({
 
             return changed;
         },
-        [columns, messages]
+        [columns, messages, readOnly]
     );
 
     /**
@@ -326,7 +327,7 @@ export const useTable = <T>({
      */
     const startEditing = useCallback(
         (location: CellLocation, defaultValue?: string, inputMode: EditMode = 'input') => {
-            if (data[location.row][location.column].readOnly) {
+            if (readOnly || data[location.row][location.column].readOnly) {
                 // 読み取り専用の場合は何もしない
                 return;
             }
@@ -348,7 +349,7 @@ export const useTable = <T>({
             setData(newData);
             setMode(inputMode);
         },
-        [data]
+        [data, readOnly]
     );
 
     /**
@@ -477,7 +478,7 @@ export const useTable = <T>({
                             entityName: column.name,
                             rowKey: getRowKey(item, rowIndex),
                             value,
-                            readOnly: column.readOnly ?? false,
+                            readOnly: (readOnly || column.readOnly) ?? false,
                             cellType: getCellComponentType(column),
                             invalid: !valid,
                             invalidMessage: message,
@@ -496,7 +497,17 @@ export const useTable = <T>({
             // UNDO履歴の更新
             pushUndoList(newData);
         }
-    }, [columns, data.length, getRowKey, items, makeNewRow, messages, prevItems, pushUndoList]);
+    }, [
+        columns,
+        data.length,
+        getRowKey,
+        items,
+        makeNewRow,
+        messages,
+        prevItems,
+        pushUndoList,
+        readOnly,
+    ]);
 
     /**
      * クリップボードの複数セルデータをカレントセルを起点にペーストする
@@ -619,14 +630,14 @@ export const useTable = <T>({
      */
     const handlePaste = useCallback(
         (event: globalThis.ClipboardEvent) => {
-            if (focus && !Boolean(editCell) && currentCell) {
+            if (!readOnly && focus && !Boolean(editCell) && currentCell) {
                 const rawData = event.clipboardData.getData('text');
                 debug('paste: ', rawData);
 
                 pasteData(rawData);
             }
         },
-        [currentCell, editCell, focus, pasteData]
+        [currentCell, editCell, focus, pasteData, readOnly]
     );
 
     // イベントリスナーの設定
@@ -957,7 +968,7 @@ export const useTable = <T>({
             // デフォルトの挙動をキャンセル
             event.preventDefault();
 
-            // TODO カレントセルが表示されるようにスクロールしてほしい
+            // TODO: カレントセルが表示されるようにスクロールしてほしい
         },
         [focus, keyDownTabEnter]
     );
@@ -1018,6 +1029,9 @@ export const useTable = <T>({
             if (!focus) {
                 return;
             }
+            if (readOnly) {
+                return;
+            }
             if (editCell) {
                 return;
             }
@@ -1043,7 +1057,7 @@ export const useTable = <T>({
             // デフォルトの挙動をキャンセル
             event.preventDefault();
         },
-        [editCell, focus, restoreHistory]
+        [editCell, focus, readOnly, restoreHistory]
     );
 
     /**
@@ -1473,7 +1487,6 @@ export const useTable = <T>({
      */
     const onCellDoubleClick = useCallback(
         (_: MouseEvent, rowIndex: number, colIndex: number) => {
-            // TODO: readOnly時は何もせず終了
             // 全体を通しての行番号
             const row = rowIndex + currentPage * perPage;
             // 選択セルの位置
@@ -1848,6 +1861,10 @@ export const useTable = <T>({
      */
     const insertRow = useCallback(
         (rowIndex?: number) => {
+            if (readOnly) {
+                return;
+            }
+
             const insertRowNumber = typeof rowIndex === 'number' ? rowIndex + 1 : data?.length ?? 0;
             const newData = clone(data ?? []);
             const newRow = makeNewRow(insertRowNumber, newData);
@@ -1877,7 +1894,7 @@ export const useTable = <T>({
 
             pushUndoList(newData);
         },
-        [data, getPageNumberFromRowIndex, makeNewRow, pushUndoList]
+        [data, getPageNumberFromRowIndex, makeNewRow, pushUndoList, readOnly]
     );
 
     /**
@@ -1891,6 +1908,9 @@ export const useTable = <T>({
      * 行削除
      */
     const deleteRows = useCallback(() => {
+        if (readOnly) {
+            return;
+        }
         if (selection.length === 0) {
             return;
         }
@@ -1922,7 +1942,7 @@ export const useTable = <T>({
             handleChange(newData);
             pushUndoList(newData);
         }
-    }, [currentCell, data, handleChange, messages, pushUndoList, selection]);
+    }, [currentCell, data, handleChange, messages, pushUndoList, readOnly, selection]);
 
     /**
      * 選択セルを削除する

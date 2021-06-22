@@ -6,6 +6,7 @@ export declare type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export declare type TableData<T> = Cell<T>[][];
 export declare type HistoryCommand = 'undo' | 'redo';
 export declare type Direction = 'up' | 'down' | 'left' | 'right';
+export declare type EditMode = 'normal' | 'input' | 'edit';
 /**
  * セル位置
  */
@@ -134,6 +135,7 @@ export interface FilterProps {
  * セルの props
  */
 export interface CellProps {
+    mode: EditMode;
     onDoubleClick?: (event: MouseEvent) => void;
     onKeyDown?: (event: KeyboardEvent) => void;
     onMouseDown?: (event: MouseEvent) => void;
@@ -209,6 +211,7 @@ export interface TableHookParameters<T> {
     onChange?: ChangeEventCallback<T>;
     messages?: MessageDefinitions;
     options?: TableOptions;
+    readOnly?: boolean;
 }
 /**
  * セルの値を更新する関数
@@ -261,6 +264,7 @@ export interface TableProps<T> {
     renderPagination?: (props: PaginationProps<T>) => React.ReactElement | null;
     rowsPerPage?: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
+    readOnly?: boolean;
 }
 /**
  * ページングのprops
@@ -282,6 +286,7 @@ export interface PaginationProps<T> {
  * ヘッダーの props
  */
 export interface HeaderProps<T> extends PaginationProps<T> {
+    readOnly?: boolean;
     selectedRange?: CellRange;
     onDeleteRows: VoidFunction;
     onInsertRow: VoidFunction;

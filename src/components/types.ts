@@ -263,6 +263,7 @@ export interface TableHookParameters<T> {
     onChange?: ChangeEventCallback<T>;
     messages?: MessageDefinitions;
     options?: TableOptions;
+    readOnly?: boolean;
 }
 
 /**
@@ -331,6 +332,7 @@ export interface TableProps<T> {
     renderPagination?: (props: PaginationProps<T>) => React.ReactElement | null;
     rowsPerPage?: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
+    readOnly?: boolean;
 }
 
 /**
@@ -354,6 +356,7 @@ export interface PaginationProps<T> {
  * ヘッダーの props
  */
 export interface HeaderProps<T> extends PaginationProps<T> {
+    readOnly?: boolean;
     selectedRange?: CellRange;
     onDeleteRows: VoidFunction;
     onInsertRow: VoidFunction;

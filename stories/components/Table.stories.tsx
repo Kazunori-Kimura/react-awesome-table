@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/styles';
-import { Meta } from '@storybook/react/types-6-0';
+import { Meta, Story } from '@storybook/react/types-6-0';
 import React, { MouseEvent, useState } from 'react';
 import SortButton from '../../src/components/SortButton';
 import Table from '../../src/components/Table';
@@ -10,12 +10,18 @@ import {
     ColumnHeaderProps,
     HeaderProps,
     PaginationProps,
+    TableProps,
 } from '../../src/components/types';
 import UpdateDataSample from './examples/UpdateData';
 
 export default {
     title: 'components/Table',
     component: Table,
+    argTypes: {
+        readOnly: {
+            control: 'boolean',
+        },
+    },
 } as Meta;
 
 // ランダムな数値を取得
@@ -89,16 +95,20 @@ const onChange = (values: Partial<Point2D>[]) => {
     console.log(values);
 };
 
+const Template: Story<TableProps<Point2D>> = (args) => {
+    return <Table<Point2D> {...args} />;
+};
+
 // 最も単純なサンプル
-export const Sample: React.VFC<Record<string, never>> = () => (
-    <Table<Point2D>
-        data={data}
-        columns={columns}
-        getRowKey={getRowKey}
-        onChange={onChange}
-        options={{ sortable: false, filterable: false }}
-    />
-);
+export const Sample = Template.bind({});
+Sample.args = {
+    data,
+    columns,
+    getRowKey,
+    onChange,
+    options: { sortable: false, filterable: false },
+    readOnly: false,
+};
 
 // ====== 空データのサンプル ======
 export const EmptyRow: React.VFC<Record<string, never>> = () => {
