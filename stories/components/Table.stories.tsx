@@ -128,6 +128,8 @@ export const EmptyRow: React.VFC<Record<string, never>> = () => {
 
 // ====== 非表示/読み取り専用/コンボボックス列サンプル ======
 
+// Color Names — HTML Color Codes
+// https://htmlcolorcodes.com/color-names/
 const Colors = [
     '#f00',
     '#0f0',
@@ -138,6 +140,15 @@ const Colors = [
     '#d3d3d3',
     '#ffffff',
     '#c71585',
+    '#CD5C5C',
+    '#F08080',
+    '#FA8072',
+    '#E9967A',
+    '#FFA07A',
+    '#DC143C',
+    '#FF0000',
+    '#B22222',
+    '#8B0000',
 ] as const;
 type Color = typeof Colors[number];
 const ColorNames: Record<Color, string> = {
@@ -150,6 +161,15 @@ const ColorNames: Record<Color, string> = {
     '#d3d3d3': 'LightGray',
     '#ffffff': 'White',
     '#c71585': 'MediumVioletred',
+    '#CD5C5C': 'IndianRed',
+    '#F08080': 'LightCoral',
+    '#FA8072': 'Salmon',
+    '#E9967A': 'DarkSalmon',
+    '#FFA07A': 'LightSalmon',
+    '#DC143C': 'Crimson',
+    '#FF0000': 'Red',
+    '#B22222': 'FireBrick',
+    '#8B0000': 'DarkRed',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
