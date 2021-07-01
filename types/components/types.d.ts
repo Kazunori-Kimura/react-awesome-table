@@ -265,6 +265,7 @@ export interface TableProps<T> {
     rowsPerPage?: Readonly<number>;
     rowsPerPageOptions?: Readonly<number[]>;
     readOnly?: boolean;
+    sticky?: boolean;
 }
 /**
  * ページングのprops
