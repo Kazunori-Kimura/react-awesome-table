@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CellSize } from './consts';
 import DropdownList from './DropdownList';
 import {
@@ -27,6 +27,7 @@ interface TableCellProps<T> extends PropsBase<T> {
     editorProps: EditorProps;
     getRowKey: GenerateRowKeyFunction<T>;
     onChangeCellValue: ChangeCellValueFunction;
+    containerRect?: DOMRect;
 }
 
 interface StyleProps {
@@ -149,6 +150,7 @@ function TableCell<T>({
     onMouseDown,
     onMouseOver,
     onMouseUp,
+    containerRect,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
     const [cellRect, setCellRect] = useState<DOMRect>();
@@ -194,6 +196,28 @@ function TableCell<T>({
             }
         }
     }, [displayValue]);
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (current && cellRef.current && containerRect) {
+            const { top, bottom } = cellRef.current.getBoundingClientRect();
+            const outsideTop = containerRect.top > top;
+            const outsideBottom = containerRect.bottom < bottom;
+            if (outsideTop || outsideBottom) {
+                // クリック直後にスクロールさせるとドラッグと認識されるため
+                // 50ms待ってからスクロールする
+                timer = setTimeout(() => {
+                    cellRef.current.scrollIntoView(outsideTop);
+                }, 50);
+            }
+        }
+
+        return () => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        };
+    }, [containerRect, current]);
 
     return (
         <td

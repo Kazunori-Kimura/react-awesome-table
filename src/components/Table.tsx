@@ -1,6 +1,6 @@
 import { createGenerateClassName, makeStyles, StylesProvider } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CellSize } from './consts';
 import Header from './Header';
 import { useTable } from './hook';
@@ -24,12 +24,15 @@ const useStyles = makeStyles({
     },
     container: {
         width: 'max-content',
+        boxSizing: 'border-box',
         borderTopWidth: 1,
         borderTopStyle: 'solid',
         borderTopColor: '#ccc',
         borderBottomWidth: 1,
         borderBottomStyle: 'solid',
         borderBottomColor: '#ccc',
+        overflow: 'auto',
+        maxHeight: '100%',
     },
     table: {
         width: 'max-content',
@@ -99,6 +102,8 @@ function Table<T>({
     sticky = false,
     ...props
 }: TableProps<T>): React.ReactElement {
+    const containerRef = useRef<HTMLDivElement>();
+    const [containerRect, setContainerRect] = useState<DOMRect>();
     const baseClasses = useStyles();
 
     const messages: MessageDefinitions = useMemo(() => {
@@ -170,6 +175,13 @@ function Table<T>({
         total,
     ]);
 
+    // カレントセルが container の表示エリア内かどうか判定するために
+    useLayoutEffect(() => {
+        if (containerRef.current) {
+            setContainerRect(containerRef.current.getBoundingClientRect());
+        }
+    }, []);
+
     return (
         <StylesProvider generateClassName={generateClassName}>
             <div className={classnames(baseClasses.root, classes.root)}>
@@ -194,7 +206,10 @@ function Table<T>({
                             {...paginationProps}
                         />
                     )}
-                    <div className={classnames(baseClasses.container, classes.container)}>
+                    <div
+                        ref={containerRef}
+                        className={classnames(baseClasses.container, classes.container)}
+                    >
                         <table className={classnames(baseClasses.table, classes.table)}>
                             <TableHeader
                                 classes={classes}
@@ -252,6 +267,7 @@ function Table<T>({
                                                         {...cell}
                                                         {...cellProps}
                                                         editorProps={getEditorProps()}
+                                                        containerRect={containerRect}
                                                     />
                                                 );
                                             })}
