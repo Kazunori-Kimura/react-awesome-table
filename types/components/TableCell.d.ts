@@ -12,6 +12,7 @@ interface TableCellProps<T> extends PropsBase<T> {
     editorProps: EditorProps;
     getRowKey: GenerateRowKeyFunction<T>;
     onChangeCellValue: ChangeCellValueFunction;
+    containerRect?: DOMRect;
 }
-declare function TableCell<T>({ className, column, columns, location, row, cells, data, rowKey, current, editing, invalid, invalidMessage, readOnly, selected, value, editorProps, getRowKey, onChangeCellValue, onDoubleClick, onKeyDown, onMouseDown, onMouseOver, onMouseUp, }: TableCellProps<T>): React.ReactElement;
+declare function TableCell<T>({ className, column, columns, location, row, cells, data, rowKey, current, editing, invalid, invalidMessage, readOnly, selected, value, editorProps, getRowKey, onChangeCellValue, onDoubleClick, onKeyDown, onMouseDown, onMouseOver, onMouseUp, containerRect, }: TableCellProps<T>): React.ReactElement;
 export default TableCell;

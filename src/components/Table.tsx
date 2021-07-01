@@ -1,13 +1,13 @@
 import { createGenerateClassName, makeStyles, StylesProvider } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useMemo } from 'react';
-import ColumnHeader from './ColumnHeader';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CellSize } from './consts';
 import Header from './Header';
 import { useTable } from './hook';
 import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
 import Pagination from './Pagination';
 import TableCell from './TableCell';
+import TableHeader from './TableHeader';
 import { CellLocation, PaginationProps, TableProps } from './types';
 
 const generateClassName = createGenerateClassName({
@@ -23,21 +23,25 @@ const useStyles = makeStyles({
         //
     },
     container: {
-        //
+        width: 'max-content',
+        boxSizing: 'border-box',
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
+        borderTopColor: '#ccc',
+        borderBottomWidth: 1,
+        borderBottomStyle: 'solid',
+        borderBottomColor: '#ccc',
+        overflow: 'auto',
+        maxHeight: '100%',
     },
     table: {
         width: 'max-content',
         boxSizing: 'border-box',
-        borderCollapse: 'collapse',
-        borderTopWidth: 1,
-        borderTopStyle: 'solid',
-        borderTopColor: '#ccc',
+        borderCollapse: 'separate',
+        borderSpacing: 0,
         borderLeftWidth: 1,
         borderLeftStyle: 'solid',
         borderLeftColor: '#ccc',
-        borderBottomWidth: 1,
-        borderBottomStyle: 'solid',
-        borderBottomColor: '#ccc',
     },
     headerRow: {
         //
@@ -95,8 +99,11 @@ function Table<T>({
     renderColumnHeader: CustomColumnHeader,
     renderPagination,
     readOnly = false,
+    sticky = false,
     ...props
 }: TableProps<T>): React.ReactElement {
+    const containerRef = useRef<HTMLDivElement>();
+    const [containerRect, setContainerRect] = useState<DOMRect>();
     const baseClasses = useStyles();
 
     const messages: MessageDefinitions = useMemo(() => {
@@ -168,6 +175,13 @@ function Table<T>({
         total,
     ]);
 
+    // カレントセルが container の表示エリア内かどうか判定するために
+    useLayoutEffect(() => {
+        if (containerRef.current) {
+            setContainerRect(containerRef.current.getBoundingClientRect());
+        }
+    }, []);
+
     return (
         <StylesProvider generateClassName={generateClassName}>
             <div className={classnames(baseClasses.root, classes.root)}>
@@ -192,59 +206,20 @@ function Table<T>({
                             {...paginationProps}
                         />
                     )}
-                    <div className={classnames(baseClasses.container, classes.container)}>
+                    <div
+                        ref={containerRef}
+                        className={classnames(baseClasses.container, classes.container)}
+                    >
                         <table className={classnames(baseClasses.table, classes.table)}>
-                            <thead>
-                                <tr
-                                    className={classnames(baseClasses.headerRow, classes.headerRow)}
-                                >
-                                    <th
-                                        className={classnames(
-                                            baseClasses.headerCell,
-                                            baseClasses.rowHeaderCell,
-                                            classes.headerCell
-                                        )}
-                                        onClick={onSelectAll}
-                                    />
-                                    {columns.map((column, index) => {
-                                        if (column.hidden) {
-                                            return undefined;
-                                        }
-
-                                        const key = `awesome-table-header-${column.name}-${index}`;
-                                        const sortProps = getSortProps(column.name);
-                                        const filterProps = getFilterProps(column.name);
-
-                                        if (CustomColumnHeader) {
-                                            return (
-                                                <CustomColumnHeader
-                                                    key={key}
-                                                    className={classnames(
-                                                        baseClasses.headerCell,
-                                                        classes.headerCell
-                                                    )}
-                                                    column={column}
-                                                    sort={sortProps}
-                                                    filter={filterProps}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <ColumnHeader
-                                                key={key}
-                                                className={classnames(
-                                                    baseClasses.headerCell,
-                                                    classes.headerCell
-                                                )}
-                                                column={column}
-                                                sort={sortProps}
-                                                filter={filterProps}
-                                            />
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
+                            <TableHeader
+                                classes={classes}
+                                columns={columns}
+                                sticky={sticky}
+                                getFilterProps={getFilterProps}
+                                getSortProps={getSortProps}
+                                onSelectAll={onSelectAll}
+                                renderColumnHeader={CustomColumnHeader}
+                            />
                             <tbody ref={tbodyRef} className={classes.tbody}>
                                 {pageItems.map((row, rowIndex) => {
                                     const rowKey =
@@ -292,6 +267,7 @@ function Table<T>({
                                                         {...cell}
                                                         {...cellProps}
                                                         editorProps={getEditorProps()}
+                                                        containerRect={containerRect}
                                                     />
                                                 );
                                             })}

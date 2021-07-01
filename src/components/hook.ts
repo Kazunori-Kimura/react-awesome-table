@@ -865,7 +865,6 @@ export const useTable = <T>({
             }
 
             setData(cells);
-            // TODO: カレントセルが表示されるようにスクロールしてほしい
         },
         [beforeKeyDown, data, navigateCursor]
     );
@@ -968,7 +967,6 @@ export const useTable = <T>({
                 setData(newData);
                 setSelection(newSelection);
             }
-            // TODO: カレントセルが表示されるようにスクロールしてほしい
         },
         [beforeKeyDown, data, expandSelection]
     );
@@ -1035,8 +1033,6 @@ export const useTable = <T>({
             keyDownTabEnter(key);
             // デフォルトの挙動をキャンセル
             event.preventDefault();
-
-            // TODO: カレントセルが表示されるようにスクロールしてほしい
         },
         [focus, keyDownTabEnter]
     );
