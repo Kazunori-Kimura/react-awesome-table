@@ -12,7 +12,7 @@ import React, {
 } from 'react';
 import { Popover } from './consts';
 import { CellLocation, DataListType, EditorProps } from './types';
-import { isWithinRect } from './util';
+import { debug, isWithinRect } from './util';
 
 interface DropdownListPopoverProps extends EditorProps {
     location: CellLocation;
@@ -62,13 +62,15 @@ const useStyles = makeStyles({
             outline: 0,
         },
     },
-    list: {
-        display: 'flex',
-        flexDirection: 'column',
+    container: {
         boxSizing: 'border-box',
         minHeight: '0.5rem',
         maxHeight: Popover.MaxHeight,
         overflowY: 'auto',
+    },
+    list: {
+        display: 'flex',
+        flexDirection: 'column',
     },
     item: {
         padding: '0.3rem',
@@ -176,7 +178,7 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
         (event: KeyboardEvent<HTMLInputElement>) => {
             const { key, shiftKey } = event;
             let isPreventDefault = false;
-            console.log(`onKeyDown: ${shiftKey ? 'Shift+' : ''}${key}`);
+            debug(`onKeyDown: ${shiftKey ? 'Shift+' : ''}${key}`);
 
             // ArrowUp, ArrowDown, Tab で選択
             // Space, Enter で確定
@@ -310,24 +312,25 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
                     &times;
                 </button>
             </div>
-            {/* リスト */}
-            <div className={classes.list}>
-                {filteredItems.map((item, index) => {
-                    const key = `${location.row}_${location.column}_${item.value}`;
-                    return (
-                        <button
-                            key={key}
-                            className={classnames({
-                                [classes.active]: activeIndex === index,
-                                [classes.item]: true,
-                            })}
-                            onMouseOver={() => setActive(index)}
-                            onClick={handleClick(index)}
-                        >
-                            {item.name}
-                        </button>
-                    );
-                })}
+            <div className={classes.container}>
+                {/* リスト */}
+                <div className={classes.list}>
+                    {filteredItems.map((item, index) => {
+                        const key = `${location.row}_${location.column}_${item.value}`;
+                        return (
+                            <button
+                                key={key}
+                                className={classnames(classes.item, {
+                                    [classes.active]: activeIndex === index,
+                                })}
+                                onMouseOver={() => setActive(index)}
+                                onClick={handleClick(index)}
+                            >
+                                {item.name}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
