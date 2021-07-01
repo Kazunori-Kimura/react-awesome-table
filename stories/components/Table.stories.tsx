@@ -41,15 +41,6 @@ interface Point2D {
     y: number;
     size?: number;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// const isPoint2D = (item: any): item is Point2D => {
-//     return (
-//         typeof item === 'object' &&
-//         typeof item.name === 'string' &&
-//         typeof item.x === 'number' &&
-//         typeof item.y === 'number'
-//     );
-// };
 
 // 1000件生成
 const data: Point2D[] = [...Array(999)].map((_, index) => {
@@ -121,6 +112,7 @@ Sample.args = {
     rowsPerPage: 30,
     rowsPerPageOptions: [30, 100, 300],
     readOnly: false,
+    sticky: true,
 };
 
 // ====== 空データのサンプル ======

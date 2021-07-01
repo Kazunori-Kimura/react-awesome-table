@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない #64
 
+## [0.5.1] - 2021-07-01
+### Fixed
+- カレントセルが上方向に移動した際のスクロール処理の修正
+
 ## [0.5.0] - 2021-07-01
 ### Added
 - 単一行を複数行にペーストする #60

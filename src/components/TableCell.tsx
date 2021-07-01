@@ -201,13 +201,17 @@ function TableCell<T>({
         let timer: NodeJS.Timeout;
         if (current && cellRef.current && containerRect) {
             const { top, bottom } = cellRef.current.getBoundingClientRect();
-            const outsideTop = containerRect.top > top;
+            // ヘッダーの下に隠れないように高さを考慮
+            const outsideTop = containerRect.top + CellSize.MinHeight > top;
             const outsideBottom = containerRect.bottom < bottom;
             if (outsideTop || outsideBottom) {
                 // クリック直後にスクロールさせるとドラッグと認識されるため
                 // 50ms待ってからスクロールする
                 timer = setTimeout(() => {
-                    cellRef.current.scrollIntoView(outsideTop);
+                    cellRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                    });
                 }, 50);
             }
         }
