@@ -21,6 +21,9 @@ export default {
         readOnly: {
             control: 'boolean',
         },
+        sticky: {
+            control: 'boolean',
+        },
     },
 } as Meta;
 
@@ -95,8 +98,16 @@ const onChange = (values: Partial<Point2D>[]) => {
     console.log(values);
 };
 
+const useSampleStyles = makeStyles({
+    container: {
+        overflow: 'auto',
+        height: 400,
+    },
+});
+
 const Template: Story<TableProps<Point2D>> = (args) => {
-    return <Table<Point2D> {...args} />;
+    const classes = useSampleStyles();
+    return <Table<Point2D> classes={classes} {...args} />;
 };
 
 // 最も単純なサンプル
@@ -107,6 +118,8 @@ Sample.args = {
     getRowKey,
     onChange,
     options: { sortable: false, filterable: false },
+    rowsPerPage: 30,
+    rowsPerPageOptions: [30, 100, 300],
     readOnly: false,
 };
 

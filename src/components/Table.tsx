@@ -1,13 +1,13 @@
 import { createGenerateClassName, makeStyles, StylesProvider } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useMemo } from 'react';
-import ColumnHeader from './ColumnHeader';
 import { CellSize } from './consts';
 import Header from './Header';
 import { useTable } from './hook';
 import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
 import Pagination from './Pagination';
 import TableCell from './TableCell';
+import TableHeader from './TableHeader';
 import { CellLocation, PaginationProps, TableProps } from './types';
 
 const generateClassName = createGenerateClassName({
@@ -23,21 +23,22 @@ const useStyles = makeStyles({
         //
     },
     container: {
-        //
+        width: 'max-content',
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
+        borderTopColor: '#ccc',
+        borderBottomWidth: 1,
+        borderBottomStyle: 'solid',
+        borderBottomColor: '#ccc',
     },
     table: {
         width: 'max-content',
         boxSizing: 'border-box',
-        borderCollapse: 'collapse',
-        borderTopWidth: 1,
-        borderTopStyle: 'solid',
-        borderTopColor: '#ccc',
+        borderCollapse: 'separate',
+        borderSpacing: 0,
         borderLeftWidth: 1,
         borderLeftStyle: 'solid',
         borderLeftColor: '#ccc',
-        borderBottomWidth: 1,
-        borderBottomStyle: 'solid',
-        borderBottomColor: '#ccc',
     },
     headerRow: {
         //
@@ -95,6 +96,7 @@ function Table<T>({
     renderColumnHeader: CustomColumnHeader,
     renderPagination,
     readOnly = false,
+    sticky = false,
     ...props
 }: TableProps<T>): React.ReactElement {
     const baseClasses = useStyles();
@@ -194,57 +196,15 @@ function Table<T>({
                     )}
                     <div className={classnames(baseClasses.container, classes.container)}>
                         <table className={classnames(baseClasses.table, classes.table)}>
-                            <thead>
-                                <tr
-                                    className={classnames(baseClasses.headerRow, classes.headerRow)}
-                                >
-                                    <th
-                                        className={classnames(
-                                            baseClasses.headerCell,
-                                            baseClasses.rowHeaderCell,
-                                            classes.headerCell
-                                        )}
-                                        onClick={onSelectAll}
-                                    />
-                                    {columns.map((column, index) => {
-                                        if (column.hidden) {
-                                            return undefined;
-                                        }
-
-                                        const key = `awesome-table-header-${column.name}-${index}`;
-                                        const sortProps = getSortProps(column.name);
-                                        const filterProps = getFilterProps(column.name);
-
-                                        if (CustomColumnHeader) {
-                                            return (
-                                                <CustomColumnHeader
-                                                    key={key}
-                                                    className={classnames(
-                                                        baseClasses.headerCell,
-                                                        classes.headerCell
-                                                    )}
-                                                    column={column}
-                                                    sort={sortProps}
-                                                    filter={filterProps}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <ColumnHeader
-                                                key={key}
-                                                className={classnames(
-                                                    baseClasses.headerCell,
-                                                    classes.headerCell
-                                                )}
-                                                column={column}
-                                                sort={sortProps}
-                                                filter={filterProps}
-                                            />
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
+                            <TableHeader
+                                classes={classes}
+                                columns={columns}
+                                sticky={sticky}
+                                getFilterProps={getFilterProps}
+                                getSortProps={getSortProps}
+                                onSelectAll={onSelectAll}
+                                renderColumnHeader={CustomColumnHeader}
+                            />
                             <tbody ref={tbodyRef} className={classes.tbody}>
                                 {pageItems.map((row, rowIndex) => {
                                     const rowKey =
