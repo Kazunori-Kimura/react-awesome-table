@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない #64
 
+## [0.5.2] - 2021-07-02
+### Fixed
+- テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない不具合の修正 #64
+- ペースト時に改行コードが `\r\n` だった場合に `\r` のみ残る不具合の修正 #69
+
 ## [0.5.1] - 2021-07-01
 ### Fixed
 - カレントセルが上方向に移動した際のスクロール処理の修正

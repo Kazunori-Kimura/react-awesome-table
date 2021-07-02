@@ -377,3 +377,27 @@ export const isWithinRect = (
         left + scrollX + width >= pageX
     );
 };
+
+/**
+ * セルの値のみを比較するために抽出
+ * @param cells
+ * @returns
+ */
+export function getCellValues<T>(cells: TableData<T>): string[][] {
+    const data: string[][] = cells.map((row) => {
+        return row.map((cell) => cell.value);
+    });
+    return data;
+}
+
+/**
+ * テーブルデータが一致するかどうかを判定する
+ * @param a
+ * @param b
+ * @returns
+ */
+export function equalsCells<T>(a: TableData<T>, b: TableData<T>): boolean {
+    const ja = JSON.stringify(getCellValues(a));
+    const jb = JSON.stringify(getCellValues(b));
+    return ja === jb;
+}

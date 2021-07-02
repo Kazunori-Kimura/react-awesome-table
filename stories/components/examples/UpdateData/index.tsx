@@ -38,14 +38,14 @@ interface SupportCard {
     type: CardType;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isSupportCard = (item: any): item is SupportCard => {
-    return (
-        typeof item.cardId === 'number' &&
-        typeof item.name === 'string' &&
-        Ranks.includes(item.rank) &&
-        CardTypes.includes(item.type)
-    );
-};
+// const isSupportCard = (item: any): item is SupportCard => {
+//     return (
+//         typeof item.cardId === 'number' &&
+//         typeof item.name === 'string' &&
+//         Ranks.includes(item.rank) &&
+//         CardTypes.includes(item.type)
+//     );
+// };
 
 const initialCards: SupportCard[] = [
     {
@@ -59,6 +59,24 @@ const initialCards: SupportCard[] = [
         name: 'ライスシャワー',
         rank: 'SSR',
         type: 'Stamina',
+    },
+    {
+        cardId: 3,
+        name: 'セイウンスカイ',
+        rank: 'SSR',
+        type: 'Intelligence',
+    },
+    {
+        cardId: 4,
+        name: 'キングヘイロー',
+        rank: 'SSR',
+        type: 'Power',
+    },
+    {
+        cardId: 5,
+        name: 'ゴールドシップ',
+        rank: 'SSR',
+        type: 'Speed',
     },
 ];
 
@@ -79,7 +97,7 @@ const useStyles = makeStyles({
 });
 
 const UpdateDataSample: React.FC = () => {
-    const [cards, setCards] = useState<SupportCard[]>(initialCards);
+    const [cards, setCards] = useState<Partial<SupportCard>[]>(initialCards);
     const classes = useStyles();
 
     const getRowKey: GenerateRowKeyFunction<SupportCard> = (item, _, cells) => {
@@ -122,15 +140,13 @@ const UpdateDataSample: React.FC = () => {
     ];
 
     const handleChange = (items: Partial<SupportCard>[]) => {
-        if (items.every(isSupportCard)) {
-            setCards(items);
-        }
+        setCards(items);
     };
 
     return (
         <div className={classes.root}>
             <div className={classes.column}>
-                <Table<SupportCard>
+                <Table<Partial<SupportCard>>
                     data={cards}
                     columns={columns}
                     getRowKey={getRowKey}
