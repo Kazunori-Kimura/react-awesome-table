@@ -39,6 +39,7 @@ import {
     compareValue,
     convertRange,
     debug,
+    equalsCells,
     equalsLocation,
     getDefaultValue,
     includesLocation,
@@ -112,9 +113,7 @@ export const useTable = <T>({
         (cells: TableData<T>) => {
             // 最新の履歴と登録データを比較して、履歴追加が必要か判定
             if (undo.length > 0) {
-                const j1 = JSON.stringify(cells);
-                const j2 = JSON.stringify(undo[undoIndex]);
-                if (j1 === j2) {
+                if (equalsCells(cells, undo[undoIndex])) {
                     return;
                 }
             }
