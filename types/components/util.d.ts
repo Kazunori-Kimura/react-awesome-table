@@ -110,4 +110,17 @@ interface Scroll {
  * @param point
  */
 export declare const isWithinRect: ({ top, left, width, height }: Rect, { pageX, pageY }: Point, { scrollX, scrollY }?: Scroll) => boolean;
+/**
+ * セルの値のみを比較するために抽出
+ * @param cells
+ * @returns
+ */
+export declare function getCellValues<T>(cells: TableData<T>): string[][];
+/**
+ * テーブルデータが一致するかどうかを判定する
+ * @param a
+ * @param b
+ * @returns
+ */
+export declare function equalsCells<T>(a: TableData<T>, b: TableData<T>): boolean;
 export {};
