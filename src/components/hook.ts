@@ -628,7 +628,7 @@ export const useTable = <T>({
                 // 改行・タブで区切って配列に変換
                 const pasteItems: string[][] = rawData
                     .split('\n')
-                    .map((value) => value.split('\t'));
+                    .map((value) => value.replace('\r', '').split('\t'));
                 debug(pasteItems);
 
                 const newData = data.map((row) =>
