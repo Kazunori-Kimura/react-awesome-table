@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- 行ヘッダーに行番号を表示する #71
 
 ### Changed
 - 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
