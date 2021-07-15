@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない #64
 
+## [0.5.3] - 2021-07-15
+### Added
+- 行ヘッダーに行番号を表示する #71
+
 ## [0.5.2] - 2021-07-02
 ### Fixed
 - テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない不具合の修正 #64

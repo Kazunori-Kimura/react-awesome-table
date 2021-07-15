@@ -62,7 +62,12 @@ const useStyles = makeStyles({
     },
     rowHeaderCell: {
         boxSizing: 'border-box',
-        width: '1.4rem',
+        width: '2.8rem',
+        fontWeight: 'lighter',
+        fontSize: '0.7rem',
+        color: '#666',
+        // テキストを選択状態にしない
+        userSelect: 'none',
     },
     cell: {
         position: 'relative',
@@ -100,6 +105,7 @@ function Table<T>({
     renderPagination,
     readOnly = false,
     sticky = false,
+    rowNumber = false,
     ...props
 }: TableProps<T>): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>();
@@ -236,7 +242,11 @@ function Table<T>({
                                                     classes.rowHeader
                                                 )}
                                                 {...getRowHeaderCellProps(rowIndex)}
-                                            />
+                                            >
+                                                {rowNumber && (
+                                                    <span>{rowsPerPage * page + rowIndex + 1}</span>
+                                                )}
+                                            </th>
                                             {row.map((cell, colIndex) => {
                                                 const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
                                                 const column = columns.find(

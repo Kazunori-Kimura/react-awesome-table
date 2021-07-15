@@ -24,6 +24,9 @@ export default {
         sticky: {
             control: 'boolean',
         },
+        rowNumber: {
+            control: 'boolean',
+        },
     },
 } as Meta;
 
