@@ -197,21 +197,39 @@ function TableCell<T>({
         }
     }, [displayValue]);
 
+    // カレントセルが表示されるようにスクロール
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (current && cellRef.current && containerRect) {
-            const { top, bottom } = cellRef.current.getBoundingClientRect();
+            const { top, bottom, left, right } = cellRef.current.getBoundingClientRect();
+            // 要素が表示されているかどうかの判定
+            let isOutside = false;
+            const options: ScrollIntoViewOptions = {
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest',
+            };
             // ヘッダーの下に隠れないように高さを考慮
-            const outsideTop = containerRect.top + CellSize.MinHeight > top;
-            const outsideBottom = containerRect.bottom < bottom;
-            if (outsideTop || outsideBottom) {
+            isOutside = containerRect.top + CellSize.MinHeight > top;
+            isOutside = isOutside || containerRect.bottom < bottom;
+            if (isOutside) {
+                options.block = 'end';
+            }
+            // 水平方向
+            const isOutsideHorizontalStart = containerRect.left + 100 > left;
+            const isOutsideHorizontalEnd = containerRect.right < right;
+            if (isOutsideHorizontalStart) {
+                isOutside = true;
+                options.inline = 'end';
+            } else if (isOutsideHorizontalEnd) {
+                isOutside = true;
+                options.inline = 'end';
+            }
+            if (isOutside) {
                 // クリック直後にスクロールさせるとドラッグと認識されるため
                 // 50ms待ってからスクロールする
                 timer = setTimeout(() => {
-                    cellRef.current.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
+                    cellRef.current.scrollIntoView(options);
                 }, 50);
             }
         }
