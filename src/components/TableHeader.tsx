@@ -38,6 +38,12 @@ const useStyles = makeStyles((theme) => ({
         boxSizing: 'border-box',
         width: '1.4rem',
     },
+    stickyRowHeaderCell: {
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        zIndex: 2,
+    },
     stickyHeaderCell: {
         position: 'sticky',
         top: 0,
@@ -62,7 +68,7 @@ function TableHeader<T>({
                 <th
                     className={classnames(
                         {
-                            [baseClasses.stickyHeaderCell]: sticky,
+                            [baseClasses.stickyRowHeaderCell]: sticky,
                         },
                         baseClasses.headerCell,
                         baseClasses.rowHeaderCell,

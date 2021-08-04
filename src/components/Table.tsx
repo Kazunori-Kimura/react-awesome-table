@@ -17,31 +17,29 @@ const generateClassName = createGenerateClassName({
 
 const useStyles = makeStyles({
     root: {
-        //
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
     },
     header: {
         //
     },
     container: {
-        width: 'max-content',
+        flex: 1,
+        maxWidth: '100%',
         boxSizing: 'border-box',
-        borderTopWidth: 1,
-        borderTopStyle: 'solid',
-        borderTopColor: '#ccc',
-        borderBottomWidth: 1,
-        borderBottomStyle: 'solid',
-        borderBottomColor: '#ccc',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#ccc',
         overflow: 'auto',
-        maxHeight: '100%',
     },
     table: {
         width: 'max-content',
         boxSizing: 'border-box',
         borderCollapse: 'separate',
         borderSpacing: 0,
-        borderLeftWidth: 1,
-        borderLeftStyle: 'solid',
-        borderLeftColor: '#ccc',
     },
     headerRow: {
         //
@@ -68,6 +66,11 @@ const useStyles = makeStyles({
         color: '#666',
         // テキストを選択状態にしない
         userSelect: 'none',
+    },
+    stickyRowHeaderCell: {
+        position: 'sticky',
+        left: 0,
+        zIndex: 1,
     },
     cell: {
         position: 'relative',
@@ -182,6 +185,7 @@ function Table<T>({
     ]);
 
     // カレントセルが container の表示エリア内かどうか判定するために
+    // 要素のサイズを保持
     useLayoutEffect(() => {
         if (containerRef.current) {
             setContainerRect(containerRef.current.getBoundingClientRect());
@@ -239,7 +243,10 @@ function Table<T>({
                                                 className={classnames(
                                                     baseClasses.headerCell,
                                                     baseClasses.rowHeaderCell,
-                                                    classes.rowHeader
+                                                    classes.rowHeader,
+                                                    {
+                                                        [baseClasses.stickyRowHeaderCell]: sticky,
+                                                    }
                                                 )}
                                                 {...getRowHeaderCellProps(rowIndex)}
                                             >
