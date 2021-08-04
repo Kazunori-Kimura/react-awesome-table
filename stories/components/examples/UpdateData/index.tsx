@@ -78,14 +78,34 @@ const initialCards: SupportCard[] = [
         rank: 'SSR',
         type: 'Speed',
     },
+    {
+        cardId: 6,
+        name: 'ゼンノロブロイ',
+        rank: 'SR',
+        type: 'Stamina',
+    },
+    {
+        cardId: 7,
+        name: 'マーベラスサンデー',
+        rank: 'SR',
+        type: 'Intelligence',
+    },
+    {
+        cardId: 8,
+        name: 'スイープトウショウ',
+        rank: 'SR',
+        type: 'Speed',
+    },
 ];
 
 const useStyles = makeStyles({
     root: {
         display: 'flex',
+        height: 340,
     },
     column: {
         flex: 1,
+        maxWidth: '50vw',
     },
     preview: {
         margin: 9,
@@ -93,6 +113,7 @@ const useStyles = makeStyles({
         border: '1px solid #ccc',
         borderRadius: 6,
         backgroundColor: '#f3f3f3',
+        overflow: 'auto',
     },
 });
 
@@ -151,6 +172,8 @@ const UpdateDataSample: React.FC = () => {
                     columns={columns}
                     getRowKey={getRowKey}
                     onChange={handleChange}
+                    sticky
+                    rowNumber
                 />
             </div>
             <div className={classnames(classes.column, classes.preview)}>

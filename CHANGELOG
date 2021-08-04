@@ -6,12 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- 行削除した場合に削除データを返却する
 
 ### Changed
 - 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
 
 ### Fixed
-- テーブルへのペースト時、Ctrl+Z を複数回実行しないと undo できない #64
+
+## [0.5.4] - 2021-08-04
+### Added
+- TableContainerの水平方向スクロール対応
 
 ## [0.5.3] - 2021-07-15
 ### Added
