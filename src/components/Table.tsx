@@ -135,6 +135,7 @@ function Table<T>({
         rowsPerPageOptions,
         selectedRange,
         tbodyRef,
+        hasFocus,
         onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,
@@ -285,6 +286,7 @@ function Table<T>({
                                                         {...cellProps}
                                                         editorProps={getEditorProps()}
                                                         containerRect={containerRect}
+                                                        hasFocus={hasFocus}
                                                     />
                                                 );
                                             })}

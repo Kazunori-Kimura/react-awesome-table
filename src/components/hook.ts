@@ -707,12 +707,20 @@ export const useTable = <T>({
         [currentCell, editCell, focus, pasteData, readOnly]
     );
 
+    /**
+     * ブラウザ ウィンドウ からフォーカスが外れた場合
+     */
+    const handleBlurDocument = useCallback(() => {
+        setFocus(false);
+    }, []);
+
     // イベントリスナーの設定
     useEffect(() => {
         document.addEventListener('mousedown', handleMouseDownDocument);
         document.addEventListener('mouseup', handleMouseUpDocument);
         document.addEventListener('copy', handleCopy);
         document.addEventListener('paste', handlePaste);
+        window.addEventListener('blur', handleBlurDocument);
 
         return () => {
             // イベントリスナーの削除
@@ -720,8 +728,15 @@ export const useTable = <T>({
             document.removeEventListener('mouseup', handleMouseUpDocument);
             document.removeEventListener('copy', handleCopy);
             document.removeEventListener('paste', handlePaste);
+            window.removeEventListener('blur', handleBlurDocument);
         };
-    }, [handleCopy, handleMouseDownDocument, handleMouseUpDocument, handlePaste]);
+    }, [
+        handleBlurDocument,
+        handleCopy,
+        handleMouseDownDocument,
+        handleMouseUpDocument,
+        handlePaste,
+    ]);
 
     // --- hotkeys ---
 
@@ -2045,6 +2060,7 @@ export const useTable = <T>({
         rowsPerPageOptions,
         selectedRange,
         tbodyRef,
+        hasFocus: focus,
         onChangeCellValue,
         onChangePage,
         onChangeRowsPerPage,

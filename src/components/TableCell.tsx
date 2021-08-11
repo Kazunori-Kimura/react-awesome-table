@@ -28,11 +28,13 @@ interface TableCellProps<T> extends PropsBase<T> {
     getRowKey: GenerateRowKeyFunction<T>;
     onChangeCellValue: ChangeCellValueFunction;
     containerRect?: DOMRect;
+    hasFocus: boolean;
 }
 
 interface StyleProps {
     width?: number;
     isDropdown: boolean;
+    hasFocus: boolean;
 }
 
 const useStyles = makeStyles({
@@ -52,14 +54,14 @@ const useStyles = makeStyles({
         width: props.width ?? CellSize.DefaultWidth,
         boxSizing: 'border-box',
     }),
-    current: {
+    current: ({ hasFocus }) => ({
         // カレントセルの枠線
-        boxShadow: '0px 0px 1px 2px #0096ff inset',
-    },
-    selected: {
+        boxShadow: `0px 0px 1px 2px ${hasFocus ? '#0096ff' : '#a3a3a3'} inset`,
+    }),
+    selected: ({ hasFocus }) => ({
         // 選択セルの背景色
-        backgroundColor: '#E2EDFB',
-    },
+        backgroundColor: hasFocus ? '#E2EDFB' : '#ececec',
+    }),
     readOnly: {
         // 読み取り専用セルの背景色
         backgroundColor: '#f9f9f9',
@@ -151,10 +153,15 @@ function TableCell<T>({
     onMouseOver,
     onMouseUp,
     containerRect,
+    hasFocus,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
     const [cellRect, setCellRect] = useState<DOMRect>();
-    const classes = useStyles({ width: column.width, isDropdown: Boolean(column.dataList) });
+    const classes = useStyles({
+        width: column.width,
+        isDropdown: Boolean(column.dataList),
+        hasFocus,
+    });
     const cellRef = useRef<HTMLTableCellElement>(null);
     const labelRef = useRef<HTMLDivElement>(null);
 

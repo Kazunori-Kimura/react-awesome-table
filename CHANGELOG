@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.5.5] - 2021-08-11
+### Changed
+- テーブルにフォーカスが無い場合は選択セルの色をグレーにする #75
+
 ## [0.5.4] - 2021-08-04
 ### Added
 - TableContainerの水平方向スクロール対応
