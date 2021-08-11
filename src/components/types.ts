@@ -287,6 +287,7 @@ export interface TableHookReturns<T> {
     rowsPerPageOptions?: Readonly<number[]>;
     selectedRange?: CellRange;
     tbodyRef: RefObject<HTMLTableSectionElement>;
+    hasFocus: boolean;
     onChangeCellValue: ChangeCellValueFunction;
     onChangePage: (event: unknown, page: number) => void;
     onChangeRowsPerPage: (event: ChangeEvent<HTMLSelectElement>) => void;
