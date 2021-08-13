@@ -148,8 +148,8 @@ function selectCells<T>(
     cell2: CellLocation
 ): CellLocation[] {
     const newSelection: CellLocation[] = [];
-    const rowRange = [cell1.row, cell2.row].sort();
-    const colRange = [cell1.column, cell2.column].sort();
+    const rowRange = [cell1.row, cell2.row].sort((a, b) => a - b);
+    const colRange = [cell1.column, cell2.column].sort((a, b) => a - b);
 
     for (let r = rowRange[0]; r <= rowRange[1]; r++) {
         for (let c = colRange[0]; c <= colRange[1]; c++) {

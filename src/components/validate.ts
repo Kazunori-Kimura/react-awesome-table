@@ -46,7 +46,6 @@ const uniqueValidator = <T>(
     cells: Cell<T>[][],
     messages: MessageDefinitions
 ): ValidatorResult => {
-    console.log(value, location, cells);
     let valid = true;
 
     cells.forEach((row, index) => {
