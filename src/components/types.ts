@@ -264,6 +264,7 @@ export interface TableHookParameters<T> {
     messages?: MessageDefinitions;
     options?: TableOptions;
     readOnly?: boolean;
+    disableUndo?: boolean;
 }
 
 /**
@@ -336,6 +337,7 @@ export interface TableProps<T> {
     readOnly?: boolean;
     sticky?: boolean;
     rowNumber?: boolean;
+    disableUndo?: boolean;
 }
 
 /**

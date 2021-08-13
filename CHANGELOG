@@ -6,10 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- 行削除した場合に削除データを返却する
+- 列定義にUnique制限を追加 #74
+- Undo/Redoをフラグで制御する #77
 
 ### Changed
-- 非表示セルの扱い改善 (row には常に非表示セルも含めておくべき)
 
 ### Fixed
 
