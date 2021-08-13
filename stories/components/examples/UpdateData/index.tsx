@@ -155,6 +155,7 @@ const UpdateDataSample: React.FC = () => {
             displayName: 'カード',
             getValue: (item) => item.name,
             required: true,
+            unique: true,
         },
         {
             name: 'rank',

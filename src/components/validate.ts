@@ -39,6 +39,25 @@ const listValidator = (
     return [true];
 };
 
+// 重複チェック
+const uniqueValidator = <T>(
+    value: string,
+    location: CellLocation,
+    cells: Cell<T>[][],
+    messages: MessageDefinitions
+): ValidatorResult => {
+    console.log(value, location, cells);
+    let valid = true;
+
+    cells.forEach((row, index) => {
+        if (location.row !== index) {
+            valid = valid && row[location.column].value !== value;
+        }
+    });
+
+    return [valid, !valid ? formatMessage(messages, 'validate.unique') : undefined];
+};
+
 /**
  * セルの入力値チェック
  * @param column
@@ -55,7 +74,7 @@ export function validateCell<T>(
 ): ValidatorResult {
     let isValid = true;
     const invalidMessages: string[] = [];
-    const { validator, valueType, required, dataList, isPermittedExceptList } = column;
+    const { validator, valueType, required, dataList, isPermittedExceptList, unique } = column;
 
     // 数値の場合
     if (valueType === 'numeric' && value.length > 0) {
@@ -78,6 +97,15 @@ export function validateCell<T>(
     // リストチェック
     if (dataList && !isPermittedExceptList && value.length > 0) {
         const [valid, message] = listValidator(value, dataList, messages);
+        isValid = isValid && valid;
+        if (message) {
+            invalidMessages.push(message);
+        }
+    }
+
+    // 重複チェック
+    if (unique && value.length > 0) {
+        const [valid, message] = uniqueValidator(value, location, cells, messages);
         isValid = isValid && valid;
         if (message) {
             invalidMessages.push(message);

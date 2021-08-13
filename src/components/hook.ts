@@ -466,17 +466,8 @@ export const useTable = <T>({
             const newData: TableData<T> = items.map((item, rowIndex) => {
                 return columns
                     .filter((c) => !(c.hidden ?? false))
-                    .map((column, colIndex) => {
-                        const location: CellLocation = { row: rowIndex, column: colIndex };
+                    .map((column) => {
                         const value = column.getValue(item);
-                        // 入力チェック
-                        const [valid, message] = validateCell(
-                            column,
-                            value,
-                            location,
-                            [],
-                            messages
-                        );
 
                         const cell: Cell<T> = {
                             entityName: column.name,
@@ -484,8 +475,6 @@ export const useTable = <T>({
                             value,
                             readOnly: (readOnly || column.readOnly) ?? false,
                             cellType: getCellComponentType(column),
-                            invalid: !valid,
-                            invalidMessage: message,
                         };
                         return cell;
                     });
@@ -494,6 +483,25 @@ export const useTable = <T>({
                 const emptyRow = makeNewRow(0, newData);
                 newData.push(emptyRow);
             }
+
+            // 入力チェック
+            newData.forEach((row, rowIndex) => {
+                columns.forEach((column, colIndex) => {
+                    const cell = row[colIndex];
+                    const location: CellLocation = { row: rowIndex, column: colIndex };
+                    const [valid, message] = validateCell(
+                        column,
+                        cell.value,
+                        location,
+                        newData,
+                        messages
+                    );
+                    if (!valid) {
+                        cell.invalid = true;
+                        cell.invalidMessage = message;
+                    }
+                });
+            });
 
             setData(newData);
             setPrevItems(rawItems);

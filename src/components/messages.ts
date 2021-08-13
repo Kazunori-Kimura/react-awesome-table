@@ -24,6 +24,7 @@ export const defaultMessages = {
     'validate.numeric': '数値で入力してください',
     'validate.datalist': ({ list }: { list: string }): string =>
         `${list}のいずれかを指定してください`,
+    'validate.unique': '値が重複しています',
 };
 
 export type MessageDefinitions = Partial<

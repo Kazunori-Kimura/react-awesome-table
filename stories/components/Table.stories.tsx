@@ -62,6 +62,7 @@ const columns: ColumnDefinition<Point2D>[] = [
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
         required: true,
+        unique: true,
         width: 180,
     },
     {
