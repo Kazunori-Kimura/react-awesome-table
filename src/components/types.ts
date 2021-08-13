@@ -125,6 +125,7 @@ export interface ColumnDefinition<T> {
     width?: number;
     sortable?: boolean;
     filterable?: boolean;
+    unique?: boolean;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 
