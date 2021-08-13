@@ -109,6 +109,7 @@ function Table<T>({
     readOnly = false,
     sticky = false,
     rowNumber = false,
+    disableUndo = false,
     ...props
 }: TableProps<T>): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>();
@@ -157,6 +158,7 @@ function Table<T>({
         messages,
         options,
         readOnly,
+        disableUndo,
     });
 
     const paginationProps: PaginationProps<T> = useMemo(() => {

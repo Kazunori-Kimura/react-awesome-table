@@ -69,6 +69,7 @@ export const useTable = <T>({
     options = defaultTableOptions,
     messages = defaultMessages,
     readOnly = false,
+    disableUndo = false,
 }: TableHookParameters<T>): TableHookReturns<T> => {
     // props に以前渡されたデータ
     const [prevItems, setPrevItems] = useState<string>();
@@ -111,6 +112,10 @@ export const useTable = <T>({
      */
     const pushUndoList = useCallback(
         (cells: TableData<T>) => {
+            // undo/redo無効時は履歴更新しない
+            if (disableUndo) {
+                return;
+            }
             // 最新の履歴と登録データを比較して、履歴追加が必要か判定
             if (undo.length > 0) {
                 if (equalsCells(cells, undo[undoIndex])) {
@@ -130,7 +135,7 @@ export const useTable = <T>({
             setUndo(history);
             setUndoIndex(index);
         },
-        [undo, undoIndex]
+        [disableUndo, undo, undoIndex]
     );
 
     /**
@@ -1110,6 +1115,9 @@ export const useTable = <T>({
             if (readOnly) {
                 return;
             }
+            if (disableUndo) {
+                return;
+            }
             if (editCell) {
                 return;
             }
@@ -1135,7 +1143,7 @@ export const useTable = <T>({
             // デフォルトの挙動をキャンセル
             event.preventDefault();
         },
-        [editCell, focus, readOnly, restoreHistory]
+        [disableUndo, editCell, focus, readOnly, restoreHistory]
     );
 
     /**

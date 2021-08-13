@@ -1,6 +1,7 @@
+import { FormControlLabel, Switch } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useState } from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 import { ColumnDefinition, DataListType, GenerateRowKeyFunction, Table } from '../../../../src';
 
 /**
@@ -101,11 +102,21 @@ const initialCards: SupportCard[] = [
 const useStyles = makeStyles({
     root: {
         display: 'flex',
-        height: 340,
+        flexDirection: 'column',
+    },
+    row: {
+        display: 'flex',
     },
     column: {
         flex: 1,
         maxWidth: '50vw',
+    },
+    form: {
+        padding: '1rem',
+        display: 'flex',
+    },
+    main: {
+        height: 340,
     },
     preview: {
         margin: 9,
@@ -119,6 +130,7 @@ const useStyles = makeStyles({
 
 const UpdateDataSample: React.FC = () => {
     const [cards, setCards] = useState<Partial<SupportCard>[]>(initialCards);
+    const [disableUndo, setDisableUndo] = useState(false);
     const classes = useStyles();
 
     const getRowKey: GenerateRowKeyFunction<SupportCard> = (item, _, cells) => {
@@ -164,20 +176,41 @@ const UpdateDataSample: React.FC = () => {
         setCards(items);
     };
 
+    const handleChangeDisableUndo = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const { checked } = event.target;
+        setDisableUndo(checked);
+    }, []);
+
     return (
         <div className={classes.root}>
-            <div className={classes.column}>
-                <Table<Partial<SupportCard>>
-                    data={cards}
-                    columns={columns}
-                    getRowKey={getRowKey}
-                    onChange={handleChange}
-                    sticky
-                    rowNumber
+            <div className={classnames(classes.row, classes.form)}>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={disableUndo}
+                            onChange={handleChangeDisableUndo}
+                            color="primary"
+                            name="disableUndo"
+                        />
+                    }
+                    label="disableUndo"
                 />
             </div>
-            <div className={classnames(classes.column, classes.preview)}>
-                <pre>{JSON.stringify(cards, null, 4)}</pre>
+            <div className={classnames(classes.row, classes.main)}>
+                <div className={classes.column}>
+                    <Table<Partial<SupportCard>>
+                        data={cards}
+                        columns={columns}
+                        getRowKey={getRowKey}
+                        onChange={handleChange}
+                        sticky
+                        rowNumber
+                        disableUndo={disableUndo}
+                    />
+                </div>
+                <div className={classnames(classes.column, classes.preview)}>
+                    <pre>{JSON.stringify(cards, null, 4)}</pre>
+                </div>
             </div>
         </div>
     );
