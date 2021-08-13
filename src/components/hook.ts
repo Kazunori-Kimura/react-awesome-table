@@ -486,21 +486,23 @@ export const useTable = <T>({
 
             // 入力チェック
             newData.forEach((row, rowIndex) => {
-                columns.forEach((column, colIndex) => {
-                    const cell = row[colIndex];
-                    const location: CellLocation = { row: rowIndex, column: colIndex };
-                    const [valid, message] = validateCell(
-                        column,
-                        cell.value,
-                        location,
-                        newData,
-                        messages
-                    );
-                    if (!valid) {
-                        cell.invalid = true;
-                        cell.invalidMessage = message;
-                    }
-                });
+                columns
+                    .filter((c) => !(c.hidden ?? false))
+                    .forEach((column, colIndex) => {
+                        const cell = row[colIndex];
+                        const location: CellLocation = { row: rowIndex, column: colIndex };
+                        const [valid, message] = validateCell(
+                            column,
+                            cell.value,
+                            location,
+                            newData,
+                            messages
+                        );
+                        if (!valid) {
+                            cell.invalid = true;
+                            cell.invalidMessage = message;
+                        }
+                    });
             });
 
             setData(newData);

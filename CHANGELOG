@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.5.7] - 2021-08-13
+### Fixed
+- 非表示列がある場合に初回入力チェックで例外が発生する不具合を修正 #84
+
 ## [0.5.6] - 2021-08-13
 ### Added
 - 列定義にUnique制限を追加 #74
