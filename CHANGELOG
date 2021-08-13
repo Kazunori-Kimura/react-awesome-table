@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- 列定義にUnique制限を追加 #74
-- Undo/Redoをフラグで制御する #77
 
 ### Changed
+
+### Fixed
+
+## [0.5.6] - 2021-08-13
+### Added
+- 列定義にUnique制限を追加 #74
+- Undo/Redoをフラグで制御する #77
 
 ### Fixed
 - custom validator のエラー表示が意図通りに動作していない #79

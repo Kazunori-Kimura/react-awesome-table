@@ -95,6 +95,7 @@ export interface ColumnDefinition<T> {
     width?: number;
     sortable?: boolean;
     filterable?: boolean;
+    unique?: boolean;
     render?: (props: CellRenderProps<T>) => React.ReactElement | undefined | null;
 }
 /**
@@ -212,6 +213,7 @@ export interface TableHookParameters<T> {
     messages?: MessageDefinitions;
     options?: TableOptions;
     readOnly?: boolean;
+    disableUndo?: boolean;
 }
 /**
  * セルの値を更新する関数
@@ -268,6 +270,7 @@ export interface TableProps<T> {
     readOnly?: boolean;
     sticky?: boolean;
     rowNumber?: boolean;
+    disableUndo?: boolean;
 }
 /**
  * ページングのprops
