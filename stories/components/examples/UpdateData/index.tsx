@@ -148,7 +148,7 @@ const UpdateDataSample: React.FC = () => {
             defaultValue: (_, cells) => `${cells.length + 1}`,
             valueType: 'numeric',
             required: true,
-            width: 80,
+            hidden: true,
         },
         {
             name: 'name',
