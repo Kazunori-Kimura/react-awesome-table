@@ -41,6 +41,7 @@ export interface Cell<T> {
     invalidMessage?: string;
     readOnly?: boolean;
     cellType: CellComponentType;
+    hidden?: boolean;
 }
 /**
  * 列定義からセル種別を判定する

@@ -8,9 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+
+### Fixed
+
+## [0.5.8] - 2021-08-20
+### Changed
 - 非表示セルも cells に保持するよう変更
 
 ### Fixed
+- 行追加時に onChange が発生しない不具合を修正
 
 ## [0.5.7] - 2021-08-13
 ### Fixed
