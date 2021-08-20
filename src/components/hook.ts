@@ -2051,9 +2051,18 @@ export const useTable = <T>({
             setFocus(true);
             setPage(newPage);
 
+            handleChange(newData);
             pushUndoList(newData);
         },
-        [columnHead, data, getPageNumberFromRowIndex, makeNewRow, pushUndoList, readOnly]
+        [
+            columnHead,
+            data,
+            getPageNumberFromRowIndex,
+            handleChange,
+            makeNewRow,
+            pushUndoList,
+            readOnly,
+        ]
     );
 
     /**

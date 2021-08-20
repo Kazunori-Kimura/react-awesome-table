@@ -173,9 +173,10 @@ const UpdateDataSample: React.FC = () => {
         },
     ];
 
-    const handleChange = (items: Partial<SupportCard>[]) => {
+    const handleChange = useCallback((items: Partial<SupportCard>[]) => {
+        console.log('handleChange: ', items);
         setCards(items);
-    };
+    }, []);
 
     const handleChangeDisableUndo = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const { checked } = event.target;
