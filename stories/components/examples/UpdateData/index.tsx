@@ -148,7 +148,7 @@ const UpdateDataSample: React.FC = () => {
             defaultValue: (_, cells) => `${cells.length + 1}`,
             valueType: 'numeric',
             required: true,
-            width: 80,
+            hidden: true,
         },
         {
             name: 'name',
@@ -173,9 +173,10 @@ const UpdateDataSample: React.FC = () => {
         },
     ];
 
-    const handleChange = (items: Partial<SupportCard>[]) => {
+    const handleChange = useCallback((items: Partial<SupportCard>[]) => {
+        console.log('handleChange: ', items);
         setCards(items);
-    };
+    }, []);
 
     const handleChangeDisableUndo = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const { checked } = event.target;

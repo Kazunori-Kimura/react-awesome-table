@@ -54,6 +54,7 @@ export interface Cell<T> {
     invalidMessage?: string;
     readOnly?: boolean;
     cellType: CellComponentType;
+    hidden?: boolean;
 }
 
 /**

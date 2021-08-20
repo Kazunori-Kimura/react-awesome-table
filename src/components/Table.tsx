@@ -187,6 +187,10 @@ function Table<T>({
         total,
     ]);
 
+    const colSpan = useMemo(() => {
+        return columns.filter((column) => !(column.hidden ?? false)).length;
+    }, [columns]);
+
     // カレントセルが container の表示エリア内かどうか判定するために
     // 要素のサイズを保持
     useLayoutEffect(() => {
@@ -242,6 +246,7 @@ function Table<T>({
                                             className={classnames(baseClasses.row, classes.row)}
                                             key={rowKey}
                                         >
+                                            {/* 行ヘッダー */}
                                             <th
                                                 className={classnames(
                                                     baseClasses.headerCell,
@@ -258,6 +263,10 @@ function Table<T>({
                                                 )}
                                             </th>
                                             {row.map((cell, colIndex) => {
+                                                if (cell.hidden) {
+                                                    return undefined;
+                                                }
+
                                                 const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
                                                 const column = columns.find(
                                                     (c) => c.name === cell.entityName
@@ -308,7 +317,7 @@ function Table<T>({
                                                     baseClasses.emptyCell,
                                                     classes.cell
                                                 )}
-                                                colSpan={columns.length + 1}
+                                                colSpan={colSpan + 1}
                                             >
                                                 &nbsp;
                                             </td>

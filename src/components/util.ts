@@ -154,8 +154,11 @@ function selectCells<T>(
     for (let r = rowRange[0]; r <= rowRange[1]; r++) {
         for (let c = colRange[0]; c <= colRange[1]; c++) {
             const select: CellLocation = { row: r, column: c };
-            newSelection.push(select);
-            cells[r][c].selected = true;
+            // 非表示セルは選択対象から除外
+            if (!(cells[r][c].hidden ?? false)) {
+                newSelection.push(select);
+                cells[r][c].selected = true;
+            }
         }
     }
 

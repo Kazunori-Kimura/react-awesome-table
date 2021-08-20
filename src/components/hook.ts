@@ -149,10 +149,24 @@ export const useTable = <T>({
     }, [options]);
 
     /**
-     * テーブルの列数
+     * テーブルの列数, 非表示列を除く列の先頭, 非表示列を除く列の末尾
      */
-    const columnLength = useMemo(() => {
-        return columns.filter((column) => !(column.hidden ?? false)).length;
+    const [columnLength, columnHead, columnTail]: [number, number, number] = useMemo(() => {
+        let head = columns.length;
+        let tail = 0;
+
+        columns.forEach(({ hidden = false }, index) => {
+            if (!hidden) {
+                if (head > index) {
+                    head = index;
+                }
+                if (tail < index) {
+                    tail = index;
+                }
+            }
+        });
+
+        return [columns.length, head, tail];
     }, [columns]);
 
     /**
@@ -230,19 +244,26 @@ export const useTable = <T>({
      */
     const createCopyData = useCallback((): string => {
         if (selection) {
+            // 選択範囲をソート
             const range = selection.sort(compareLocation);
-            const rowRange = [range[0].row, range[range.length - 1].row].sort();
-            const colRange = [range[0].column, range[range.length - 1].column].sort();
+            // 選択範囲の値を配列にセット
             const copiedData: string[][] = [];
-
-            for (let r = rowRange[0]; r <= rowRange[1]; r++) {
-                const row: string[] = [];
-                for (let c = colRange[0]; c <= colRange[1]; c++) {
-                    row.push(data[r][c].value);
+            let currentRowIndex = range[0].row;
+            const rowValues: string[] = [];
+            range.forEach((location) => {
+                if (location.row !== currentRowIndex) {
+                    copiedData.push([...rowValues]);
+                    // 配列をクリア
+                    rowValues.splice(0, rowValues.length);
+                    currentRowIndex = location.row;
                 }
-                copiedData.push(row);
-            }
 
+                rowValues.push(data[location.row][location.column].value);
+            });
+            if (rowValues.length > 0) {
+                copiedData.push([...rowValues]);
+            }
+            // 配列をくっつけて文字列にする
             return copiedData.map((row) => row.join('\t')).join('\n');
         }
         return '';
@@ -428,31 +449,30 @@ export const useTable = <T>({
      */
     const makeNewRow = useCallback(
         (row: number, cells: TableData<T>): Cell<T>[] => {
-            return columns
-                .filter((c) => !(c.hidden ?? false))
-                .map((column, index) => {
-                    // 初期値
-                    const value = getDefaultValue(row, cells, column.defaultValue);
+            return columns.map((column, index) => {
+                // 初期値
+                const value = getDefaultValue(row, cells, column.defaultValue);
 
-                    // エラーチェック
-                    const [valid, message] = validateCell(
-                        column,
-                        value,
-                        { row, column: index },
-                        cells,
-                        messages
-                    );
+                // エラーチェック
+                const [valid, message] = validateCell(
+                    column,
+                    value,
+                    { row, column: index },
+                    cells,
+                    messages
+                );
 
-                    return {
-                        entityName: column.name,
-                        rowKey: getRowKey(undefined, row, cells),
-                        value,
-                        invalid: !valid,
-                        invalidMessage: message,
-                        readOnly: column.readOnly,
-                        cellType: getCellComponentType(column),
-                    };
-                });
+                return {
+                    entityName: column.name,
+                    rowKey: getRowKey(undefined, row, cells),
+                    value,
+                    invalid: !valid,
+                    invalidMessage: message,
+                    readOnly: column.readOnly,
+                    cellType: getCellComponentType(column),
+                    hidden: column.hidden ?? false,
+                };
+            });
         },
         [columns, getRowKey, messages]
     );
@@ -464,20 +484,19 @@ export const useTable = <T>({
         // items が更新されているか、未登録なら初期化処理を行う
         if (typeof prevItems === 'undefined' || prevItems !== rawItems) {
             const newData: TableData<T> = items.map((item, rowIndex) => {
-                return columns
-                    .filter((c) => !(c.hidden ?? false))
-                    .map((column) => {
-                        const value = column.getValue(item);
+                return columns.map((column) => {
+                    const value = column.getValue(item);
 
-                        const cell: Cell<T> = {
-                            entityName: column.name,
-                            rowKey: getRowKey(item, rowIndex),
-                            value,
-                            readOnly: (readOnly || column.readOnly) ?? false,
-                            cellType: getCellComponentType(column),
-                        };
-                        return cell;
-                    });
+                    const cell: Cell<T> = {
+                        entityName: column.name,
+                        rowKey: getRowKey(item, rowIndex),
+                        value,
+                        readOnly: (readOnly || column.readOnly) ?? false,
+                        cellType: getCellComponentType(column),
+                        hidden: column.hidden ?? false,
+                    };
+                    return cell;
+                });
             });
             if (newData.length === 0) {
                 const emptyRow = makeNewRow(0, newData);
@@ -486,23 +505,26 @@ export const useTable = <T>({
 
             // 入力チェック
             newData.forEach((row, rowIndex) => {
-                columns
-                    .filter((c) => !(c.hidden ?? false))
-                    .forEach((column, colIndex) => {
-                        const cell = row[colIndex];
-                        const location: CellLocation = { row: rowIndex, column: colIndex };
-                        const [valid, message] = validateCell(
-                            column,
-                            cell.value,
-                            location,
-                            newData,
-                            messages
-                        );
-                        if (!valid) {
-                            cell.invalid = true;
-                            cell.invalidMessage = message;
-                        }
-                    });
+                columns.forEach((column, colIndex) => {
+                    const cell = row[colIndex];
+                    if (cell.hidden) {
+                        // 非表示セルは除外
+                        return;
+                    }
+
+                    const location: CellLocation = { row: rowIndex, column: colIndex };
+                    const [valid, message] = validateCell(
+                        column,
+                        cell.value,
+                        location,
+                        newData,
+                        messages
+                    );
+                    if (!valid) {
+                        cell.invalid = true;
+                        cell.invalidMessage = message;
+                    }
+                });
             });
 
             setData(newData);
@@ -545,7 +567,12 @@ export const useTable = <T>({
                 }
 
                 for (let j = 0; j < pasteItems[i].length; j++) {
-                    const column = current.column + j;
+                    let column = current.column + j;
+                    // 非表示セルをスキップ
+                    while (cells[row][column]?.hidden) {
+                        column += 1;
+                    }
+
                     if (column >= cells[row].length) {
                         // 範囲外のため貼り付けしない
                         break;
@@ -593,7 +620,7 @@ export const useTable = <T>({
      */
     const pasteToSelectedRows = useCallback(
         (
-            pasteRow: string[],
+            pasteDataRow: string[],
             cells: TableData<T>,
             selectedCells: CellLocation[]
         ): [boolean, CellLocation[]] => {
@@ -612,8 +639,12 @@ export const useTable = <T>({
 
             [...selectedRows].sort().forEach((row) => {
                 // 行に値をペースト
-                for (let c = 0; c < pasteRow.length; c++) {
-                    const column = startColumn + c;
+                for (let c = 0; c < pasteDataRow.length; c++) {
+                    let column = startColumn + c;
+                    // 非表示列をスキップ
+                    while (cells[row][column]?.hidden) {
+                        column += 1;
+                    }
                     if (column >= cells[row].length) {
                         // 列が範囲外
                         break;
@@ -622,7 +653,7 @@ export const useTable = <T>({
                     const location: CellLocation = { row, column };
                     newSelection.push(location);
 
-                    if (setCellValue(pasteRow[c], location, cells)) {
+                    if (setCellValue(pasteDataRow[c], location, cells)) {
                         changed = true;
                     }
                     cells[row][column].selected = true;
@@ -771,43 +802,54 @@ export const useTable = <T>({
      * @param column
      */
     const navigateCursor = useCallback(
-        (row: number, column: number, cells: TableData<T>, pressedEnter = false): TableData<T> => {
-            debug('navigateCursor', row, column, currentCell);
+        (
+            moveRows: number,
+            moveColumns: number,
+            cells: TableData<T>,
+            pressedEnter = false
+        ): TableData<T> => {
+            debug('navigateCursor', moveRows, moveColumns, currentCell);
             if (currentCell) {
-                // 新しいカーソル位置
+                // カーソル位置
                 const newCurrent: CellLocation = {
-                    row: currentCell.row + row,
-                    column: currentCell.column + column,
+                    ...currentCell,
                 };
 
-                // 移動可能か判定
-                if (newCurrent.column < 0) {
-                    if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
-                        // 前行の最後尾に移動
-                        newCurrent.row -= 1;
-                        newCurrent.column = columnLength - 1;
-                    } else if (settings.navigateCellFromRowEdge === 'loop') {
-                        // 同一行の最後尾に移動
-                        newCurrent.column = columnLength - 1;
-                    } else {
-                        // 移動不可
-                        return cells;
-                    }
-                }
+                do {
+                    // 新しいカーソル位置
+                    newCurrent.row += moveRows;
+                    newCurrent.column += moveColumns;
 
-                if (newCurrent.column >= columnLength) {
-                    if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
-                        // 次行の先頭に移動
-                        newCurrent.row += 1;
-                        newCurrent.column = 0;
-                    } else if (settings.navigateCellFromRowEdge === 'loop') {
-                        // 同一行の先頭に移動
-                        newCurrent.column = 0;
-                    } else {
-                        // 移動不可
-                        return cells;
+                    // 移動可能か判定
+                    if (newCurrent.column < 0) {
+                        if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
+                            // 前行の最後尾に移動
+                            newCurrent.row -= 1;
+                            newCurrent.column = columnLength - 1;
+                        } else if (settings.navigateCellFromRowEdge === 'loop') {
+                            // 同一行の最後尾に移動
+                            newCurrent.column = columnLength - 1;
+                        } else {
+                            // 移動不可
+                            return cells;
+                        }
                     }
-                }
+
+                    if (newCurrent.column >= columnLength) {
+                        if (settings.navigateCellFromRowEdge === 'prevOrNextRow') {
+                            // 次行の先頭に移動
+                            newCurrent.row += 1;
+                            newCurrent.column = 0;
+                        } else if (settings.navigateCellFromRowEdge === 'loop') {
+                            // 同一行の先頭に移動
+                            newCurrent.column = 0;
+                        } else {
+                            // 移動不可
+                            return cells;
+                        }
+                    }
+                    // 非表示セルであればもう一度カーソル位置を移動
+                } while (cells[newCurrent.row][newCurrent.column].hidden);
 
                 if (newCurrent.row >= data.length) {
                     if (settings.pressEnterOnLastRow === 'insert' && pressedEnter) {
@@ -947,13 +989,21 @@ export const useTable = <T>({
                     }
                     break;
                 case 'left':
-                    range.start.column -= 1;
+                    // 左方向に選択範囲を拡張
+                    do {
+                        range.start.column -= 1;
+                    } while (cells[range.start.row][range.start.column]?.hidden);
+
                     if (range.start.column < 0) {
                         return [false, cells, selection];
                     }
                     break;
                 case 'right':
-                    range.end.column += 1;
+                    // 右方向に選択範囲を拡張
+                    do {
+                        range.end.column += 1;
+                    } while (cells[range.start.row][range.start.column]?.hidden);
+
                     if (range.end.column >= columnLength) {
                         return [false, cells, selection];
                     }
@@ -1639,20 +1689,20 @@ export const useTable = <T>({
                 // カレントセルは変更しない
                 const rangeStart: CellLocation = {
                     row: currentCell.row,
-                    column: 0,
+                    column: columnHead,
                 };
                 const rangeEnd: CellLocation = {
                     row,
-                    column: newData[row].length - 1,
+                    column: columnTail,
                 };
                 const selections = selectRange(newData, rangeStart, rangeEnd);
                 newSelection.push(...selections);
             } else {
                 // 単一行選択
-                const rangeStart: CellLocation = { row, column: 0 };
+                const rangeStart: CellLocation = { row, column: columnHead };
                 const rangeEnd: CellLocation = {
                     row,
-                    column: newData[row].length - 1,
+                    column: columnTail,
                 };
                 const selections = selectRange(newData, rangeStart, rangeEnd);
                 newSelection.push(...selections);
@@ -1663,14 +1713,27 @@ export const useTable = <T>({
                 }
 
                 // 選択行の先頭をカレントセルとする
-                newData[rangeStart.row][rangeStart.column].current = true;
-                setCurrentCell(rangeStart);
+                if (newSelection.length > 0) {
+                    const loc = newSelection[0];
+                    newData[loc.row][loc.column].current = true;
+                    setCurrentCell(loc);
+                }
             }
 
             setData(newData);
             setSelection(newSelection);
         },
-        [commitEditing, currentCell, currentPage, data, editCell, perPage, selection]
+        [
+            columnHead,
+            columnTail,
+            commitEditing,
+            currentCell,
+            currentPage,
+            data,
+            editCell,
+            perPage,
+            selection,
+        ]
     );
 
     /**
@@ -1773,7 +1836,7 @@ export const useTable = <T>({
                 // 全体を通しての行番号
                 const row = rowIndex + currentPage * perPage;
                 // 現在セルの位置
-                const location: CellLocation = { row, column: 0 };
+                const location: CellLocation = { row, column: columnHead };
                 debug('row mouse down', location);
 
                 // クリック時の処理
@@ -1787,7 +1850,7 @@ export const useTable = <T>({
                     // 全体を通しての行番号
                     const row = rowIndex + currentPage * perPage;
                     // 現在セルの位置
-                    const location: CellLocation = { row, column: data[row].length - 1 };
+                    const location: CellLocation = { row, column: columnTail };
                     debug('row mouse over', location);
 
                     // 選択範囲を更新
@@ -1804,7 +1867,7 @@ export const useTable = <T>({
                 setDraggingRow(false);
             },
         }),
-        [currentPage, data, draggingRow, onRowClick, onRowMouseOver, perPage]
+        [columnHead, columnTail, currentPage, draggingRow, onRowClick, onRowMouseOver, perPage]
     );
 
     /**
@@ -1976,7 +2039,7 @@ export const useTable = <T>({
             // 挿入行にフォーカスを設定する
             const location: CellLocation = {
                 row: insertRowNumber,
-                column: 0,
+                column: columnHead,
             };
 
             // 挿入行のページを取得
@@ -1988,9 +2051,18 @@ export const useTable = <T>({
             setFocus(true);
             setPage(newPage);
 
+            handleChange(newData);
             pushUndoList(newData);
         },
-        [data, getPageNumberFromRowIndex, makeNewRow, pushUndoList, readOnly]
+        [
+            columnHead,
+            data,
+            getPageNumberFromRowIndex,
+            handleChange,
+            makeNewRow,
+            pushUndoList,
+            readOnly,
+        ]
     );
 
     /**
