@@ -175,8 +175,8 @@ export const useTable = <T>({
      * ページ表示範囲
      */
     const currentPageRange: CellRange = useMemo(() => {
-        const startRow = currentPage * rowsPerPage;
-        const endRow = startRow + rowsPerPage - 1;
+        const startRow = currentPage * perPage;
+        const endRow = startRow + perPage - 1;
         return {
             start: {
                 row: startRow,
@@ -187,7 +187,7 @@ export const useTable = <T>({
                 column: columnLength - 1,
             },
         };
-    }, [columnLength, currentPage, rowsPerPage]);
+    }, [columnLength, currentPage, perPage]);
 
     /**
      * 選択範囲
@@ -789,9 +789,10 @@ export const useTable = <T>({
      */
     const getPageNumberFromRowIndex = useCallback(
         (rowIndex: number): number => {
-            return Math.ceil((rowIndex + 1) / rowsPerPage) - 1;
+            debug(`getPageNumberFromRowIndex: rowIndex=${rowIndex}, rowsPerPage=${perPage}`);
+            return Math.ceil((rowIndex + 1) / perPage) - 1;
         },
-        [rowsPerPage]
+        [perPage]
     );
 
     /**
