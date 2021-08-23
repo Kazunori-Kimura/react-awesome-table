@@ -43,6 +43,7 @@ import {
     equalsLocation,
     getDefaultValue,
     includesLocation,
+    isChildOfTableCell,
     parse,
     safeGetCell,
     selectRange,
@@ -196,16 +197,12 @@ export const useTable = <T>({
     }, [selection]);
 
     /**
-     * 当該イベントが tbody の範囲内で発生しているかどうかを判定
+     * 当該イベントが td で発生したかどうかを判定
      * @param event
      */
-    const withinTbody = useCallback((event: globalThis.MouseEvent): boolean => {
-        if (tbodyRef.current) {
-            const { left: x, top: y, width, height } = tbodyRef.current.getBoundingClientRect();
-            const { pageX, pageY } = event;
-            return y <= pageY && y + height >= pageY && x <= pageX && x + width >= pageX;
-        }
-        return false;
+    const isOccurredByCell = useCallback((event: globalThis.MouseEvent): boolean => {
+        const source = event.target as HTMLElement;
+        return isChildOfTableCell(source);
     }, []);
 
     /**
@@ -214,12 +211,12 @@ export const useTable = <T>({
      */
     const handleMouseDownDocument = useCallback(
         (event: globalThis.MouseEvent) => {
-            const within = withinTbody(event);
+            const within = isOccurredByCell(event);
             debug('document mouse down', within);
 
             setFocus(within);
         },
-        [withinTbody]
+        [isOccurredByCell]
     );
 
     /**
@@ -229,7 +226,7 @@ export const useTable = <T>({
     const handleMouseUpDocument = useCallback(
         (event: globalThis.MouseEvent) => {
             if (tbodyRef.current) {
-                if (!withinTbody(event)) {
+                if (!isOccurredByCell(event)) {
                     debug('drag end.');
                     // ドラッグ強制終了
                     setDragging(false);
@@ -237,7 +234,7 @@ export const useTable = <T>({
                 }
             }
         },
-        [withinTbody]
+        [isOccurredByCell]
     );
 
     /**

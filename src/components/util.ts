@@ -1,3 +1,4 @@
+import { TableCellRole } from './consts';
 import {
     Cell,
     CellLocation,
@@ -405,6 +406,13 @@ export function equalsCells<T>(a: TableData<T>, b: TableData<T>): boolean {
     return ja === jb;
 }
 
+/**
+ * 2次元配列から安全に要素を取り出す
+ * @param cells
+ * @param row
+ * @param column
+ * @returns
+ */
 export function safeGetCell<T>(
     cells: TableData<T>,
     row: number,
@@ -415,4 +423,23 @@ export function safeGetCell<T>(
         return rowCells[column];
     }
     return undefined;
+}
+
+/**
+ * TableCellの子要素かどうか
+ * @param element
+ * @returns
+ */
+export function isChildOfTableCell(element: HTMLElement): boolean {
+    if (element.tagName !== 'TD') {
+        const parent = element.parentElement;
+        if (parent) {
+            return isChildOfTableCell(parent);
+        }
+        // 最上位までチェックした
+        return false;
+    }
+
+    // TableCell の TD には data-rat-roll に 'rat-table-cell' がセットされている
+    return element.dataset.ratRoll === TableCellRole;
 }
