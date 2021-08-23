@@ -404,3 +404,15 @@ export function equalsCells<T>(a: TableData<T>, b: TableData<T>): boolean {
     const jb = JSON.stringify(getCellValues(b));
     return ja === jb;
 }
+
+export function safeGetCell<T>(
+    cells: TableData<T>,
+    row: number,
+    column: number
+): Cell<T> | undefined {
+    const rowCells: Cell<T>[] | undefined = cells[row];
+    if (rowCells) {
+        return rowCells[column];
+    }
+    return undefined;
+}

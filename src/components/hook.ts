@@ -44,6 +44,7 @@ import {
     getDefaultValue,
     includesLocation,
     parse,
+    safeGetCell,
     selectRange,
     withinCell,
     withinRange,
@@ -849,7 +850,7 @@ export const useTable = <T>({
                         }
                     }
                     // 非表示セルであればもう一度カーソル位置を移動
-                } while (cells[newCurrent.row][newCurrent.column].hidden);
+                } while (safeGetCell(cells, newCurrent.row, newCurrent.column)?.hidden);
 
                 if (newCurrent.row >= data.length) {
                     if (settings.pressEnterOnLastRow === 'insert' && pressedEnter) {
