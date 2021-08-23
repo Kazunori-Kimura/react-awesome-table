@@ -23,3 +23,5 @@ export const Popover: Readonly<PopoverSizeDefinition> = {
     MaxHeight: 200,
     MaxWidth: 400,
 };
+
+export const TableCellRole = 'rat-table-cell';

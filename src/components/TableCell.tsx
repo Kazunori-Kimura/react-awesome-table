@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CellSize } from './consts';
+import { CellSize, TableCellRole } from './consts';
 import DropdownList from './DropdownList';
 import {
     Cell,
@@ -262,6 +262,7 @@ function TableCell<T>({
             onMouseDown={onMouseDown}
             onMouseOver={onMouseOver}
             onMouseUp={onMouseUp}
+            data-rat-roll={TableCellRole}
         >
             {/* カスタムコンポーネント */}
             {column.render &&

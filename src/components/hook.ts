@@ -43,7 +43,9 @@ import {
     equalsLocation,
     getDefaultValue,
     includesLocation,
+    isChildOfTableCell,
     parse,
+    safeGetCell,
     selectRange,
     withinCell,
     withinRange,
@@ -173,8 +175,8 @@ export const useTable = <T>({
      * ページ表示範囲
      */
     const currentPageRange: CellRange = useMemo(() => {
-        const startRow = currentPage * rowsPerPage;
-        const endRow = startRow + rowsPerPage - 1;
+        const startRow = currentPage * perPage;
+        const endRow = startRow + perPage - 1;
         return {
             start: {
                 row: startRow,
@@ -185,7 +187,7 @@ export const useTable = <T>({
                 column: columnLength - 1,
             },
         };
-    }, [columnLength, currentPage, rowsPerPage]);
+    }, [columnLength, currentPage, perPage]);
 
     /**
      * 選択範囲
@@ -195,16 +197,12 @@ export const useTable = <T>({
     }, [selection]);
 
     /**
-     * 当該イベントが tbody の範囲内で発生しているかどうかを判定
+     * 当該イベントが td で発生したかどうかを判定
      * @param event
      */
-    const withinTbody = useCallback((event: globalThis.MouseEvent): boolean => {
-        if (tbodyRef.current) {
-            const { left: x, top: y, width, height } = tbodyRef.current.getBoundingClientRect();
-            const { pageX, pageY } = event;
-            return y <= pageY && y + height >= pageY && x <= pageX && x + width >= pageX;
-        }
-        return false;
+    const isOccurredByCell = useCallback((event: globalThis.MouseEvent): boolean => {
+        const source = event.target as HTMLElement;
+        return isChildOfTableCell(source);
     }, []);
 
     /**
@@ -213,12 +211,12 @@ export const useTable = <T>({
      */
     const handleMouseDownDocument = useCallback(
         (event: globalThis.MouseEvent) => {
-            const within = withinTbody(event);
+            const within = isOccurredByCell(event);
             debug('document mouse down', within);
 
             setFocus(within);
         },
-        [withinTbody]
+        [isOccurredByCell]
     );
 
     /**
@@ -228,7 +226,7 @@ export const useTable = <T>({
     const handleMouseUpDocument = useCallback(
         (event: globalThis.MouseEvent) => {
             if (tbodyRef.current) {
-                if (!withinTbody(event)) {
+                if (!isOccurredByCell(event)) {
                     debug('drag end.');
                     // ドラッグ強制終了
                     setDragging(false);
@@ -236,7 +234,7 @@ export const useTable = <T>({
                 }
             }
         },
-        [withinTbody]
+        [isOccurredByCell]
     );
 
     /**
@@ -791,9 +789,10 @@ export const useTable = <T>({
      */
     const getPageNumberFromRowIndex = useCallback(
         (rowIndex: number): number => {
-            return Math.ceil((rowIndex + 1) / rowsPerPage) - 1;
+            debug(`getPageNumberFromRowIndex: rowIndex=${rowIndex}, rowsPerPage=${perPage}`);
+            return Math.ceil((rowIndex + 1) / perPage) - 1;
         },
-        [rowsPerPage]
+        [perPage]
     );
 
     /**
@@ -849,7 +848,7 @@ export const useTable = <T>({
                         }
                     }
                     // 非表示セルであればもう一度カーソル位置を移動
-                } while (cells[newCurrent.row][newCurrent.column].hidden);
+                } while (safeGetCell(cells, newCurrent.row, newCurrent.column)?.hidden);
 
                 if (newCurrent.row >= data.length) {
                     if (settings.pressEnterOnLastRow === 'insert' && pressedEnter) {
