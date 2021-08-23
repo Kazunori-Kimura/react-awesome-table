@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.5.9] - 2021-08-23
+### Fixed
+- 最後のセルで Tab キーを押すと例外が発生する #87
+- テーブルの58行目以降をクリックすると focus が false になる #88
+- 1ページあたりの行数を変更してからキーボード操作でカーソルを変更するとページが切り替わる #89
+
 ## [0.5.8] - 2021-08-20
 ### Changed
 - 非表示セルも cells に保持するよう変更

@@ -123,4 +123,18 @@ export declare function getCellValues<T>(cells: TableData<T>): string[][];
  * @returns
  */
 export declare function equalsCells<T>(a: TableData<T>, b: TableData<T>): boolean;
+/**
+ * 2次元配列から安全に要素を取り出す
+ * @param cells
+ * @param row
+ * @param column
+ * @returns
+ */
+export declare function safeGetCell<T>(cells: TableData<T>, row: number, column: number): Cell<T> | undefined;
+/**
+ * TableCellの子要素かどうか
+ * @param element
+ * @returns
+ */
+export declare function isChildOfTableCell(element: HTMLElement): boolean;
 export {};

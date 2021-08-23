@@ -13,4 +13,5 @@ interface PopoverSizeDefinition {
     MaxHeight: number;
 }
 export declare const Popover: Readonly<PopoverSizeDefinition>;
+export declare const TableCellRole = "rat-table-cell";
 export {};
