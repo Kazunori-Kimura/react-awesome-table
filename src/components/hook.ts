@@ -2136,6 +2136,57 @@ export const useTable = <T>({
         [data, handleChange, pushUndoList, setCellValue]
     );
 
+    /**
+     * key, value を指定して該当行を表示する
+     */
+    const selectByKeyValue = useCallback(
+        (key: keyof T, value: string): boolean => {
+            debug(`selectByKeyValue: key=${key}, value=${value}`);
+
+            // 編集を完了する
+            const cells = clone(data);
+            if (editCell) {
+                commitEditing(cells);
+            }
+
+            // 対象列を取得
+            const columnIndex = columns.findIndex(({ name }) => name === key);
+            if (columnIndex < 0) {
+                return false;
+            }
+            // 対象行を取得
+            const rowIndex = cells.findIndex((row) => row[columnIndex].value === value);
+            if (rowIndex < 0) {
+                return false;
+            }
+
+            // 選択解除
+            clearSelection(cells, selection);
+            // カレントセルの変更
+            if (currentCell) {
+                cells[currentCell.row][currentCell.column].current = false;
+            }
+            const newCurrentCell: CellLocation = {
+                row: rowIndex,
+                column: cells[rowIndex][columnIndex].hidden ? columnHead : columnIndex,
+            };
+            cells[newCurrentCell.row][newCurrentCell.column].current = true;
+            cells[newCurrentCell.row][newCurrentCell.column].selected = true;
+
+            // 表示ページを切り替え
+            const newPage = Math.floor(rowIndex / perPage);
+            setPage(newPage);
+
+            // stateの更新
+            setData(cells);
+            setSelection([newCurrentCell]);
+            setCurrentCell(newCurrentCell);
+
+            return true;
+        },
+        [columnHead, columns, commitEditing, currentCell, data, editCell, perPage, selection]
+    );
+
     return {
         emptyRows,
         page: currentPage,
@@ -2162,5 +2213,6 @@ export const useTable = <T>({
         getCellProps,
         getRowHeaderCellProps,
         getEditorProps,
+        selectByKeyValue,
     };
 };

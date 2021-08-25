@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.6.0] - 2021-08-25
+### Added
+- 親要素から key, value を受け取って一致するセルを表示する #91
+
 ## [0.5.9] - 2021-08-23
 ### Fixed
 - 最後のセルで Tab キーを押すと例外が発生する #87

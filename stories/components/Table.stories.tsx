@@ -12,6 +12,7 @@ import {
     PaginationProps,
     TableProps,
 } from '../../src/components/types';
+import ForwardSample from './examples/ForwardSample';
 import UpdateDataSample from './examples/UpdateData';
 
 export default {
@@ -464,6 +465,18 @@ export const CustomHeader: React.VFC<Record<string, never>> = () => {
     );
 };
 
+/**
+ * 更新サンプル
+ * @returns
+ */
 export const UpdateSample: React.VFC<Record<string, never>> = () => {
     return <UpdateDataSample />;
+};
+
+/**
+ * 行選択サンプル
+ * @returns
+ */
+export const ForwardDemo: React.VFC<Record<string, never>> = () => {
+    return <ForwardSample />;
 };

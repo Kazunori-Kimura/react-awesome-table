@@ -275,6 +275,12 @@ export interface TableHookParameters<T> {
 export type ChangeCellValueFunction = (location: CellLocation, value: string) => void;
 
 /**
+ * key, value を指定して該当行を表示する
+ * 該当行がなければ false を返す
+ */
+type SelectByKeyValueFunction<T> = (key: keyof T, value: string) => boolean;
+
+/**
  * カスタムフックの戻り値
  */
 export interface TableHookReturns<T> {
@@ -303,6 +309,15 @@ export interface TableHookReturns<T> {
     getCellProps: (cell: Cell<T>, rowIndex: number, colIndex: number) => CellProps;
     getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
     getEditorProps: () => EditorProps;
+    selectByKeyValue: SelectByKeyValueFunction<T>;
+}
+
+/**
+ * 親コンポーネントに渡されるインスタンス
+ * useImperativeHandle/forwardRef で使用
+ */
+export interface TableHandles<T> {
+    selectByKeyValue: SelectByKeyValueFunction<T>;
 }
 
 export type TableCssClassNames =
