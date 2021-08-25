@@ -1,6 +1,14 @@
 import { createGenerateClassName, makeStyles, StylesProvider } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    ForwardedRef,
+    forwardRef,
+    useImperativeHandle,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { CellSize } from './consts';
 import Header from './Header';
 import { useTable } from './hook';
@@ -8,7 +16,7 @@ import { defaultMessages, MessageContext, MessageDefinitions } from './messages'
 import Pagination from './Pagination';
 import TableCell from './TableCell';
 import TableHeader from './TableHeader';
-import { CellLocation, PaginationProps, TableProps } from './types';
+import { CellLocation, PaginationProps, TableHandles, TableProps } from './types';
 
 const generateClassName = createGenerateClassName({
     productionPrefix: 'rat',
@@ -95,23 +103,26 @@ const useStyles = makeStyles({
     },
 });
 
-function Table<T>({
-    classes = {},
-    messages: msgs = {},
-    data,
-    columns,
-    getRowKey,
-    onChange,
-    options,
-    renderHeader,
-    renderColumnHeader: CustomColumnHeader,
-    renderPagination,
-    readOnly = false,
-    sticky = false,
-    rowNumber = false,
-    disableUndo = false,
-    ...props
-}: TableProps<T>): React.ReactElement {
+function TableComponent<T>(
+    {
+        classes = {},
+        messages: msgs = {},
+        data,
+        columns,
+        getRowKey,
+        onChange,
+        options,
+        renderHeader,
+        renderColumnHeader: CustomColumnHeader,
+        renderPagination,
+        readOnly = false,
+        sticky = false,
+        rowNumber = false,
+        disableUndo = false,
+        ...props
+    }: TableProps<T>,
+    ref?: ForwardedRef<TableHandles<T>>
+): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>();
     const [containerRect, setContainerRect] = useState<DOMRect>();
     const baseClasses = useStyles();
@@ -148,6 +159,7 @@ function Table<T>({
         getCellProps,
         getRowHeaderCellProps,
         getEditorProps,
+        selectByKeyValue,
     } = useTable({
         items: data,
         columns,
@@ -160,6 +172,14 @@ function Table<T>({
         readOnly,
         disableUndo,
     });
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            selectByKeyValue,
+        }),
+        [selectByKeyValue]
+    );
 
     const paginationProps: PaginationProps<T> = useMemo(() => {
         return {
@@ -340,5 +360,13 @@ function Table<T>({
         </StylesProvider>
     );
 }
+
+type Props<T> = TableProps<T> & {
+    ref?: React.Ref<TableHandles<T>>;
+};
+
+const Table = forwardRef(TableComponent) as <T>(
+    props: Props<T>
+) => ReturnType<typeof TableComponent>;
 
 export default Table;

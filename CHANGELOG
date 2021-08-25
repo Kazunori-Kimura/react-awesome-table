@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- 親要素から key, value を受け取って一致するセルを表示する #91
 
 ### Changed
 
