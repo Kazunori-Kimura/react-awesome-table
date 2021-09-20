@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CellSize } from './consts';
+import { CellSize, Popover } from './consts';
 import DropdownListPopover, { StyleProps } from './DropdownListPopover';
 import { CellLocation, DataListType, EditorProps } from './types';
 
@@ -54,16 +54,15 @@ const DropdownList: React.FC<DropdownListProps> = ({
      */
     const setPopoverPosition = useCallback(() => {
         if (parent) {
-            const { width, height } = parent;
+            const { width, height, right } = parent;
 
             const p: StyleProps = {
                 minWidth: width,
                 top: height,
-                right: '-0.3rem',
             };
 
             // 左端のセルについては左を基点に表示
-            if (location.column === 0) {
+            if (right < Popover.MaxWidth) {
                 p.left = '-0.3rem';
             } else {
                 p.right = '-0.3rem';
@@ -71,7 +70,7 @@ const DropdownList: React.FC<DropdownListProps> = ({
 
             setPosition(p);
         }
-    }, [location.column, parent]);
+    }, [parent]);
 
     useEffect(() => {
         setPopoverPosition();
