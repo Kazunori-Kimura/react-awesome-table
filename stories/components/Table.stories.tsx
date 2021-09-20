@@ -234,6 +234,12 @@ const columns2: ColumnDefinition<Point3D>[] = [
         required: true,
     },
     {
+        name: 'color',
+        getValue: (item) => `${item.color}`,
+        dataList: Colors.map((c) => ({ name: ColorNames[c], value: c })),
+        width: 80,
+    },
+    {
         name: 'name',
         getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
@@ -257,12 +263,6 @@ const columns2: ColumnDefinition<Point3D>[] = [
         name: 'z',
         getValue: (item) => `${item.z}`,
         valueType: 'numeric',
-    },
-    {
-        name: 'color',
-        getValue: (item) => `${item.color}`,
-        dataList: Colors.map((c) => ({ name: ColorNames[c], value: c })),
-        width: 80,
     },
 ];
 
