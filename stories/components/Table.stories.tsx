@@ -43,7 +43,7 @@ interface Point2D {
     name: string;
     x: number;
     y: number;
-    size?: number;
+    color?: string;
 }
 
 // 1000件生成
@@ -79,6 +79,18 @@ const columns: ColumnDefinition<Point2D>[] = [
         valueType: 'numeric',
         width: 100,
         defaultValue: '0',
+    },
+    {
+        name: 'color',
+        getValue: (item) => item.color ?? '',
+        valueType: 'string',
+        width: 100,
+        dataList: [
+            { name: '', value: '' },
+            { name: 'red', value: 'red' },
+            { name: 'green', value: 'green' },
+            { name: 'blue', value: 'blue' },
+        ],
     },
 ];
 

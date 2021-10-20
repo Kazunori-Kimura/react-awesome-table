@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.6.2] - 2021-10-20
+### Fixed
+- ドロップダウンリストで空白が選択できない不具合を修正 #95
+
 ## [0.6.1] - 2021-09-20
 ### Fixed
 - 先頭列をドロップダウンリストにした場合にポップアップが見切れる不具合を修正 #93

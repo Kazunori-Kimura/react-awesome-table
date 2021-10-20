@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/core';
 import classnames from 'classnames';
 import React, {
     ChangeEvent,
@@ -326,7 +326,7 @@ const DropdownListPopover: React.FC<DropdownListPopoverProps> = ({
                                 onMouseOver={() => setActive(index)}
                                 onClick={handleClick(index)}
                             >
-                                {item.name}
+                                {item.name !== '' ? item.name : <span>&nbsp;</span>}
                             </button>
                         );
                     })}
