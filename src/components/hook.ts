@@ -411,7 +411,7 @@ export const useTable = <T>({
             // セルの更新する
             const { location, value } = editCell;
             let val: string = value;
-            if (optionValue) {
+            if (typeof optionValue !== 'undefined') {
                 val = optionValue;
             }
             const changed = setCellValue(val, location, cells);
