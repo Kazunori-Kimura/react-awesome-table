@@ -237,7 +237,7 @@ export const parseEntity = <T>(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let value: any = undefined;
         // セットされている値を取得
-        if (cell?.value) {
+        if (typeof cell?.value !== 'undefined') {
             value = cell.value;
         } else {
             if (typeof entity[column.name] === 'undefined') {
