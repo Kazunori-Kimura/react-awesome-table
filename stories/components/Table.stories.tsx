@@ -53,6 +53,7 @@ const data: Point2D[] = [...Array(999)].map((_, index) => {
         name,
         x: random(),
         y: random(),
+        color: 'red',
     };
 });
 

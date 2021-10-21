@@ -289,7 +289,7 @@ export const useTable = <T>({
      */
     const setCellValue = useCallback(
         (value: string, location: CellLocation, cells: TableData<T>): boolean => {
-            debug('setCellValue: ', value, location);
+            debug('setCellValue: ', `"${value}"`, location);
             let changed = false;
             const cell = cells[location.row][location.column];
             const column = columns.find((c) => c.name === cell.entityName);
