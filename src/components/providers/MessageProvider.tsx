@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { ProviderProps } from './types';
 
 export type MessageFunction = (params: Record<string, string>) => string;
 
@@ -55,3 +56,20 @@ export const formatMessage = (
         return value(params);
     }
 };
+
+interface Props extends ProviderProps {
+    messages: MessageDefinitions;
+}
+
+const MessageProvider: React.VFC<Props> = ({ messages, children }) => {
+    const values = useMemo(() => {
+        return {
+            ...defaultMessages,
+            ...messages,
+        };
+    }, [messages]);
+
+    return <MessageContext.Provider value={values}>{children}</MessageContext.Provider>;
+};
+
+export default MessageProvider;

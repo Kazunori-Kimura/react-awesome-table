@@ -1,4 +1,4 @@
-import { createGenerateClassName, makeStyles, StylesProvider } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, {
     ForwardedRef,
@@ -11,21 +11,17 @@ import React, {
     useState,
 } from 'react';
 import { CellSize } from './consts';
+import Container from './Container';
 import ContextMenuPopover from './ContextMenuPopover';
 import Header from './Header';
 import { useTable } from './hook';
-import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
 import Pagination from './Pagination';
+import MessageProvider from './providers/MessageProvider';
+import PopoverProvider from './providers/PopoverProvider';
+import StyleProvider from './providers/StyleProvider';
 import TableCell from './TableCell';
 import TableHeader from './TableHeader';
-import { CellLocation, PaginationProps, Position, TableHandles, TableProps } from './types';
-import { ContextMenuEvent } from './useContextMenu';
-import { isZeroPosition } from './util';
-
-const generateClassName = createGenerateClassName({
-    productionPrefix: 'rat',
-    seed: 'rat',
-});
+import { CellLocation, PaginationProps, TableHandles, TableProps } from './types';
 
 const useStyles = makeStyles({
     root: {
@@ -38,15 +34,6 @@ const useStyles = makeStyles({
     },
     header: {
         //
-    },
-    container: {
-        flex: 1,
-        maxWidth: '100%',
-        boxSizing: 'border-box',
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: '#ccc',
-        overflow: 'auto',
     },
     table: {
         width: 'max-content',
@@ -111,7 +98,7 @@ const useStyles = makeStyles({
 function TableComponent<T>(
     {
         classes = {},
-        messages: msgs = {},
+        messages,
         data,
         columns,
         getRowKey,
@@ -130,16 +117,9 @@ function TableComponent<T>(
 ): React.ReactElement {
     const rootRef = useRef<HTMLDivElement>();
     const containerRef = useRef<HTMLDivElement>();
+    const [rootRect, setRootRect] = useState<DOMRect>();
     const [containerRect, setContainerRect] = useState<DOMRect>();
-    const [contextMenuPosition, setContextMenuPosition] = useState<Position>();
     const baseClasses = useStyles();
-
-    const messages: MessageDefinitions = useMemo(() => {
-        return {
-            ...defaultMessages,
-            ...msgs,
-        };
-    }, [msgs]);
 
     const {
         page,
@@ -178,7 +158,6 @@ function TableComponent<T>(
         onChange,
         rowsPerPage: props.rowsPerPage ?? 10,
         rowsPerPageOptions: props.rowsPerPageOptions ?? [10, 30, 100],
-        messages,
         options,
         readOnly,
         disableUndo,
@@ -223,197 +202,171 @@ function TableComponent<T>(
     }, [columns]);
 
     /**
-     * 右クリックメニューの表示
-     */
-    const handleContextMenu = useCallback((event: ContextMenuEvent<HTMLTableCellElement>) => {
-        event.preventDefault();
-        const pos: Position = {
-            top: 0,
-            left: 0,
-        };
-
-        if (rootRef.current) {
-            const { x, y } = rootRef.current.getBoundingClientRect();
-            pos.top -= y;
-            pos.left -= x;
-        }
-
-        if ('changedTouches' in event) {
-            const { pageX, pageY } = event.changedTouches[0];
-            pos.top += pageY;
-            pos.left += pageX;
-        } else {
-            const { clientX, clientY } = event;
-            pos.top += clientY;
-            pos.left += clientX;
-        }
-        setContextMenuPosition(pos);
-    }, []);
-    /**
-     * 右クリックメニューを閉じる
+     * 右クリックメニューを閉じた際にフォーカスを戻す
      */
     const handleCloseContextMenu = useCallback(() => {
-        setContextMenuPosition(undefined);
         setFocus(true);
     }, []);
 
     // カレントセルが container の表示エリア内かどうか判定するために
     // 要素のサイズを保持
     useLayoutEffect(() => {
-        if (containerRef.current) {
+        if (rootRef.current && containerRef.current) {
+            setRootRect(rootRef.current.getBoundingClientRect());
             setContainerRect(containerRef.current.getBoundingClientRect());
         }
     }, []);
 
     return (
-        <StylesProvider generateClassName={generateClassName}>
-            <div className={classnames(baseClasses.root, classes.root)} ref={rootRef}>
-                <MessageContext.Provider value={messages}>
-                    {/* ヘッダー */}
-                    {renderHeader ? (
-                        renderHeader({
-                            className: classes.header,
-                            readOnly,
-                            selectedRange,
-                            onDeleteRows,
-                            onInsertRow,
-                            ...paginationProps,
-                        })
-                    ) : (
-                        <Header
-                            className={classes.header}
-                            readOnly={readOnly}
-                            selectedRange={selectedRange}
-                            onDeleteRows={onDeleteRows}
-                            onInsertRow={onInsertRow}
-                            {...paginationProps}
-                        />
-                    )}
-                    <div
-                        ref={containerRef}
-                        className={classnames(baseClasses.container, classes.container)}
-                    >
-                        <table className={classnames(baseClasses.table, classes.table)}>
-                            <TableHeader
-                                classes={classes}
-                                columns={columns}
-                                sticky={sticky}
-                                getFilterProps={getFilterProps}
-                                getSortProps={getSortProps}
-                                onSelectAll={onSelectAll}
-                                renderColumnHeader={CustomColumnHeader}
+        <StyleProvider>
+            <MessageProvider messages={messages}>
+                <PopoverProvider root={rootRect}>
+                    <div className={classnames(baseClasses.root, classes.root)} ref={rootRef}>
+                        {/* ヘッダー */}
+                        {renderHeader ? (
+                            renderHeader({
+                                className: classes.header,
+                                readOnly,
+                                selectedRange,
+                                onDeleteRows,
+                                onInsertRow,
+                                ...paginationProps,
+                            })
+                        ) : (
+                            <Header
+                                className={classes.header}
+                                readOnly={readOnly}
+                                selectedRange={selectedRange}
+                                onDeleteRows={onDeleteRows}
+                                onInsertRow={onInsertRow}
+                                {...paginationProps}
                             />
-                            <tbody ref={tbodyRef} className={classes.tbody}>
-                                {pageItems.map((row, rowIndex) => {
-                                    const rowKey =
-                                        row.length > 0 ? row[0].rowKey : `empty-row-${rowIndex}`;
-                                    return (
-                                        <tr
-                                            className={classnames(baseClasses.row, classes.row)}
-                                            key={rowKey}
-                                        >
-                                            {/* 行ヘッダー */}
-                                            <th
-                                                className={classnames(
-                                                    baseClasses.headerCell,
-                                                    baseClasses.rowHeaderCell,
-                                                    classes.rowHeader,
-                                                    {
-                                                        [baseClasses.stickyRowHeaderCell]: sticky,
+                        )}
+                        <Container ref={containerRef} className={classes.container}>
+                            <table className={classnames(baseClasses.table, classes.table)}>
+                                <TableHeader
+                                    classes={classes}
+                                    columns={columns}
+                                    sticky={sticky}
+                                    getFilterProps={getFilterProps}
+                                    getSortProps={getSortProps}
+                                    onSelectAll={onSelectAll}
+                                    renderColumnHeader={CustomColumnHeader}
+                                />
+                                <tbody ref={tbodyRef} className={classes.tbody}>
+                                    {pageItems.map((row, rowIndex) => {
+                                        const rowKey =
+                                            row.length > 0
+                                                ? row[0].rowKey
+                                                : `empty-row-${rowIndex}`;
+                                        return (
+                                            <tr
+                                                className={classnames(baseClasses.row, classes.row)}
+                                                key={rowKey}
+                                            >
+                                                {/* 行ヘッダー */}
+                                                <th
+                                                    className={classnames(
+                                                        baseClasses.headerCell,
+                                                        baseClasses.rowHeaderCell,
+                                                        classes.rowHeader,
+                                                        {
+                                                            [baseClasses.stickyRowHeaderCell]:
+                                                                sticky,
+                                                        }
+                                                    )}
+                                                    {...getRowHeaderCellProps(rowIndex)}
+                                                >
+                                                    {rowNumber && (
+                                                        <span>
+                                                            {rowsPerPage * page + rowIndex + 1}
+                                                        </span>
+                                                    )}
+                                                </th>
+                                                {row.map((cell, colIndex) => {
+                                                    if (cell.hidden) {
+                                                        return undefined;
                                                     }
-                                                )}
-                                                {...getRowHeaderCellProps(rowIndex)}
-                                            >
-                                                {rowNumber && (
-                                                    <span>{rowsPerPage * page + rowIndex + 1}</span>
-                                                )}
-                                            </th>
-                                            {row.map((cell, colIndex) => {
-                                                if (cell.hidden) {
-                                                    return undefined;
-                                                }
 
-                                                const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
-                                                const column = columns.find(
-                                                    (c) => c.name === cell.entityName
-                                                );
-                                                const cellProps = getCellProps(
-                                                    cell,
-                                                    rowIndex,
-                                                    colIndex
-                                                );
-                                                const location: CellLocation = {
-                                                    row: rowIndex + page * rowsPerPage,
-                                                    column: colIndex,
-                                                };
+                                                    const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                                    const column = columns.find(
+                                                        (c) => c.name === cell.entityName
+                                                    );
+                                                    const cellProps = getCellProps(
+                                                        cell,
+                                                        rowIndex,
+                                                        colIndex
+                                                    );
+                                                    const location: CellLocation = {
+                                                        row: rowIndex + page * rowsPerPage,
+                                                        column: colIndex,
+                                                    };
 
-                                                return (
-                                                    <TableCell<T>
-                                                        key={key}
-                                                        className={classes.cell}
-                                                        column={column}
-                                                        columns={columns}
-                                                        data={data}
-                                                        row={row}
-                                                        cells={allItems}
-                                                        getRowKey={getRowKey}
-                                                        onChangeCellValue={onChangeCellValue}
-                                                        location={location}
-                                                        {...cell}
-                                                        {...cellProps}
-                                                        editorProps={getEditorProps()}
-                                                        containerRect={containerRect}
-                                                        hasFocus={hasFocus}
-                                                        onSelect={onSelect}
-                                                        onContextMenu={handleContextMenu}
-                                                    />
-                                                );
-                                            })}
-                                        </tr>
-                                    );
-                                })}
-                                {/* empty rows */}
-                                {emptyRows > 0 &&
-                                    [...Array(emptyRows)].map((_, index) => (
-                                        <tr
-                                            className={baseClasses.row}
-                                            key={`awesome-table-body-empty-rows-${index}`}
-                                        >
-                                            <td
-                                                className={classnames(
-                                                    baseClasses.cell,
-                                                    baseClasses.emptyCell,
-                                                    classes.cell
-                                                )}
-                                                colSpan={colSpan + 1}
+                                                    return (
+                                                        <TableCell<T>
+                                                            key={key}
+                                                            className={classes.cell}
+                                                            column={column}
+                                                            columns={columns}
+                                                            data={data}
+                                                            row={row}
+                                                            cells={allItems}
+                                                            getRowKey={getRowKey}
+                                                            onChangeCellValue={onChangeCellValue}
+                                                            location={location}
+                                                            {...cell}
+                                                            {...cellProps}
+                                                            editorProps={getEditorProps()}
+                                                            containerRect={containerRect}
+                                                            hasFocus={hasFocus}
+                                                            onSelect={onSelect}
+                                                        />
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })}
+                                    {/* empty rows */}
+                                    {emptyRows > 0 &&
+                                        [...Array(emptyRows)].map((_, index) => (
+                                            <tr
+                                                className={baseClasses.row}
+                                                key={`awesome-table-body-empty-rows-${index}`}
                                             >
-                                                &nbsp;
-                                            </td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
+                                                <td
+                                                    className={classnames(
+                                                        baseClasses.cell,
+                                                        baseClasses.emptyCell,
+                                                        classes.cell
+                                                    )}
+                                                    colSpan={colSpan + 1}
+                                                >
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </Container>
+                        {/* ページング */}
+                        {renderPagination ? (
+                            renderPagination({
+                                className: classes.pagination,
+                                ...paginationProps,
+                            })
+                        ) : (
+                            <Pagination className={classes.pagination} {...paginationProps} />
+                        )}
+                        {/* 右クリックメニュー */}
+                        <ContextMenuPopover
+                            getSelectedCellValus={getSelectedCellValues}
+                            pasteData={pasteData}
+                            onClose={handleCloseContextMenu}
+                        />
                     </div>
-                    {/* ページング */}
-                    {renderPagination ? (
-                        renderPagination({
-                            className: classes.pagination,
-                            ...paginationProps,
-                        })
-                    ) : (
-                        <Pagination className={classes.pagination} {...paginationProps} />
-                    )}
-                    {/* 右クリックメニュー */}
-                    <ContextMenuPopover
-                        open={!isZeroPosition(contextMenuPosition)}
-                        position={contextMenuPosition}
-                        getSelectedCellValus={getSelectedCellValues}
-                        pasteData={pasteData}
-                        onClose={handleCloseContextMenu}
-                    />
-                </MessageContext.Provider>
-            </div>
-        </StylesProvider>
+                </PopoverProvider>
+            </MessageProvider>
+        </StyleProvider>
     );
 }
 

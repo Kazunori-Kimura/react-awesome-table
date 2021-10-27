@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useContext } from 'react';
 import { CellSize } from './consts';
-import { formatMessage, MessageContext } from './messages';
+import { formatMessage, MessageContext } from './providers/MessageProvider';
 import SortButton from './SortButton';
 import { ColumnHeaderProps } from './types';
 

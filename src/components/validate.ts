@@ -1,4 +1,4 @@
-import { defaultMessages, formatMessage, MessageDefinitions } from './messages';
+import { defaultMessages, formatMessage, MessageDefinitions } from './providers/MessageProvider';
 import {
     Cell,
     CellLocation,

@@ -1,8 +1,9 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { CellSize, Popover } from './consts';
 import DropdownListPopover, { StyleProps } from './DropdownListPopover';
+import { PopoverContext } from './providers/PopoverProvider';
 import { CellLocation, DataListType, EditorProps } from './types';
 
 interface DropdownListProps extends EditorProps {
@@ -35,7 +36,7 @@ const useStyles = makeStyles({
     }),
 });
 
-const DropdownList: React.FC<DropdownListProps> = ({
+const DropdownList: React.VFC<DropdownListProps> = ({
     className,
     value,
     location,
@@ -46,7 +47,7 @@ const DropdownList: React.FC<DropdownListProps> = ({
 }) => {
     const classes = useStyles({ width, height: parent.height });
     const labelRef = useRef<HTMLDivElement>();
-
+    const { setOpenedDropdown } = useContext(PopoverContext);
     const [position, setPosition] = useState<StyleProps>({ top: 0, left: 0 });
 
     /**
@@ -74,6 +75,11 @@ const DropdownList: React.FC<DropdownListProps> = ({
 
     useEffect(() => {
         setPopoverPosition();
+        setOpenedDropdown(true);
+
+        return () => {
+            setOpenedDropdown(false);
+        };
     }, [setPopoverPosition]);
 
     return (

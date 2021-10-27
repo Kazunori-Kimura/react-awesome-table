@@ -2,13 +2,12 @@ import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Popover } from './consts';
-import { formatMessage, MessageContext } from './messages';
+import { formatMessage, MessageContext } from './providers/MessageProvider';
+import { PopoverContext } from './providers/PopoverProvider';
 import { Position } from './types';
-import { isWithinRect } from './util';
+import { isWithinRect, isZeroPosition } from './util';
 
 interface Props {
-    open?: boolean;
-    position?: Position;
     getSelectedCellValus: () => string;
     pasteData: (text: string) => void;
     onClose: VoidFunction;
@@ -70,17 +69,20 @@ type MenuItem = 'copy' | 'paste' | 'select';
 /**
  * 右クリックメニュー
  */
-const ContextMenuPopover: React.VFC<Props> = ({
-    open = false,
-    position = {},
-    getSelectedCellValus,
-    pasteData,
-    onClose,
-}) => {
-    const classes = useStyles({ position });
+const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData, onClose }) => {
+    const { contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
+    const classes = useStyles({ position: contextMenuPosition });
     const ref = useRef<HTMLDivElement>();
     const messages = useContext(MessageContext);
     const [active, setActive] = useState<MenuItem>();
+
+    /**
+     * 右クリックメニューを閉じる
+     */
+    const handleClose = useCallback(() => {
+        closeContextMenu();
+        onClose();
+    }, [closeContextMenu, onClose]);
 
     /**
      * コピー
@@ -90,8 +92,8 @@ const ContextMenuPopover: React.VFC<Props> = ({
             const text = getSelectedCellValus();
             await navigator.clipboard.writeText(text);
         }
-        onClose();
-    }, [getSelectedCellValus, onClose]);
+        handleClose();
+    }, [getSelectedCellValus, handleClose]);
 
     /**
      * ペースト
@@ -103,8 +105,8 @@ const ContextMenuPopover: React.VFC<Props> = ({
                 pasteData(text);
             }
         }
-        onClose();
-    }, [pasteData]);
+        handleClose();
+    }, [handleClose, pasteData]);
 
     /**
      * リストの外側をクリックされたら閉じる
@@ -124,11 +126,11 @@ const ContextMenuPopover: React.VFC<Props> = ({
 
                 if (!insideSelf) {
                     // 閉じる
-                    onClose();
+                    handleClose();
                 }
             }
         },
-        [onClose]
+        [handleClose]
     );
 
     useEffect(() => {
@@ -141,7 +143,7 @@ const ContextMenuPopover: React.VFC<Props> = ({
 
     return (
         <>
-            {open && (
+            {!isZeroPosition(contextMenuPosition) && (
                 <div className={classes.root} ref={ref}>
                     <div className={classes.container}>
                         {/* コピー */}
