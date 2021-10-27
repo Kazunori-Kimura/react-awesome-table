@@ -25,7 +25,7 @@ const useStyles = makeStyles({
         boxSizing: 'border-box',
         zIndex: 10,
         backgroundColor: '#fff',
-        display: 'flex',
+        display: isZeroPosition(position) ? 'none' : 'flex',
         flexDirection: 'column',
         outline: 0,
         // 位置
