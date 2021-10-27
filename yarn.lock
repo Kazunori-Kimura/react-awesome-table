@@ -9623,6 +9623,13 @@ react-dev-utils@^11.0.3:
     strip-ansi "6.0.0"
     text-table "0.2.0"
 
+react-device-detect@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/react-device-detect/-/react-device-detect-2.1.1.tgz#e3a055a36be74d10a87a28182358209f701dbe6b"
+  integrity sha512-F0pYqYlo0/O5RmahZ1io3NHWd1ckr8THiiz/ItCW+ikh3TaKKCT2Rpk/NVKkSGnartzdkgOpcNKGDgO2JxdZvw==
+  dependencies:
+    ua-parser-js "0.7.28"
+
 react-docgen-typescript@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/react-docgen-typescript/-/react-docgen-typescript-2.1.1.tgz#c9f9ccb1fa67e0f4caf3b12f2a07512a201c2dcf"
@@ -11228,6 +11235,11 @@ typescript@^4.4.4:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.4.4.tgz#2cd01a1a1f160704d3101fd5a58ff0f9fcb8030c"
   integrity sha512-DqGhF5IKoBl8WNf8C1gu8q0xZSInh9j1kJJMqT3a94w1JzVaBU4EXOSMrz9yDqMT0xt3selp83fuFMQ0uzv6qA==
 
+ua-parser-js@0.7.28:
+  version "0.7.28"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.28.tgz#8ba04e653f35ce210239c64661685bf9121dec31"
+  integrity sha512-6Gurc1n//gjp9eQNXjD9O3M/sMwVtN5S8Lv9bvOYBfKfDNiIIhqiyi01vMBO45u4zkDE420w/e0se7Vs+sIg+g==
+
 unbox-primitive@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/unbox-primitive/-/unbox-primitive-1.0.1.tgz#085e215625ec3162574dc8859abee78a59b14471"
@@ -11448,6 +11460,11 @@ use-latest@^1.0.0:
   integrity sha512-d2TEuG6nSLKQLAfW3By8mKr8HurOlTkul0sOpxbClIv4SQ4iOd7BYr7VIzdbktUCnv7dua/60xzd8igMU6jmyw==
   dependencies:
     use-isomorphic-layout-effect "^1.0.0"
+
+use-long-press@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/use-long-press/-/use-long-press-1.1.1.tgz#7a67b0bdf8d6f7a9183b6d662c5d57d164183574"
+  integrity sha512-tqf6zDZ06g/Rt8rw+/jaekrdBTmrFXxjHHd2QgMlOhvs1fwOb9VA9d+DmkTPeNtL/byaJ8YeHTOwmluwxhXRLA==
 
 use@^3.1.0:
   version "3.1.1"

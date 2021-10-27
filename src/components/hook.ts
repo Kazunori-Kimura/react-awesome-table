@@ -240,7 +240,7 @@ export const useTable = <T>({
     /**
      * クリップボードにコピーするデータを生成する
      */
-    const createCopyData = useCallback((): string => {
+    const getSelectedCellValues = useCallback((): string => {
         if (selection) {
             // 選択範囲をソート
             const range = selection.sort(compareLocation);
@@ -274,13 +274,13 @@ export const useTable = <T>({
     const handleCopy = useCallback(
         (event: globalThis.ClipboardEvent) => {
             if (focus && !Boolean(editCell)) {
-                const copyData = createCopyData();
+                const copyData = getSelectedCellValues();
                 debug('copy: ', copyData);
                 event.clipboardData.setData('text/plain', copyData);
                 event.preventDefault();
             }
         },
-        [createCopyData, editCell, focus]
+        [getSelectedCellValues, editCell, focus]
     );
 
     /**
@@ -2214,5 +2214,8 @@ export const useTable = <T>({
         getRowHeaderCellProps,
         getEditorProps,
         selectByKeyValue,
+        getSelectedCellValues,
+        pasteData,
+        setFocus,
     };
 };

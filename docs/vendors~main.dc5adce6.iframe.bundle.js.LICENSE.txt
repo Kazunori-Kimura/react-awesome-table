@@ -18,7 +18,7 @@ object-assign
  */
 
 /*!
- * hotkeys-js v3.8.3
+ * hotkeys-js v3.8.7
  * A simple micro-library for defining and dispatching keyboard shortcuts. It has no dependencies.
  * 
  * Copyright (c) 2021 kenny wong <wowohoo@qq.com>
@@ -55,6 +55,15 @@ object-assign
  *
  * Copyright (c) 2014-2017, Jon Schlinkert.
  * Released under the MIT License.
+ */
+
+/*!@license
+ * UAParser.js v0.7.28
+ * Lightweight JavaScript-based User-Agent string parser
+ * https://github.com/faisalman/ua-parser-js
+ *
+ * Copyright © 2012-2021 Faisal Salman <f@faisalman.com>
+ * Licensed under MIT License
  */
 
 /**

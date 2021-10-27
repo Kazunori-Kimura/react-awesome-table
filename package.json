@@ -91,7 +91,9 @@
     },
     "dependencies": {
         "classnames": "^2.3.1",
-        "hotkeys-js": "^3.8.7"
+        "hotkeys-js": "^3.8.7",
+        "react-device-detect": "^2.1.1",
+        "use-long-press": "^1.1.1"
     },
     "directories": {
         "doc": "docs"

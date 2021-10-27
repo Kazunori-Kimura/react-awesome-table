@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import React, {
     ForwardedRef,
     forwardRef,
+    useCallback,
     useImperativeHandle,
     useLayoutEffect,
     useMemo,
@@ -10,13 +11,15 @@ import React, {
     useState,
 } from 'react';
 import { CellSize } from './consts';
+import ContextMenuPopover from './ContextMenuPopover';
 import Header from './Header';
 import { useTable } from './hook';
 import { defaultMessages, MessageContext, MessageDefinitions } from './messages';
 import Pagination from './Pagination';
 import TableCell from './TableCell';
 import TableHeader from './TableHeader';
-import { CellLocation, PaginationProps, TableHandles, TableProps } from './types';
+import { CellLocation, PaginationProps, Position, TableHandles, TableProps } from './types';
+import { ContextMenuEvent } from './useContextMenu';
 
 const generateClassName = createGenerateClassName({
     productionPrefix: 'rat',
@@ -125,6 +128,7 @@ function TableComponent<T>(
 ): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>();
     const [containerRect, setContainerRect] = useState<DOMRect>();
+    const [contextMenuPosition, setContextMenuPosition] = useState<Position>();
     const baseClasses = useStyles();
 
     const messages: MessageDefinitions = useMemo(() => {
@@ -153,6 +157,7 @@ function TableComponent<T>(
         onChangeRowsPerPage,
         onDeleteRows,
         onInsertRow,
+        onSelect,
         onSelectAll,
         getFilterProps,
         getSortProps,
@@ -160,6 +165,9 @@ function TableComponent<T>(
         getRowHeaderCellProps,
         getEditorProps,
         selectByKeyValue,
+        getSelectedCellValues,
+        pasteData,
+        setFocus,
     } = useTable({
         items: data,
         columns,
@@ -210,6 +218,31 @@ function TableComponent<T>(
     const colSpan = useMemo(() => {
         return columns.filter((column) => !(column.hidden ?? false)).length;
     }, [columns]);
+
+    /**
+     * 右クリックメニューの表示
+     */
+    const handleContextMenu = useCallback((event: ContextMenuEvent<HTMLTableCellElement>) => {
+        event.preventDefault();
+        const pos: Position = {};
+        if ('changedTouches' in event) {
+            const { pageX, pageY } = event.changedTouches[0];
+            pos.top = pageY;
+            pos.left = pageX;
+        } else {
+            const { clientX, clientY } = event;
+            pos.top = clientY;
+            pos.left = clientX;
+        }
+        setContextMenuPosition(pos);
+    }, []);
+    /**
+     * 右クリックメニューを閉じる
+     */
+    const handleCloseContextMenu = useCallback(() => {
+        setContextMenuPosition(undefined);
+        setFocus(true);
+    }, []);
 
     // カレントセルが container の表示エリア内かどうか判定するために
     // 要素のサイズを保持
@@ -318,6 +351,8 @@ function TableComponent<T>(
                                                         editorProps={getEditorProps()}
                                                         containerRect={containerRect}
                                                         hasFocus={hasFocus}
+                                                        onSelect={onSelect}
+                                                        onContextMenu={handleContextMenu}
                                                     />
                                                 );
                                             })}
@@ -355,6 +390,14 @@ function TableComponent<T>(
                     ) : (
                         <Pagination className={classes.pagination} {...paginationProps} />
                     )}
+                    {/* 右クリックメニュー */}
+                    <ContextMenuPopover
+                        open={Boolean(contextMenuPosition)}
+                        position={contextMenuPosition}
+                        getSelectedCellValus={getSelectedCellValues}
+                        pasteData={pasteData}
+                        onClose={handleCloseContextMenu}
+                    />
                 </MessageContext.Provider>
             </div>
         </StylesProvider>

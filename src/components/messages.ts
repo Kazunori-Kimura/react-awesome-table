@@ -25,6 +25,9 @@ export const defaultMessages = {
     'validate.datalist': ({ list }: { list: string }): string =>
         `${list}のいずれかを指定してください`,
     'validate.unique': '値が重複しています',
+    // コピー＆ペースト
+    copy: 'コピー',
+    paste: '貼り付け',
 };
 
 export type MessageDefinitions = Partial<
