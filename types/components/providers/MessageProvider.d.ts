@@ -1,4 +1,5 @@
 import React from 'react';
+import { ProviderProps } from './types';
 export declare type MessageFunction = (params: Record<string, string>) => string;
 export declare const defaultMessages: {
     addRow: string;
@@ -32,3 +33,8 @@ export declare const MessageContext: React.Context<Partial<Record<"filter" | "co
  * @returns
  */
 export declare const formatMessage: (messages: MessageDefinitions, key: keyof MessageDefinitions, params?: Record<string, string>) => string;
+interface Props extends ProviderProps {
+    messages: MessageDefinitions;
+}
+declare const MessageProvider: React.VFC<Props>;
+export default MessageProvider;

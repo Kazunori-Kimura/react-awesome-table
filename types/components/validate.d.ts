@@ -1,4 +1,4 @@
-import { MessageDefinitions } from './messages';
+import { MessageDefinitions } from './providers/MessageProvider';
 import { Cell, CellLocation, ColumnDefinition, ValidatorResult } from './types';
 /**
  * セルの入力値チェック
