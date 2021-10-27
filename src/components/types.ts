@@ -310,6 +310,11 @@ export interface TableHookReturns<T> {
     getRowHeaderCellProps: (rowIndex: number) => RowHeaderCellProps;
     getEditorProps: () => EditorProps;
     selectByKeyValue: SelectByKeyValueFunction<T>;
+    // コピー&ペースト
+    getSelectedCellValues: () => string;
+    pasteData: (text: string) => void;
+    // フォーカスのセット
+    setFocus: (focus: boolean) => void;
 }
 
 /**
@@ -392,4 +397,11 @@ export interface ColumnHeaderProps<T> {
     column: ColumnDefinition<T>;
     sort: SortProps;
     filter: FilterProps;
+}
+
+export interface Position {
+    top?: number;
+    left?: number;
+    bottom?: number;
+    right?: number;
 }

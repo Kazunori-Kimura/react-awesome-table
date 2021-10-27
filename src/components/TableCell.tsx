@@ -7,11 +7,13 @@ import {
     Cell,
     CellLocation,
     CellProps,
+    CellRange,
     ChangeCellValueFunction,
     ColumnDefinition,
     EditorProps,
     GenerateRowKeyFunction,
 } from './types';
+import useContextMenu, { ContextMenuEvent } from './useContextMenu';
 import { parseEntity } from './util';
 
 type PropsBase<T> = Cell<T> & CellProps;
@@ -29,6 +31,8 @@ interface TableCellProps<T> extends PropsBase<T> {
     onChangeCellValue: ChangeCellValueFunction;
     containerRect?: DOMRect;
     hasFocus: boolean;
+    onSelect: (range: CellRange) => void;
+    onContextMenu: (event: ContextMenuEvent) => void;
 }
 
 interface StyleProps {
@@ -51,6 +55,8 @@ const useStyles = makeStyles({
         minHeight: CellSize.MinHeight,
         // テキストを選択状態にしない
         userSelect: 'none',
+        '-webkit-user-select': 'none',
+        '-webkit-touch-callout': 'none',
         width: props.width ?? CellSize.DefaultWidth,
         boxSizing: 'border-box',
     }),
@@ -154,6 +160,8 @@ function TableCell<T>({
     onMouseUp,
     containerRect,
     hasFocus,
+    onSelect,
+    onContextMenu,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
     const [cellRect, setCellRect] = useState<DOMRect>();
@@ -189,6 +197,27 @@ function TableCell<T>({
         },
         [location, onChangeCellValue]
     );
+
+    /**
+     * 右クリック/要素長押しによるメニュー表示
+     */
+    const handleContextMenu = useCallback(
+        (event: ContextMenuEvent) => {
+            // 該当セルが未選択であれば、選択処理を行う
+            if (!selected) {
+                const range: CellRange = {
+                    start: location,
+                    end: location,
+                };
+                onSelect(range);
+            }
+            // 右クリックメニューの表示
+            onContextMenu(event);
+        },
+        [location, onContextMenu, onSelect, selected]
+    );
+    // イベントハンドラー
+    const contextMenuHandler = useContextMenu({ callback: handleContextMenu });
 
     useLayoutEffect(() => {
         if (cellRef.current) {
@@ -262,6 +291,7 @@ function TableCell<T>({
             onMouseDown={onMouseDown}
             onMouseOver={onMouseOver}
             onMouseUp={onMouseUp}
+            {...contextMenuHandler}
             data-rat-roll={TableCellRole}
         >
             {/* カスタムコンポーネント */}
