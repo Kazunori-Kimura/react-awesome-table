@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.6.4] - 2021-10-27
+### Added
+- コピー/ペーストをコンテキストメニューで可能にする
+
+### Changed
+
+### Fixed
+
 ## [0.6.3] - 2021-10-21
 ### Fixed
 - 空文字列に更新できない不具合を修正

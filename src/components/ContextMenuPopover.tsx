@@ -53,6 +53,10 @@ const useStyles = makeStyles({
         backgroundColor: '#fff',
         border: '1px solid #fff',
         outline: 0,
+        // テキストを選択状態にしない
+        userSelect: 'none',
+        '-webkit-user-select': 'none',
+        '-webkit-touch-callout': 'none',
     },
     active: {
         backgroundColor: '#eee',
