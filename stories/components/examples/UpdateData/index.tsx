@@ -1,4 +1,4 @@
-import { FormControlLabel, Switch } from '@material-ui/core';
+import { AppBar, FormControlLabel, Switch, Toolbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { ChangeEvent, useCallback, useState } from 'react';
@@ -116,10 +116,15 @@ const useStyles = makeStyles({
         display: 'flex',
     },
     main: {
+        // height: 340,
+    },
+    table: {
         height: 340,
+        position: 'fixed',
     },
     preview: {
         margin: 9,
+        marginLeft: '50vw',
         padding: 6,
         border: '1px solid #ccc',
         borderRadius: 6,
@@ -185,21 +190,24 @@ const UpdateDataSample: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            <div className={classnames(classes.row, classes.form)}>
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={disableUndo}
-                            onChange={handleChangeDisableUndo}
-                            color="primary"
-                            name="disableUndo"
-                        />
-                    }
-                    label="disableUndo"
-                />
-            </div>
+            <AppBar position="fixed" color="default">
+                <Toolbar>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={disableUndo}
+                                onChange={handleChangeDisableUndo}
+                                color="primary"
+                                name="disableUndo"
+                            />
+                        }
+                        label="disableUndo"
+                    />
+                </Toolbar>
+            </AppBar>
+            <Toolbar />
             <div className={classnames(classes.row, classes.main)}>
-                <div className={classes.column}>
+                <div className={classnames(classes.column, classes.table)}>
                     <Table<Partial<SupportCard>>
                         data={cards}
                         columns={columns}

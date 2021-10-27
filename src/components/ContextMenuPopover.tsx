@@ -140,32 +140,34 @@ const ContextMenuPopover: React.VFC<Props> = ({
     }, [handleClickOutside]);
 
     return (
-        <div className={classes.root} ref={ref}>
+        <>
             {open && (
-                <div className={classes.container}>
-                    {/* コピー */}
-                    <button
-                        className={classnames(classes.item, {
-                            [classes.active]: active === 'copy',
-                        })}
-                        onClick={handleClickCopy}
-                        onMouseOver={() => setActive('copy')}
-                    >
-                        {formatMessage(messages, 'copy')}
-                    </button>
-                    {/* 貼り付け */}
-                    <button
-                        className={classnames(classes.item, {
-                            [classes.active]: active === 'paste',
-                        })}
-                        onClick={handleClickPaste}
-                        onMouseOver={() => setActive('paste')}
-                    >
-                        {formatMessage(messages, 'paste')}
-                    </button>
+                <div className={classes.root} ref={ref}>
+                    <div className={classes.container}>
+                        {/* コピー */}
+                        <button
+                            className={classnames(classes.item, {
+                                [classes.active]: active === 'copy',
+                            })}
+                            onClick={handleClickCopy}
+                            onMouseOver={() => setActive('copy')}
+                        >
+                            {formatMessage(messages, 'copy')}
+                        </button>
+                        {/* 貼り付け */}
+                        <button
+                            className={classnames(classes.item, {
+                                [classes.active]: active === 'paste',
+                            })}
+                            onClick={handleClickPaste}
+                            onMouseOver={() => setActive('paste')}
+                        >
+                            {formatMessage(messages, 'paste')}
+                        </button>
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

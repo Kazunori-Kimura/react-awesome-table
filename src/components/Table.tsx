@@ -20,6 +20,7 @@ import TableCell from './TableCell';
 import TableHeader from './TableHeader';
 import { CellLocation, PaginationProps, Position, TableHandles, TableProps } from './types';
 import { ContextMenuEvent } from './useContextMenu';
+import { isZeroPosition } from './util';
 
 const generateClassName = createGenerateClassName({
     productionPrefix: 'rat',
@@ -28,6 +29,7 @@ const generateClassName = createGenerateClassName({
 
 const useStyles = makeStyles({
     root: {
+        position: 'relative',
         width: '100%',
         height: '100%',
         display: 'flex',
@@ -126,6 +128,7 @@ function TableComponent<T>(
     }: TableProps<T>,
     ref?: ForwardedRef<TableHandles<T>>
 ): React.ReactElement {
+    const rootRef = useRef<HTMLDivElement>();
     const containerRef = useRef<HTMLDivElement>();
     const [containerRect, setContainerRect] = useState<DOMRect>();
     const [contextMenuPosition, setContextMenuPosition] = useState<Position>();
@@ -224,15 +227,25 @@ function TableComponent<T>(
      */
     const handleContextMenu = useCallback((event: ContextMenuEvent<HTMLTableCellElement>) => {
         event.preventDefault();
-        const pos: Position = {};
+        const pos: Position = {
+            top: 0,
+            left: 0,
+        };
+
+        if (rootRef.current) {
+            const { x, y } = rootRef.current.getBoundingClientRect();
+            pos.top -= y;
+            pos.left -= x;
+        }
+
         if ('changedTouches' in event) {
             const { pageX, pageY } = event.changedTouches[0];
-            pos.top = pageY;
-            pos.left = pageX;
+            pos.top += pageY;
+            pos.left += pageX;
         } else {
             const { clientX, clientY } = event;
-            pos.top = clientY;
-            pos.left = clientX;
+            pos.top += clientY;
+            pos.left += clientX;
         }
         setContextMenuPosition(pos);
     }, []);
@@ -254,7 +267,7 @@ function TableComponent<T>(
 
     return (
         <StylesProvider generateClassName={generateClassName}>
-            <div className={classnames(baseClasses.root, classes.root)}>
+            <div className={classnames(baseClasses.root, classes.root)} ref={rootRef}>
                 <MessageContext.Provider value={messages}>
                     {/* ヘッダー */}
                     {renderHeader ? (
@@ -392,7 +405,7 @@ function TableComponent<T>(
                     )}
                     {/* 右クリックメニュー */}
                     <ContextMenuPopover
-                        open={Boolean(contextMenuPosition)}
+                        open={!isZeroPosition(contextMenuPosition)}
                         position={contextMenuPosition}
                         getSelectedCellValus={getSelectedCellValues}
                         pasteData={pasteData}
