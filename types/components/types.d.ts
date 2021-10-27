@@ -1,7 +1,7 @@
 import { ClassNameMap } from '@material-ui/styles';
 import { KeyHandler } from 'hotkeys-js';
 import React, { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
-import { MessageDefinitions } from './messages';
+import { MessageDefinitions } from './providers/MessageProvider';
 export declare type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export declare type TableData<T> = Cell<T>[][];
 export declare type HistoryCommand = 'undo' | 'redo';

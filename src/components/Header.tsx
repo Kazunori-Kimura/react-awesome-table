@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useContext } from 'react';
-import { formatMessage, MessageContext } from './messages';
+import { formatMessage, MessageContext } from './providers/MessageProvider';
 import { HeaderProps } from './types';
 
 const useStyles = makeStyles({

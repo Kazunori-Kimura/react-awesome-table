@@ -1,4 +1,4 @@
-import { Cell, CellLocation, CellRange, ColumnDefinition, DefaultValueGenerator, GenerateRowKeyFunction, SortOrder, TableData, ValueType } from './types';
+import { Cell, CellLocation, CellRange, ColumnDefinition, DefaultValueGenerator, GenerateRowKeyFunction, Position, SortOrder, TableData, ValueType } from './types';
 /**
  * デバッグログ
  * @param args
@@ -137,4 +137,10 @@ export declare function safeGetCell<T>(cells: TableData<T>, row: number, column:
  * @returns
  */
 export declare function isChildOfTableCell(element: HTMLElement): boolean;
+/**
+ * Position が top = 0, left = 0 かどうか
+ * @param position
+ * @returns
+ */
+export declare function isZeroPosition(position?: Position): boolean;
 export {};

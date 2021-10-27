@@ -7,6 +7,7 @@ import {
     DefaultValueGenerator,
     GenerateRowKeyFunction,
     isCellRange,
+    Position,
     SortOrder,
     TableData,
     ValueType,
@@ -442,4 +443,13 @@ export function isChildOfTableCell(element: HTMLElement): boolean {
 
     // TableCell の TD には data-rat-roll に 'rat-table-cell' がセットされている
     return element.dataset.ratRoll === TableCellRole;
+}
+
+/**
+ * Position が top = 0, left = 0 かどうか
+ * @param position
+ * @returns
+ */
+export function isZeroPosition(position?: Position) {
+    return (position?.top ?? 0) === 0 && (position?.left ?? 0) === 0;
 }

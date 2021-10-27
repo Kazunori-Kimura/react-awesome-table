@@ -1,8 +1,17 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { CellSize, TableCellRole } from './consts';
 import DropdownList from './DropdownList';
+import { PopoverContext } from './providers/PopoverProvider';
 import {
     Cell,
     CellLocation,
@@ -32,7 +41,6 @@ interface TableCellProps<T> extends PropsBase<T> {
     containerRect?: DOMRect;
     hasFocus: boolean;
     onSelect: (range: CellRange) => void;
-    onContextMenu: (event: ContextMenuEvent) => void;
 }
 
 interface StyleProps {
@@ -161,7 +169,6 @@ function TableCell<T>({
     containerRect,
     hasFocus,
     onSelect,
-    onContextMenu,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
     const [cellRect, setCellRect] = useState<DOMRect>();
@@ -172,6 +179,7 @@ function TableCell<T>({
     });
     const cellRef = useRef<HTMLTableCellElement>(null);
     const labelRef = useRef<HTMLDivElement>(null);
+    const { openContextMenu } = useContext(PopoverContext);
 
     const entity: Partial<T> = useMemo(() => {
         // data から元データを取得する
@@ -212,9 +220,9 @@ function TableCell<T>({
                 onSelect(range);
             }
             // 右クリックメニューの表示
-            onContextMenu(event);
+            openContextMenu(event);
         },
-        [location, onContextMenu, onSelect, selected]
+        [location, openContextMenu, onSelect, selected]
     );
     // イベントハンドラー
     const contextMenuHandler = useContextMenu({ callback: handleContextMenu });

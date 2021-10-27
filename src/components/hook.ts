@@ -4,13 +4,14 @@ import {
     KeyboardEvent,
     MouseEvent,
     useCallback,
+    useContext,
     useEffect,
     useMemo,
     useRef,
     useState,
 } from 'react';
 import { MouseButton } from './consts';
-import { defaultMessages, formatMessage } from './messages';
+import { formatMessage, MessageContext } from './providers/MessageProvider';
 import {
     Cell,
     CellLocation,
@@ -69,7 +70,6 @@ export const useTable = <T>({
     rowsPerPage = defaultRowsPerPageOptions[0],
     rowsPerPageOptions = defaultRowsPerPageOptions,
     options = defaultTableOptions,
-    messages = defaultMessages,
     readOnly = false,
     disableUndo = false,
 }: TableHookParameters<T>): TableHookReturns<T> => {
@@ -103,6 +103,8 @@ export const useTable = <T>({
     const [undoIndex, setUndoIndex] = useState(-1);
     // 編集モード
     const [mode, setMode] = useState<EditMode>('normal');
+    // 翻訳データ
+    const messages = useContext(MessageContext);
 
     // tbody
     const tbodyRef = useRef<HTMLTableSectionElement>();

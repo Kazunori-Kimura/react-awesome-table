@@ -7,5 +7,5 @@ interface DropdownListProps extends EditorProps {
     width?: number;
     parent?: DOMRect;
 }
-declare const DropdownList: React.FC<DropdownListProps>;
+declare const DropdownList: React.VFC<DropdownListProps>;
 export default DropdownList;

@@ -1,8 +1,5 @@
 import React from 'react';
-import { Position } from './types';
 interface Props {
-    open?: boolean;
-    position?: Position;
     getSelectedCellValus: () => string;
     pasteData: (text: string) => void;
     onClose: VoidFunction;

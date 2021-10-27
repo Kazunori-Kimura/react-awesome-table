@@ -6,11 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- コピー/ペーストをコンテキストメニューで可能にする
 
 ### Changed
 
 ### Fixed
+
+## [0.6.5]
+### Added
+
+### Changed
+
+### Fixed
+- 右上にコンテキストメニューの影が常に見えてしまう不具合を修正
+- コンテキストメニュー表示時にスクロールするとメニューがその場に残る不具合を修正
 
 ## [0.6.4] - 2021-10-27
 ### Added

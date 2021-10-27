@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { MouseEvent, useContext } from 'react';
-import { formatMessage, MessageContext } from './messages';
+import { formatMessage, MessageContext } from './providers/MessageProvider';
 import { PaginationProps } from './types';
 
 const useStyles = makeStyles({
