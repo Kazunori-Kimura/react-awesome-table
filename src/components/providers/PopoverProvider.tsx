@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { ContextMenuEvent } from '../hooks/useContextMenu';
 import { Position } from '../types';
-import { ContextMenuEvent } from '../useContextMenu';
 import { isZeroPosition } from '../util';
 import { ProviderProps } from './types';
 
@@ -32,12 +32,16 @@ interface IPopoverContext {
     closeContextMenu: VoidFunction;
 }
 
+const dummy = () => {
+    // dummy
+};
+
 const defaultContextValue: IPopoverContext = {
     open: false,
     openedDropdown: false,
-    setOpenedDropdown: () => {},
-    openContextMenu: () => {},
-    closeContextMenu: () => {},
+    setOpenedDropdown: dummy,
+    openContextMenu: dummy,
+    closeContextMenu: dummy,
 };
 
 export const PopoverContext = React.createContext<IPopoverContext>(defaultContextValue);
