@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 import { CellSize, TableCellRole } from './consts';
 import DropdownList from './DropdownList';
+import useContextMenu, { ContextMenuEvent } from './hooks/useContextMenu';
 import { PopoverContext } from './providers/PopoverProvider';
 import {
     Cell,
@@ -22,7 +23,6 @@ import {
     EditorProps,
     GenerateRowKeyFunction,
 } from './types';
-import useContextMenu, { ContextMenuEvent } from './useContextMenu';
 import { parseEntity } from './util';
 
 type PropsBase<T> = Cell<T> & CellProps;
