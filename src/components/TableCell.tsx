@@ -245,10 +245,12 @@ function TableCell<T>({
                 };
                 onSelect(range);
             }
+            // 編集のキャンセル
+            editorProps.cancel();
             // 右クリックメニューの表示
             openContextMenu(event, location);
         },
-        [location, openContextMenu, onSelect, selected]
+        [selected, editorProps, openContextMenu, location, onSelect]
     );
     // イベントハンドラー
     const contextMenuHandler = useContextMenu({ callback: handleContextMenu });

@@ -80,7 +80,7 @@ const DropdownList: React.VFC<DropdownListProps> = ({
         return () => {
             setOpenedDropdown(false);
         };
-    }, [setPopoverPosition]);
+    }, [setOpenedDropdown, setPopoverPosition]);
 
     return (
         <div className={classnames(classes.root)}>
