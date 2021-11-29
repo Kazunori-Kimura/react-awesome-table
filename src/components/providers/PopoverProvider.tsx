@@ -1,11 +1,13 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ContextMenuEvent } from '../hooks/useContextMenu';
-import { Position } from '../types';
-import { isZeroPosition } from '../util';
+import { CellLocation, EditMode, Position } from '../types';
+import { isWithinRect, isZeroPosition } from '../util';
 import { ProviderProps } from './types';
 
 interface Props extends ProviderProps {
     root?: DOMRect;
+    mode: EditMode;
+    setMode: (mode: EditMode) => void;
 }
 
 interface IPopoverContext {
@@ -13,6 +15,10 @@ interface IPopoverContext {
      * 何某かのポップアップが開いている
      */
     open: boolean;
+    /**
+     * 右クリックされたセルの位置
+     */
+    location?: CellLocation;
     /**
      * 右クリックメニューの表示位置
      */
@@ -25,7 +31,7 @@ interface IPopoverContext {
     /**
      * 右クリックメニューの表示
      */
-    openContextMenu: (event: ContextMenuEvent) => void;
+    openContextMenu: (event: ContextMenuEvent, location: CellLocation) => void;
     /**
      * 右クリックメニューを閉じる
      */
@@ -46,9 +52,10 @@ const defaultContextValue: IPopoverContext = {
 
 export const PopoverContext = React.createContext<IPopoverContext>(defaultContextValue);
 
-const PopoverProvider: React.VFC<Props> = ({ root, children }) => {
+const PopoverProvider: React.VFC<Props> = ({ root, mode, setMode, children }) => {
     const [contextMenuPosition, setContextMenuPosition] = useState<Position>();
     const [openedDropdown, setOpenedDropdown] = useState(false);
+    const [location, setLocation] = useState<CellLocation>();
 
     const open = useMemo(() => {
         const openedContextMenu = !isZeroPosition(contextMenuPosition);
@@ -59,7 +66,7 @@ const PopoverProvider: React.VFC<Props> = ({ root, children }) => {
      * コンテキストメニューの表示
      */
     const openContextMenu = useCallback(
-        (event: ContextMenuEvent<HTMLTableCellElement>) => {
+        (event: ContextMenuEvent<HTMLTableCellElement>, location: CellLocation) => {
             event.preventDefault();
             const pos: Position = {
                 top: 0,
@@ -82,19 +89,54 @@ const PopoverProvider: React.VFC<Props> = ({ root, children }) => {
                 pos.left += clientX;
             }
 
+            setMode('normal');
+            setLocation(location);
             setContextMenuPosition(pos);
         },
-        [root]
+        [root, setMode]
     );
 
     const closeContextMenu = useCallback(() => {
         setContextMenuPosition(undefined);
     }, []);
 
+    /**
+     * 範囲選択モード時にテーブル範囲外がクリックされたら通常モードに戻す
+     */
+    const handleClickOutside = useCallback(
+        (event: globalThis.MouseEvent) => {
+            if (mode === 'select') {
+                const { scrollX, scrollY } = window;
+                const { left, top, width, height } = root;
+                const { pageX, pageY } = event;
+
+                const insideRoot = isWithinRect(
+                    { left, top, width, height },
+                    { pageX, pageY },
+                    { scrollX, scrollY }
+                );
+
+                if (!insideRoot) {
+                    setMode('normal');
+                }
+            }
+        },
+        [mode, root, setMode]
+    );
+
+    useEffect(() => {
+        // 画面全体にクリックイベントの設定
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [handleClickOutside]);
+
     return (
         <PopoverContext.Provider
             value={{
                 open,
+                location,
                 contextMenuPosition,
                 openedDropdown,
                 setOpenedDropdown,

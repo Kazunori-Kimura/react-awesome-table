@@ -1889,6 +1889,12 @@ export const useTable = <T>({
             }
 
             debug(`handleEditorKeyDown: ${event.key}`);
+            // 範囲選択モード中にキー入力があった場合、範囲選択モードをキャンセル
+            let newMode = mode;
+            if (mode === 'select') {
+                newMode = 'normal';
+            }
+
             let isArrowKey = false;
             switch (event.key) {
                 case 'Tab':
@@ -1927,19 +1933,15 @@ export const useTable = <T>({
                         keys.push('down');
                         action = 'commit';
                         break;
+                    case 'F2':
+                        newMode = 'edit';
+                        break;
                 }
             }
 
-            if (event.key === 'F2') {
-                // モードの toggle
-                setMode((state) => {
-                    if (state === 'input') {
-                        return 'edit';
-                    }
-                    if (state === 'edit') {
-                        return 'input';
-                    }
-                });
+            if (mode === 'edit' && event.key === 'F2') {
+                // 編集 -> 入力モード
+                newMode = 'input';
             }
 
             if (action) {
@@ -1959,6 +1961,10 @@ export const useTable = <T>({
                     cancelEditing();
                 }
                 event.preventDefault();
+            }
+
+            if (mode !== newMode) {
+                setMode(newMode);
             }
         },
         [cancelEditing, keyDownArrow, keyDownShiftArrow, keyDownTabEnter, mode]
@@ -2219,5 +2225,7 @@ export const useTable = <T>({
         getSelectedCellValues,
         pasteData,
         setFocus,
+        mode,
+        setMode,
     };
 };

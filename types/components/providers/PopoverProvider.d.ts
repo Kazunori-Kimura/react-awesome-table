@@ -1,15 +1,21 @@
 import React from 'react';
-import { Position } from '../types';
-import { ContextMenuEvent } from '../useContextMenu';
+import { ContextMenuEvent } from '../hooks/useContextMenu';
+import { CellLocation, EditMode, Position } from '../types';
 import { ProviderProps } from './types';
 interface Props extends ProviderProps {
     root?: DOMRect;
+    mode: EditMode;
+    setMode: (mode: EditMode) => void;
 }
 interface IPopoverContext {
     /**
      * 何某かのポップアップが開いている
      */
     open: boolean;
+    /**
+     * 右クリックされたセルの位置
+     */
+    location?: CellLocation;
     /**
      * 右クリックメニューの表示位置
      */
@@ -22,7 +28,7 @@ interface IPopoverContext {
     /**
      * 右クリックメニューの表示
      */
-    openContextMenu: (event: ContextMenuEvent) => void;
+    openContextMenu: (event: ContextMenuEvent, location: CellLocation) => void;
     /**
      * 右クリックメニューを閉じる
      */
