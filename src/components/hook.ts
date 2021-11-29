@@ -2219,5 +2219,7 @@ export const useTable = <T>({
         getSelectedCellValues,
         pasteData,
         setFocus,
+        mode,
+        setMode,
     };
 };

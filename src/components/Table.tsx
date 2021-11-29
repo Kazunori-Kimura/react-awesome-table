@@ -151,6 +151,8 @@ function TableComponent<T>(
         getSelectedCellValues,
         pasteData,
         setFocus,
+        mode,
+        setMode,
     } = useTable({
         items: data,
         columns,
@@ -206,7 +208,14 @@ function TableComponent<T>(
      */
     const handleCloseContextMenu = useCallback(() => {
         setFocus(true);
-    }, []);
+    }, [setFocus]);
+
+    /**
+     * 範囲選択モードへの切り替え
+     */
+    const switchSelectMode = useCallback(() => {
+        setMode('select');
+    }, [setMode]);
 
     // カレントセルが container の表示エリア内かどうか判定するために
     // 要素のサイズを保持
@@ -220,7 +229,7 @@ function TableComponent<T>(
     return (
         <StyleProvider>
             <MessageProvider messages={messages}>
-                <PopoverProvider root={rootRect}>
+                <PopoverProvider root={rootRect} mode={mode} setMode={setMode}>
                     <div className={classnames(baseClasses.root, classes.root)} ref={rootRef}>
                         {/* ヘッダー */}
                         {renderHeader ? (
@@ -320,6 +329,7 @@ function TableComponent<T>(
                                                             containerRect={containerRect}
                                                             hasFocus={hasFocus}
                                                             onSelect={onSelect}
+                                                            setMode={setMode}
                                                         />
                                                     );
                                                 })}
@@ -361,6 +371,7 @@ function TableComponent<T>(
                         <ContextMenuPopover
                             getSelectedCellValus={getSelectedCellValues}
                             pasteData={pasteData}
+                            switchSelectMode={switchSelectMode}
                             onClose={handleCloseContextMenu}
                         />
                     </div>

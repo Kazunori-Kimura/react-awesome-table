@@ -7,7 +7,14 @@ export type EditorKeyDownAction = 'commit' | 'cancel' | undefined;
 export type TableData<T> = Cell<T>[][];
 export type HistoryCommand = 'undo' | 'redo';
 export type Direction = 'up' | 'down' | 'left' | 'right';
-export type EditMode = 'normal' | 'input' | 'edit';
+/**
+ * セルの編集モード
+ * normal: 通常モード (default)
+ * input: 入力モード
+ * edit: 編集モード
+ * select: 範囲選択モード
+ */
+export type EditMode = 'normal' | 'input' | 'edit' | 'select';
 
 /**
  * セル位置
@@ -315,6 +322,9 @@ export interface TableHookReturns<T> {
     pasteData: (text: string) => void;
     // フォーカスのセット
     setFocus: (focus: boolean) => void;
+    // モードの変更
+    mode: EditMode;
+    setMode: (mode: EditMode) => void;
 }
 
 /**

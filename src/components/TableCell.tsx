@@ -9,6 +9,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
+import { EditMode } from '..';
 import { CellSize, TableCellRole } from './consts';
 import DropdownList from './DropdownList';
 import useContextMenu, { ContextMenuEvent } from './hooks/useContextMenu';
@@ -41,6 +42,7 @@ interface TableCellProps<T> extends PropsBase<T> {
     containerRect?: DOMRect;
     hasFocus: boolean;
     onSelect: (range: CellRange) => void;
+    setMode: (mode: EditMode) => void;
 }
 
 interface StyleProps {
@@ -143,6 +145,7 @@ const useStyles = makeStyles({
 });
 
 function TableCell<T>({
+    mode,
     className,
     column,
     columns,
@@ -169,6 +172,7 @@ function TableCell<T>({
     containerRect,
     hasFocus,
     onSelect,
+    setMode,
 }: TableCellProps<T>): React.ReactElement {
     const [titleText, setTitleText] = useState<string>();
     const [cellRect, setCellRect] = useState<DOMRect>();
@@ -179,7 +183,7 @@ function TableCell<T>({
     });
     const cellRef = useRef<HTMLTableCellElement>(null);
     const labelRef = useRef<HTMLDivElement>(null);
-    const { openContextMenu } = useContext(PopoverContext);
+    const { openContextMenu, location: prevLocation } = useContext(PopoverContext);
 
     const entity: Partial<T> = useMemo(() => {
         // data から元データを取得する
@@ -207,6 +211,23 @@ function TableCell<T>({
     );
 
     /**
+     * セルのクリック
+     */
+    const handleClick = useCallback(() => {
+        // 範囲選択モード時
+        if (mode === 'select') {
+            // 範囲選択する
+            const range: CellRange = {
+                start: prevLocation,
+                end: location,
+            };
+            onSelect(range);
+            // 通常モードに戻す
+            setMode('normal');
+        }
+    }, [location, mode, onSelect, prevLocation, setMode]);
+
+    /**
      * 右クリック/要素長押しによるメニュー表示
      */
     const handleContextMenu = useCallback(
@@ -220,7 +241,7 @@ function TableCell<T>({
                 onSelect(range);
             }
             // 右クリックメニューの表示
-            openContextMenu(event);
+            openContextMenu(event, location);
         },
         [location, openContextMenu, onSelect, selected]
     );
@@ -294,6 +315,7 @@ function TableCell<T>({
                 [classes.readOnly]: readOnly && !selected,
                 [classes.selected]: selected && !editing,
             })}
+            onClick={handleClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
             onMouseDown={onMouseDown}

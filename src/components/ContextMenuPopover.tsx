@@ -10,6 +10,7 @@ import { isWithinRect, isZeroPosition } from './util';
 interface Props {
     getSelectedCellValus: () => string;
     pasteData: (text: string) => void;
+    switchSelectMode: VoidFunction;
     onClose: VoidFunction;
 }
 
@@ -69,7 +70,12 @@ type MenuItem = 'copy' | 'paste' | 'select';
 /**
  * 右クリックメニュー
  */
-const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData, onClose }) => {
+const ContextMenuPopover: React.VFC<Props> = ({
+    getSelectedCellValus,
+    pasteData,
+    switchSelectMode,
+    onClose,
+}) => {
     const { contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
     const classes = useStyles({ position: contextMenuPosition });
     const ref = useRef<HTMLDivElement>();
@@ -107,6 +113,15 @@ const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData,
         }
         handleClose();
     }, [handleClose, pasteData]);
+
+    /**
+     * 範囲選択
+     */
+    const handleClickSelect = useCallback(() => {
+        // 範囲選択モードに切り替え
+        switchSelectMode();
+        handleClose();
+    }, [handleClose, switchSelectMode]);
 
     /**
      * リストの外側をクリックされたら閉じる
@@ -165,6 +180,16 @@ const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData,
                             onMouseOver={() => setActive('paste')}
                         >
                             {formatMessage(messages, 'paste')}
+                        </button>
+                        {/* 範囲選択 */}
+                        <button
+                            className={classnames(classes.item, {
+                                [classes.active]: active === 'select',
+                            })}
+                            onClick={handleClickSelect}
+                            onMouseOver={() => setActive('select')}
+                        >
+                            {formatMessage(messages, 'select')}
                         </button>
                     </div>
                 </div>

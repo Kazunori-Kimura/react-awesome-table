@@ -29,6 +29,7 @@ export const defaultMessages = {
     // コピー＆ペースト
     copy: 'コピー',
     paste: '貼り付け',
+    select: '範囲選択',
 };
 
 export type MessageDefinitions = Partial<
