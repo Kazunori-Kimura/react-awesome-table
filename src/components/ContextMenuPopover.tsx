@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { CellRange } from '..';
 import { Popover } from './consts';
 import { formatMessage, MessageContext } from './providers/MessageProvider';
 import { PopoverContext } from './providers/PopoverProvider';
@@ -11,6 +12,7 @@ interface Props {
     getSelectedCellValus: () => string;
     pasteData: (text: string) => void;
     switchSelectMode: VoidFunction;
+    onSelect: (range: CellRange) => void;
     onClose: VoidFunction;
 }
 
@@ -74,9 +76,10 @@ const ContextMenuPopover: React.VFC<Props> = ({
     getSelectedCellValus,
     pasteData,
     switchSelectMode,
+    onSelect,
     onClose,
 }) => {
-    const { contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
+    const { location, contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
     const classes = useStyles({ position: contextMenuPosition });
     const ref = useRef<HTMLDivElement>();
     const messages = useContext(MessageContext);
@@ -123,8 +126,15 @@ const ContextMenuPopover: React.VFC<Props> = ({
     const handleClickSelect = useCallback(() => {
         // 範囲選択モードに切り替え
         switchSelectMode();
+        // 選択セルを右クリックされたセルのみに変更する
+        const range: CellRange = {
+            start: location,
+            end: location,
+        };
+        onSelect(range);
+        // コンテキストメニューを閉じる
         handleClose();
-    }, [handleClose, switchSelectMode]);
+    }, [handleClose, location, onSelect, switchSelectMode]);
 
     /**
      * リストの外側をクリックされたら閉じる

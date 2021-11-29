@@ -49,6 +49,7 @@ interface StyleProps {
     width?: number;
     isDropdown: boolean;
     hasFocus: boolean;
+    mode: EditMode;
 }
 
 const useStyles = makeStyles({
@@ -69,6 +70,9 @@ const useStyles = makeStyles({
         '-webkit-touch-callout': 'none',
         width: props.width ?? CellSize.DefaultWidth,
         boxSizing: 'border-box',
+        '&:hover': {
+            cursor: props.mode === 'select' ? 'cell' : 'auto',
+        },
     }),
     current: ({ hasFocus }) => ({
         // カレントセルの枠線
@@ -180,6 +184,7 @@ function TableCell<T>({
         width: column.width,
         isDropdown: Boolean(column.dataList),
         hasFocus,
+        mode,
     });
     const cellRef = useRef<HTMLTableCellElement>(null);
     const labelRef = useRef<HTMLDivElement>(null);

@@ -372,6 +372,7 @@ function TableComponent<T>(
                             getSelectedCellValus={getSelectedCellValues}
                             pasteData={pasteData}
                             switchSelectMode={switchSelectMode}
+                            onSelect={onSelect}
                             onClose={handleCloseContextMenu}
                         />
                     </div>
