@@ -87,6 +87,9 @@ const ContextMenuPopover: React.VFC<Props> = ({
      */
     const handleClose = useCallback(() => {
         closeContextMenu();
+        // 選択をリセット
+        setActive(undefined);
+        // メニューを閉じる
         onClose();
     }, [closeContextMenu, onClose]);
 

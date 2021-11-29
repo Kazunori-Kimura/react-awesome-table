@@ -89,10 +89,11 @@ const PopoverProvider: React.VFC<Props> = ({ root, mode, setMode, children }) =>
                 pos.left += clientX;
             }
 
+            setMode('normal');
             setLocation(location);
             setContextMenuPosition(pos);
         },
-        [root]
+        [root, setMode]
     );
 
     const closeContextMenu = useCallback(() => {
