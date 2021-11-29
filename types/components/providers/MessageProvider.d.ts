@@ -22,9 +22,10 @@ export declare const defaultMessages: {
     'validate.unique': string;
     copy: string;
     paste: string;
+    select: string;
 };
 export declare type MessageDefinitions = Partial<Record<keyof typeof defaultMessages, string | MessageFunction>>;
-export declare const MessageContext: React.Context<Partial<Record<"filter" | "copy" | "desc" | "paste" | "addRow" | "deleteRows" | "deleteConfirm" | "pagination.first" | "pagination.prev" | "pagination.next" | "pagination.last" | "asc" | "validate.required" | "validate.numeric" | "validate.datalist" | "validate.unique", string | MessageFunction>>>;
+export declare const MessageContext: React.Context<Partial<Record<"filter" | "copy" | "select" | "desc" | "paste" | "addRow" | "deleteRows" | "deleteConfirm" | "pagination.first" | "pagination.prev" | "pagination.next" | "pagination.last" | "asc" | "validate.required" | "validate.numeric" | "validate.datalist" | "validate.unique", string | MessageFunction>>>;
 /**
  * メッセージ変換
  * @param messages

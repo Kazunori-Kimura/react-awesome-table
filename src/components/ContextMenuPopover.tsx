@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/styles';
 import classnames from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { CellRange } from '..';
 import { Popover } from './consts';
 import { formatMessage, MessageContext } from './providers/MessageProvider';
 import { PopoverContext } from './providers/PopoverProvider';
@@ -10,6 +11,8 @@ import { isWithinRect, isZeroPosition } from './util';
 interface Props {
     getSelectedCellValus: () => string;
     pasteData: (text: string) => void;
+    switchSelectMode: VoidFunction;
+    onSelect: (range: CellRange) => void;
     onClose: VoidFunction;
 }
 
@@ -69,8 +72,14 @@ type MenuItem = 'copy' | 'paste' | 'select';
 /**
  * 右クリックメニュー
  */
-const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData, onClose }) => {
-    const { contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
+const ContextMenuPopover: React.VFC<Props> = ({
+    getSelectedCellValus,
+    pasteData,
+    switchSelectMode,
+    onSelect,
+    onClose,
+}) => {
+    const { location, contextMenuPosition, closeContextMenu } = useContext(PopoverContext);
     const classes = useStyles({ position: contextMenuPosition });
     const ref = useRef<HTMLDivElement>();
     const messages = useContext(MessageContext);
@@ -81,6 +90,9 @@ const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData,
      */
     const handleClose = useCallback(() => {
         closeContextMenu();
+        // 選択をリセット
+        setActive(undefined);
+        // メニューを閉じる
         onClose();
     }, [closeContextMenu, onClose]);
 
@@ -107,6 +119,22 @@ const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData,
         }
         handleClose();
     }, [handleClose, pasteData]);
+
+    /**
+     * 範囲選択
+     */
+    const handleClickSelect = useCallback(() => {
+        // 範囲選択モードに切り替え
+        switchSelectMode();
+        // 選択セルを右クリックされたセルのみに変更する
+        const range: CellRange = {
+            start: location,
+            end: location,
+        };
+        onSelect(range);
+        // コンテキストメニューを閉じる
+        handleClose();
+    }, [handleClose, location, onSelect, switchSelectMode]);
 
     /**
      * リストの外側をクリックされたら閉じる
@@ -165,6 +193,16 @@ const ContextMenuPopover: React.VFC<Props> = ({ getSelectedCellValus, pasteData,
                             onMouseOver={() => setActive('paste')}
                         >
                             {formatMessage(messages, 'paste')}
+                        </button>
+                        {/* 範囲選択 */}
+                        <button
+                            className={classnames(classes.item, {
+                                [classes.active]: active === 'select',
+                            })}
+                            onClick={handleClickSelect}
+                            onMouseOver={() => setActive('select')}
+                        >
+                            {formatMessage(messages, 'select')}
                         </button>
                     </div>
                 </div>

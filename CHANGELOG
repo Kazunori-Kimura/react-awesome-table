@@ -8,8 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Undo/Redo をライブラリの機能から切り出す
 
 ### Fixed
+- リファクタリング
+- Material-UI 4 -> 5（?）に置き換える
+
+## [0.6.7] - 2021-11-29
+### Added
+- コンテキストメニューに範囲選択を追加
 
 ## [0.6.6] - 2021-10-27
 ### Added
