@@ -8,7 +8,7 @@ import {
     useEffect,
     useMemo,
     useRef,
-    useState,
+    useState
 } from 'react';
 import { MouseButton } from './consts';
 import { formatMessage, MessageContext } from './providers/MessageProvider';
@@ -31,7 +31,7 @@ import {
     TableData,
     TableHookParameters,
     TableHookReturns,
-    TableOptions,
+    TableOptions
 } from './types';
 import {
     clearSelection,
@@ -49,7 +49,7 @@ import {
     safeGetCell,
     selectRange,
     withinCell,
-    withinRange,
+    withinRange
 } from './util';
 import { validateCell } from './validate';
 
@@ -1298,6 +1298,26 @@ export const useTable = <T>({
     }, [data, handleChange, pushUndoList, selection, setCellValue]);
 
     /**
+     * 選択範囲の値を編集中のセルの値で一括置換する
+     */
+    const editMultipleCells = useCallback(() => {
+        const cells = clone(data);
+        let changed = false;
+
+        selection.forEach((location) => {
+            // 値に空文字列をセット
+            const cellChanged = setCellValue(editCell.value, location, cells);
+            changed = changed || cellChanged;
+        });
+
+        if (changed) {
+            setData(cells);
+            handleChange(cells);
+            pushUndoList(cells);
+        }
+    }, [data, handleChange, pushUndoList, selection, setCellValue, editCell]);
+
+    /**
      * 任意のキー押下で値をセットするとともに編集開始
      */
     const handleAnyKeyDown = useCallback(
@@ -1339,7 +1359,7 @@ export const useTable = <T>({
     );
 
     /**
-     * Hotkyesの設定
+     * Hotkeysの設定
      */
     const hotkeySettings: HotkeyProps[] = useMemo(() => {
         return [
@@ -1886,6 +1906,8 @@ export const useTable = <T>({
             let action: EditorKeyDownAction = undefined;
             if (event.shiftKey) {
                 keys.push('shift');
+            } else if (event.ctrlKey) {
+                keys.push('ctrl');
             }
 
             debug(`handleEditorKeyDown: ${event.key}`);
@@ -1953,6 +1975,8 @@ export const useTable = <T>({
                         } else {
                             keyDownArrow(key);
                         }
+                    } else if (key === "ctrl+enter") {
+                        editMultipleCells();
                     } else {
                         keyDownTabEnter(key);
                     }
@@ -1967,7 +1991,7 @@ export const useTable = <T>({
                 setMode(newMode);
             }
         },
-        [cancelEditing, keyDownArrow, keyDownShiftArrow, keyDownTabEnter, mode]
+        [cancelEditing, keyDownArrow, keyDownShiftArrow, editMultipleCells, keyDownTabEnter, mode]
     );
 
     /**
