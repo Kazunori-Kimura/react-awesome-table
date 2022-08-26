@@ -1305,7 +1305,7 @@ export const useTable = <T>({
         let changed = false;
 
         selection.forEach((location) => {
-            // 値に空文字列をセット
+            // 値に編集中セルの値をセット
             const cellChanged = setCellValue(editCell.value, location, cells);
             changed = changed || cellChanged;
         });
