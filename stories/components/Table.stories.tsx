@@ -10,7 +10,7 @@ import {
     ColumnHeaderProps,
     HeaderProps,
     PaginationProps,
-    TableProps,
+    TableProps
 } from '../../src/components/types';
 import ForwardSample from './examples/ForwardSample';
 import UpdateDataSample from './examples/UpdateData';
@@ -61,7 +61,7 @@ const data: Point2D[] = [...Array(999)].map((_, index) => {
 const columns: ColumnDefinition<Point2D>[] = [
     {
         name: 'name',
-        getValue: (item) => item.name,
+        // getValue: (item) => item.name,
         defaultValue: (row: number) => `point_${row + 1}`,
         required: true,
         unique: true,
@@ -69,21 +69,21 @@ const columns: ColumnDefinition<Point2D>[] = [
     },
     {
         name: 'x',
-        getValue: (item) => `${item.x ?? ''}`,
+        // getValue: (item) => `${item.x ?? ''}`,
         valueType: 'numeric',
         width: 100,
         required: true,
     },
     {
         name: 'y',
-        getValue: (item) => `${item.y ?? ''}`,
+        // getValue: (item) => `${item.y ?? ''}`,
         valueType: 'numeric',
         width: 100,
         defaultValue: '0',
     },
     {
         name: 'color',
-        getValue: (item) => item.color ?? '',
+        // getValue: (item) => item.color ?? '',
         valueType: 'string',
         width: 100,
         dataList: [

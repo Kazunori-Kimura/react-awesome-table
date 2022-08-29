@@ -121,7 +121,7 @@ export interface ColumnDefinition<T> {
     name: keyof T;
     displayName?: string;
     valueType?: ValueType;
-    getValue: (item: T) => string;
+    getValue?: (item: T) => string;
     parseValue?: (value: string) => Partial<T>;
     validator?: ValidatorFunction<T> | ValidatorFunction<T>[];
     defaultValue?: string | DefaultValueGenerator<T>;

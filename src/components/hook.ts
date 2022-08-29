@@ -485,7 +485,7 @@ export const useTable = <T>({
         if (typeof prevItems === 'undefined' || prevItems !== rawItems) {
             const newData: TableData<T> = items.map((item, rowIndex) => {
                 return columns.map((column) => {
-                    const value = column.getValue(item);
+                    const value = column.hasOwnProperty("getValue") ? column.getValue(item) : item[column.name].toString();
 
                     const cell: Cell<T> = {
                         entityName: column.name,
@@ -1901,7 +1901,6 @@ export const useTable = <T>({
             if (event.nativeEvent.isComposing) {
                 return;
             }
-
             const keys: string[] = [];
             let action: EditorKeyDownAction = undefined;
             if (event.shiftKey) {
@@ -1975,7 +1974,7 @@ export const useTable = <T>({
                         } else {
                             keyDownArrow(key);
                         }
-                    } else if (key === "ctrl+enter") {
+                    } else if (key === 'ctrl+enter') {
                         editMultipleCells();
                     } else {
                         keyDownTabEnter(key);
