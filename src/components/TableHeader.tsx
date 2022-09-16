@@ -81,7 +81,7 @@ function TableHeader<T>({
                         return undefined;
                     }
 
-                    const key = `awesome-table-header-${column.name}-${index}`;
+                    const key = `awesome-table-header-${String(column.name)}-${index}`;
                     const sortProps = getSortProps(column.name);
                     const filterProps = getFilterProps(column.name);
 

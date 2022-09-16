@@ -297,7 +297,9 @@ function TableComponent<T>(
                                                         return undefined;
                                                     }
 
-                                                    const key = `awesome-table-body-${cell.entityName}-${rowIndex}-${colIndex}`;
+                                                    const key = `awesome-table-body-${String(
+                                                        cell.entityName
+                                                    )}-${rowIndex}-${colIndex}`;
                                                     const column = columns.find(
                                                         (c) => c.name === cell.entityName
                                                     );
