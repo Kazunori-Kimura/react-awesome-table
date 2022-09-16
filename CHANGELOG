@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - リファクタリング
 - Material-UI 4 -> 5（?）に置き換える
 
+## [0.7.0]
+### Added
+- Ctrl+Enter で同じデータを複数のセルに一括で入力 #109 from @tk42
+
 ## [0.6.7] - 2021-11-29
 ### Added
 - コンテキストメニューに範囲選択を追加

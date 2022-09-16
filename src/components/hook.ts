@@ -1298,6 +1298,26 @@ export const useTable = <T>({
     }, [data, handleChange, pushUndoList, selection, setCellValue]);
 
     /**
+     * 選択範囲の値を編集中のセルの値で一括置換する
+     */
+    const editMultipleCells = useCallback(() => {
+        const cells = clone(data);
+        let changed = false;
+
+        selection.forEach((location) => {
+            // 値に編集中セルの値をセット
+            const cellChanged = setCellValue(editCell.value, location, cells);
+            changed = changed || cellChanged;
+        });
+
+        if (changed) {
+            setData(cells);
+            handleChange(cells);
+            pushUndoList(cells);
+        }
+    }, [data, handleChange, pushUndoList, selection, setCellValue, editCell]);
+
+    /**
      * 任意のキー押下で値をセットするとともに編集開始
      */
     const handleAnyKeyDown = useCallback(
@@ -1339,7 +1359,7 @@ export const useTable = <T>({
     );
 
     /**
-     * Hotkyesの設定
+     * Hotkeysの設定
      */
     const hotkeySettings: HotkeyProps[] = useMemo(() => {
         return [
@@ -1411,7 +1431,7 @@ export const useTable = <T>({
             data?.filter((row) => {
                 if (filter) {
                     return columns.every((column) => {
-                        const filterText = filter[`${column.name}`];
+                        const filterText = filter[`${String(column.name)}`];
                         if (filterText) {
                             const cell = row.find((e) => e.entityName === column.name);
                             if (cell) {
@@ -1509,10 +1529,11 @@ export const useTable = <T>({
     const getFilterProps = useCallback(
         (name: keyof T): FilterProps => {
             const column = columns.find((c) => c.name === name);
+            const columnName = String(name);
             return {
                 filterable: settings.filterable && (column.filterable ?? true),
-                name: `${name}`,
-                value: filter ? filter[`${name}`] ?? '' : '',
+                name: columnName,
+                value: filter ? filter[columnName] ?? '' : '',
                 onChange: onChangeFilter,
             };
         },
@@ -1529,13 +1550,15 @@ export const useTable = <T>({
                     return;
                 }
 
+                const columnName = String(name);
+
                 // 1. ソートボタンをクリックした順にソート順を保持する
                 //    同じボタンが複数クリックされた場合はまず該当ソート順を削除してから
                 //    先頭にソート順を登録する
-                const order = sort.find((e) => e.name === `${name}`)?.order;
-                const newSort: SortState[] = sort.filter((e) => e.name !== `${name}`);
+                const order = sort.find((e) => e.name === columnName)?.order;
+                const newSort: SortState[] = sort.filter((e) => e.name !== columnName);
                 newSort.unshift({
-                    name: `${name}`,
+                    name: columnName,
                     order: order === 'desc' ? 'asc' : 'desc',
                 });
 
@@ -1575,9 +1598,10 @@ export const useTable = <T>({
     const getSortProps = useCallback(
         (name: keyof T): SortProps => {
             const column = columns.find((c) => c.name === name);
+            const columnName = String(name);
             return {
                 sortable: settings.sortable && (column.sortable ?? true),
-                order: sort.find((e) => e.name === `${name}`)?.order,
+                order: sort.find((e) => e.name === columnName)?.order,
                 onClick: getSortButtonClickEventHandler(name),
             };
         },
@@ -1886,6 +1910,10 @@ export const useTable = <T>({
             let action: EditorKeyDownAction = undefined;
             if (event.shiftKey) {
                 keys.push('shift');
+            } else if (event.ctrlKey) {
+                keys.push('ctrl');
+            } else if (event.metaKey) {
+                keys.push('command');
             }
 
             debug(`handleEditorKeyDown: ${event.key}`);
@@ -1953,6 +1981,8 @@ export const useTable = <T>({
                         } else {
                             keyDownArrow(key);
                         }
+                    } else if (key === 'ctrl+enter' || key === 'command+enter') {
+                        editMultipleCells();
                     } else {
                         keyDownTabEnter(key);
                     }
@@ -1967,7 +1997,7 @@ export const useTable = <T>({
                 setMode(newMode);
             }
         },
-        [cancelEditing, keyDownArrow, keyDownShiftArrow, keyDownTabEnter, mode]
+        [cancelEditing, keyDownArrow, keyDownShiftArrow, editMultipleCells, keyDownTabEnter, mode]
     );
 
     /**
@@ -2149,7 +2179,7 @@ export const useTable = <T>({
      */
     const selectByKeyValue = useCallback(
         (key: keyof T, value: string): boolean => {
-            debug(`selectByKeyValue: key=${key}, value=${value}`);
+            debug(`selectByKeyValue: key=${String(key)}, value=${value}`);
 
             // 編集を完了する
             const cells = clone(data);
